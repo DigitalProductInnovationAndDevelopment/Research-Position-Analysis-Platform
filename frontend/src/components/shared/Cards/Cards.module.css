@@ -1,0 +1,69 @@
+@import '../../../assets/styles/variables.css';
+
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.card {
+  background-color: var(--white);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.cardIcon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.cardContent {
+  flex: 1;
+}
+
+.cardTitle {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--gray-900);
+  margin: 0 0 8px 0;
+}
+
+.cardDescription {
+  font-size: var(--text-sm);
+  color: var(--gray-600);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Dark mode styles */
+:global(.dark) .card {
+  background-color: var(--gray-800);
+}
+
+:global(.dark) .cardTitle {
+  color: var(--gray-100);
+}
+
+:global(.dark) .cardDescription {
+  color: var(--gray-400);
+}
+
+/* Responsive styles */
+@media (max-width: var(--breakpoint-sm)) {
+  .cardsGrid {
+    grid-template-columns: 1fr;
+  }
+} 

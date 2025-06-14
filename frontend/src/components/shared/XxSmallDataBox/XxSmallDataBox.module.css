@@ -1,0 +1,27 @@
+.xxSmallDataBox {
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-md);
+  background-color: var(--color-background-light);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  flex: 1;
+}
+
+.chartTitle {
+  font-size: var(--font-size-base);
+  font-weight: bold;
+  margin-bottom: var(--spacing-sm);
+}
+
+.chartContainer {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.chartImage {
+  max-width: 100%;
+  height: auto;
+} 

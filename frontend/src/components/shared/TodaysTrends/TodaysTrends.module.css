@@ -1,0 +1,75 @@
+@import '../../../assets/styles/variables.css';
+
+.container {
+  background-color: var(--color-background-light);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  margin-bottom: 20px;
+}
+
+.trendsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.trendItem {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.trendLabel {
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+  opacity: 0.7;
+}
+
+.trendValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-light);
+}
+
+.trendChange {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.positive {
+  color: var(--color-success);
+}
+
+.negative {
+  color: var(--color-error);
+}
+
+/* Dark mode styles */
+:global(.dark) .container {
+  background-color: var(--color-background-dark);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+:global(.dark) .title,
+:global(.dark) .trendValue {
+  color: var(--color-text-dark);
+}
+
+:global(.dark) .trendLabel {
+  color: var(--color-text-dark);
+  opacity: 0.7;
+}
+
+/* Mobile styles */
+@media (max-width: var(--breakpoint-mobile)) {
+  .trendsGrid {
+    grid-template-columns: 1fr;
+  }
+} 

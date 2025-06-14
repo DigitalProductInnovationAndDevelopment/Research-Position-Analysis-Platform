@@ -1,0 +1,96 @@
+/* Import global variables */
+@import '../../../assets/styles/variables.css';
+
+.sideMenu {
+  width: 250px;
+  height: 100vh;
+  background-color: var(--color-background-light);
+  padding: var(--spacing-medium);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.logoContainer {
+  padding: var(--spacing-medium);
+  margin-bottom: var(--spacing-large);
+}
+
+.logo {
+  max-width: 100%;
+  height: auto;
+}
+
+.menuItems {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-medium);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-medium);
+  padding: var(--spacing-small);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.menuItem:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+}
+
+.label {
+  font-size: var(--font-size-base);
+  color: var(--color-text-light);
+}
+
+.divider {
+  margin: var(--spacing-medium) 0;
+}
+
+/* Dark mode styles */
+.darkMode {
+  background-color: var(--color-background-dark);
+}
+
+.darkMode .label {
+  color: var(--color-text-dark);
+}
+
+.darkMode .menuItem:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Mobile styles */
+.mobile {
+  width: 100%;
+  height: auto;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+  padding: var(--spacing-small);
+}
+
+.mobile .menuItems {
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.mobile .label {
+  display: none;
+}
+
+@media (max-width: var(--breakpoint-mobile)) {
+  .sideMenu:not(.mobile) {
+    display: none;
+  }
+} 

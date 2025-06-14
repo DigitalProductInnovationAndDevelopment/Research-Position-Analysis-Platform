@@ -1,0 +1,41 @@
+/* Import global variables */
+@import './variables.css';
+
+/* Base styles for both light and dark themes */
+.positionPage {
+  padding: var(--spacing-medium);
+  font-family: var(--font-family-base);
+  min-height: 100vh;
+}
+
+/* Light theme specific styles */
+.positionPageLight {
+  composes: positionPage;
+  background-color: var(--color-background-light);
+  color: var(--color-text-light);
+}
+
+/* Dark theme specific styles */
+.positionPageDark {
+  composes: positionPage;
+  background-color: var(--color-background-dark);
+  color: var(--color-text-dark);
+}
+
+/* Common component styles */
+.detailContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-large);
+}
+
+.detailHeader {
+  margin-bottom: var(--spacing-large);
+}
+
+/* Responsive styles */
+@media (max-width: var(--breakpoint-mobile)) {
+  .detailContainer {
+    padding: var(--spacing-medium);
+  }
+} 

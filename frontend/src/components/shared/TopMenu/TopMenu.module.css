@@ -1,0 +1,77 @@
+@import '../../../assets/styles/variables.css';
+
+.topMenu {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  background-color: var(--color-background-light);
+  border-bottom: 1px solid var(--color-border);
+  height: 64px;
+}
+
+.searchContainer {
+  position: relative;
+  width: 300px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-xl) var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  background-color: var(--color-background-light);
+  color: var(--color-text-light);
+  font-size: var(--font-size-base);
+  transition: all 0.2s ease;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.searchIcon {
+  position: absolute;
+  right: var(--spacing-md);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: var(--color-text-light);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Dark mode styles */
+:global(.dark) .topMenu {
+  background-color: var(--color-background-dark);
+  border-color: var(--color-border-dark);
+}
+
+:global(.dark) .searchInput {
+  background-color: var(--color-background-dark);
+  border-color: var(--color-border-dark);
+  color: var(--color-text-dark);
+}
+
+:global(.dark) .searchInput:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-dark);
+}
+
+:global(.dark) .searchIcon {
+  color: var(--color-text-dark);
+}
+
+/* Mobile styles */
+@media (max-width: var(--breakpoint-mobile)) {
+  .searchContainer {
+    width: 200px;
+  }
+  
+  .topMenu {
+    padding: var(--spacing-sm);
+  }
+} 

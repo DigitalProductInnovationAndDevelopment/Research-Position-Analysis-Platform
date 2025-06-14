@@ -1,0 +1,163 @@
+/* Import global variables */
+@import './variables.css';
+
+/* Base styles for both light and dark themes */
+.landingPage {
+  padding: var(--spacing-medium);
+  font-family: var(--font-family-base);
+}
+
+/* Light theme specific styles */
+.landingPageLight {
+  composes: landingPage;
+  background-color: var(--color-background-light);
+  color: var(--color-text-light);
+  display: grid;
+  grid-template-columns: auto 1fr; /* SideMenu takes auto width, mainContent takes rest */
+  min-height: 100vh;
+}
+
+/* Dark theme specific styles */
+.landingPageDark {
+  composes: landingPage;
+  background-color: var(--color-background-dark);
+  color: var(--color-text-dark);
+}
+
+.sideMenu {
+  /* Specific styles for SideMenu to be in the upper left corner */
+  grid-column: 1;
+  grid-row: 1 / span 2; /* Span across TopMenu and content */
+  z-index: 10; /* Ensure it's above other content */
+  /* Add any specific positioning if needed, e.g., position: fixed; top: 0; left: 0; */
+}
+
+.darkBtnInstance {
+  position: absolute;
+  bottom: var(--spacing-medium);
+  left: var(--spacing-medium);
+  z-index: 11;
+}
+
+.mainContent {
+  grid-column: 2; /* Main content takes the second column */
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-medium);
+  padding: var(--spacing-medium);
+}
+
+.topmenuFill {
+  width: 100%;
+}
+
+.contentRows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-medium);
+}
+
+/* Common component styles */
+.strip {
+  display: flex;
+  gap: var(--spacing-medium);
+  margin-bottom: var(--spacing-medium);
+  flex-wrap: wrap; /* Allow items to wrap to the next line */
+  justify-content: space-between; /* Distribute items evenly */
+  align-items: flex-start;
+}
+
+.promoBoxInstance,
+.designComponentInstanceNode2,
+.xxSmallDataBox3 {
+  flex: 1;
+  min-width: 300px; /* Adjust as needed for responsiveness */
+}
+
+.promoBoxInstance {
+  max-width: 60%; /* Adjust based on desired ratio with XSmallDataBox */
+}
+
+.designComponentInstanceNode2 {
+  max-width: 30%; /* Adjust to fit three in a row for XxSmallDataBox */
+}
+
+.mediumDataBox {
+  flex: 1;
+  min-width: 300px; /* Adjust as needed for responsiveness */
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-small);
+  padding: var(--spacing-medium);
+  background-color: var(--color-background-light);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.topText {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rightText {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-extra-small);
+}
+
+.textWrapper8,
+.textWrapper9 {
+  font-size: var(--font-size-md);
+  font-weight: bold;
+}
+
+.arrowUpward2 {
+  width: 16px;
+  height: 16px;
+}
+
+.simpledonutchart {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px; /* Adjust height as needed */
+}
+
+.donutChartImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Responsive styles */
+@media (max-width: var(--breakpoint-mobile)) {
+  .landingPageLight {
+    grid-template-columns: 1fr; /* Stack items vertically on small screens */
+  }
+
+  .sideMenu {
+    grid-column: 1;
+    grid-row: auto;
+    position: relative; /* Remove fixed positioning for mobile */
+  }
+
+  .mainContent {
+    grid-column: 1;
+    padding: var(--spacing-small);
+  }
+
+  .strip {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .promoBoxInstance,
+  .designComponentInstanceNode2,
+  .xxSmallDataBox3,
+  .mediumDataBox {
+    min-width: unset;
+    width: 100%;
+    max-width: 100%;
+  }
+} 
