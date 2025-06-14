@@ -2,12 +2,14 @@ require('dotenv').config();
 
 const express = require('express');
 const publicationsRoutes = require('./routes/publications');
+const cors = require('cors');
 
 // express app
 const app = express();
 
 // middleware
 app.use(express.json());
+app.use(cors());
 
 app.use((req, res, next) => {
     console.log(req.path, req.method);

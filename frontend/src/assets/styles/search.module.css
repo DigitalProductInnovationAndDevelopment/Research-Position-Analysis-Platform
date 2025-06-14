@@ -108,6 +108,186 @@
   padding: var(--spacing-xs);
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius-sm);
+  box-sizing: border-box; /* Ensure padding doesn't add to the width */
+}
+
+.searchButtonContainer {
+  display: flex;
+  justify-content: flex-end; /* Align button to the right */
+  margin-top: var(--spacing-md); /* Add some space above the button */
+  width: 100%; /* Ensure container takes full width of its parent */
+}
+
+.searchButton {
+  background-color: var(--color-primary); /* Use a primary color for the button */
+  color: var(--color-text-dark); /* Dark text for contrast */
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  margin-left: var(--spacing-sm); /* Space between input and button */
+  transition: background-color 0.2s ease-in-out;
+}
+
+.searchButton:hover {
+  background-color: var(--color-primary-dark); /* Darker shade on hover */
+}
+
+.searchButton:disabled {
+  background-color: var(--color-border); /* Grayed out when disabled */
+  cursor: not-allowed;
+}
+
+.errorMessage {
+  color: var(--color-error); /* Red color for error messages */
+  margin-top: var(--spacing-sm);
+  text-align: center;
+  font-weight: bold;
+}
+
+.loadingMessage {
+  color: var(--color-text-light);
+  margin-top: var(--spacing-sm);
+  text-align: center;
+  font-style: italic;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--spacing-lg);
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: var(--color-primary); /* Use a primary color for the spinner */
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto; /* Center the spinner */
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.searchResultsSection {
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background-color: var(--color-background-light);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.searchResultsTitle {
+  font-size: var(--font-size-xl);
+  font-weight: bold;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+}
+
+.resultsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-medium);
+}
+
+.searchResultItem {
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-medium);
+  background-color: var(--color-card-background);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  transition: all 0.3s ease;
+}
+
+.siemensPaper {
+  background-color: rgba(0, 153, 204, 0.1); /* Light blue background */
+  border: 2px solid #0099cc; /* Siemens blue border */
+  box-shadow: 0 2px 4px rgba(0, 153, 204, 0.2); /* Subtle blue shadow */
+}
+
+.siemensPaper h3 {
+  color: #0099cc; /* Siemens blue for the title */
+}
+
+.siemensPaper:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 153, 204, 0.3);
+}
+
+.searchResultItem h3 {
+  font-size: var(--font-size-md);
+  color: var(--color-primary-dark);
+  margin: 0;
+}
+
+.searchResultItem p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+  margin: 0;
+}
+
+.searchResultItem a {
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+.searchResultItem a:hover {
+  text-decoration: underline;
+}
+
+.abstractContainer {
+  position: relative;
+  margin-top: var(--spacing-sm);
+  padding-right: 40px; /* Make space for the expand button */
+}
+
+.abstractText {
+  font-style: italic;
+  color: var(--color-text-light);
+  margin: 0;
+}
+
+.expandAbstractButton {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: var(--font-size-xs); /* Smaller font for the button */
+  color: var(--color-link); /* Link color */
+  cursor: pointer;
+  text-decoration: underline;
+  white-space: nowrap; /* Prevent wrapping */
+}
+
+.expandIconBox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px; /* Small box size */
+  height: 20px;
+  border: 1px solid var(--color-border); /* Frame for the triangle */
+  border-radius: var(--border-radius-sm); /* Slightly rounded corners */
+  margin-left: 5px; /* Space from the ellipsis */
+  vertical-align: middle;
+}
+
+.collapseAbstractButton {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-link);
+  cursor: pointer;
+  text-decoration: underline;
+  white-space: nowrap;
 }
 
 .criteriumWrapper {

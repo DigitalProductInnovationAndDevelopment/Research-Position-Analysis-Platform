@@ -19,7 +19,6 @@ import homeIcon from "../../assets/icons/home.svg";
 import searchIcon from "../../assets/icons/search.svg";
 import graphIcon from "../../assets/icons/graph.svg";
 import aboutIcon from "../../assets/icons/about.png";
-import dividerLineImg from "../../assets/images/divider-line.svg";
 import siemensLogo from "../../assets/images/siemens-logo.png";
 import search3Svg from "../../assets/icons/search-3.svg";
 
