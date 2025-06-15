@@ -81,9 +81,9 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
   };
 
   const handleSearch = async () => {
-    setError(null); // Clear previous errors
-    setIsLoading(true); // Start loading
-    setSearchResults([]); // Clear previous results
+    setError(null);
+    setIsLoading(true);
+    setSearchResults([]);
 
     // Basic validation for at least one input
     if (
@@ -95,45 +95,6 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
       !funding.trim()
     ) {
       setError("Please enter at least one search criterion.");
-      setIsLoading(false);
-      return;
-    }
-
-    // String content validation
-    const alphaRegex = /[a-zA-Z]/;
-
-    if (searchKeyword.trim() !== "" && !alphaRegex.test(searchKeyword.trim())) {
-      setError("'Search Keyword' has wrong datatype input. Please enter a valid keyword with letters.");
-      setIsLoading(false);
-      return;
-    }
-    if (institution.trim() !== "" && !alphaRegex.test(institution.trim())) {
-      setError("'Institution' has wrong datatype input. Please enter a valid institution name with letters.");
-      setIsLoading(false);
-      return;
-    }
-    if (author.trim() !== "" && !alphaRegex.test(author.trim())) {
-      setError("'Author' has wrong datatype input. Please enter a valid author name with letters.");
-      setIsLoading(false);
-      return;
-    }
-
-    // Year validation
-    const fromYear = parseInt(yearFrom);
-    const toYear = parseInt(yearTo);
-
-    if (yearFrom.trim() !== "" && (isNaN(fromYear) || !Number.isInteger(fromYear) || fromYear < 0)) {
-      setError("'Year From' has wrong datatype input. Please enter a positive integer.");
-      setIsLoading(false);
-      return;
-    }
-    if (yearTo.trim() !== "" && (isNaN(toYear) || !Number.isInteger(toYear) || toYear < 0)) {
-      setError("'Year To' has wrong datatype input. Please enter a positive integer.");
-      setIsLoading(false);
-      return;
-    }
-    if (fromYear && toYear && fromYear > toYear) {
-      setError("'Year From' cannot be greater than 'Year To'.");
       setIsLoading(false);
       return;
     }
@@ -150,22 +111,42 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
       // Add year filter
       if (yearFrom.trim() || yearTo.trim()) {
         if (yearFrom.trim() && yearTo.trim()) {
-          // Both years provided - use range format with +-+
           filters.push(`publication_year:${yearFrom.trim()}+-+${yearTo.trim()}`);
         } else if (yearFrom.trim()) {
-          // Only from year - use single year format
           filters.push(`publication_year:${yearFrom.trim()}`);
         }
       }
 
-      // Add institution filter
+      // Handle institution search
+      let institutionIds = [];
       if (institution.trim()) {
-        filters.push(`authorships.institutions.display_name:"${institution.trim()}"`);
+        try {
+          // Step 1: Search for institutions by name
+          const institutionResponse = await fetch(`https://api.openalex.org/institutions?search=${encodeURIComponent(institution.trim())}`);
+          if (!institutionResponse.ok) {
+            throw new Error('Failed to fetch institutions');
+          }
+          const institutionData = await institutionResponse.json();
+
+          // Get all institution IDs
+          institutionIds = institutionData.results.map(inst => inst.id.split('/').pop());
+
+          if (institutionIds.length > 0) {
+            // Step 2: Add institution IDs to the filter
+            filters.push(`institutions.id:${institutionIds.join('|')}`);
+          }
+        } catch (error) {
+          console.error('Error fetching institutions:', error);
+          setError('Failed to fetch institution data. Please try again.');
+          setIsLoading(false);
+          return;
+        }
       }
 
       // Add author filter
       if (author.trim()) {
-        filters.push(`authorships.author.display_name:"${author.trim()}"`);
+        // Search within raw author names with proper encoding
+        filters.push(`raw_author_name.search:${encodeURIComponent(author.trim())}`);
       }
 
       // Add funding filter
@@ -197,7 +178,7 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
         throw new Error(`HTTP error! status: ${response.status}${errorData ? `, details: ${JSON.stringify(errorData)}` : ''}`);
       }
       const data = await response.json();
-      setSearchResults(data.results || []); // Assuming results are in data.results
+      setSearchResults(data.results || []);
     } catch (e) {
       setError("Failed to fetch search results. Please try again. Error: " + e.message);
       console.error("Search fetch error:", e);
