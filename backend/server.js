@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const publicationsRoutes = require('./routes/publications');
+const topicsRoutes = require('./routes/topics');
 
 // express app
 const app = express();
@@ -17,6 +18,7 @@ app.use((req, res, next) => {
 
 // routes
 app.use('/api/publications', publicationsRoutes);
+app.use('/api/topics', topicsRoutes);
 
 // listen for requests
 app.listen(process.env.PORT, () => {
