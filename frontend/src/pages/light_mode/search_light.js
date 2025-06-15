@@ -18,17 +18,17 @@ const getFirstSentence = (text) => {
   if (!text) return "";
   const sentenceEndMatch = text.match(/[^.!?]*[.!?]/);
   const firstSentence = sentenceEndMatch ? sentenceEndMatch[0] : text;
-  
+
   // Append ellipsis if the abstract is longer than the first sentence
   return text.length > firstSentence.length ? `${firstSentence} ...` : firstSentence;
 };
 
 const isSiemensPaper = (result) => {
   if (!result.authorships) return false;
-  
+
   // Check if any of the institutions in the paper are Siemens
-  return result.authorships.some(authorship => 
-    authorship.institutions?.some(institution => 
+  return result.authorships.some(authorship =>
+    authorship.institutions?.some(institution =>
       institution.display_name?.toLowerCase().includes('siemens')
     )
   );
@@ -140,16 +140,61 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
 
     try {
       const params = new URLSearchParams();
-      if (searchKeyword.trim()) params.append("search", searchKeyword.trim());
-      if (institution.trim()) params.append("institution", institution.trim());
-      if (yearFrom.trim()) params.append("min_year", yearFrom.trim());
-      if (yearTo.trim()) params.append("max_year", yearTo.trim());
-      if (author.trim()) params.append("author", author.trim());
-      if (funding.trim()) params.append("funding", funding.trim());
+      const filters = [];
 
-      const response = await fetch(`http://localhost:4000/api/publications/search?${params.toString()}`);
+      // Add search keyword filter
+      if (searchKeyword.trim()) {
+        filters.push(`title_and_abstract.search:${searchKeyword.trim()}`);
+      }
+
+      // Add year filter
+      if (yearFrom.trim() || yearTo.trim()) {
+        if (yearFrom.trim() && yearTo.trim()) {
+          // Both years provided - use range format with +-+
+          filters.push(`publication_year:${yearFrom.trim()}+-+${yearTo.trim()}`);
+        } else if (yearFrom.trim()) {
+          // Only from year - use single year format
+          filters.push(`publication_year:${yearFrom.trim()}`);
+        }
+      }
+
+      // Add institution filter
+      if (institution.trim()) {
+        filters.push(`authorships.institutions.display_name:"${institution.trim()}"`);
+      }
+
+      // Add author filter
+      if (author.trim()) {
+        filters.push(`authorships.author.display_name:"${author.trim()}"`);
+      }
+
+      // Add funding filter
+      if (funding.trim()) {
+        filters.push(`grants.funder.display_name:"${funding.trim()}"`);
+      }
+
+      // Add all filters as a single parameter
+      if (filters.length > 0) {
+        const filterString = filters.join(',');
+        console.log('Filter string:', filterString); // Debug log
+        params.append("filter", filterString);
+      }
+
+      // Add other parameters
+      params.append("page", "1");
+      params.append("per_page", "25");
+      params.append("sort", "relevance_score:desc");
+
+      const url = `http://localhost:4000/api/publications/search?${params.toString()}`;
+      console.log('Making request to:', url); // Debug log
+
+      const response = await fetch(url);
+      console.log('Response status:', response.status);
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json().catch(() => null);
+        console.error('Error response:', errorData);
+        throw new Error(`HTTP error! status: ${response.status}${errorData ? `, details: ${JSON.stringify(errorData)}` : ''}`);
       }
       const data = await response.json();
       setSearchResults(data.results || []); // Assuming results are in data.results
@@ -300,7 +345,7 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
                 />
               </div>
             </div>
-            
+
             <div className={styles.searchButtonContainer}>
               <button onClick={handleSearch} disabled={isLoading} className={styles.searchButton}>
                 {isLoading ? "Searching..." : "Search"}
@@ -316,32 +361,32 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
               <div className={styles.loadingMessage}>Loading search results...</div>
             </div>
           )}
-          
+
           {searchResults.length > 0 && (
             <div className={styles.searchResultsSection}>
               <h2 className={styles.searchResultsTitle}>Research Paper Results</h2>
               <div className={styles.resultsList}>
                 {searchResults.map((result, index) => (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     className={`${styles.searchResultItem} ${isSiemensPaper(result) ? styles.siemensPaper : ''}`}
                   >
                     <h3>{result.display_name || result.title || "No Title"}</h3>
                     <p>Authors: {result.authorships ? result.authorships.map(a => a.author.display_name).join(", ") : "N/A"}</p>
                     <p>Year: {result.publication_year || "N/A"}</p>
-                    <p>Institutions: {result.authorships && result.authorships.length > 0 
+                    <p>Institutions: {result.authorships && result.authorships.length > 0
                       ? Array.from(new Set(result.authorships.flatMap(a => a.institutions || []).map(inst => inst.display_name))).join(", ")
                       : "N/A"}</p>
                     {result.abstract_inverted_index && (
                       <div className={styles.abstractContainer}>
                         <p className={styles.abstractText}>
-                          {expandedAbstracts[result.id] ? 
+                          {expandedAbstracts[result.id] ?
                             reconstructAbstract(result.abstract_inverted_index) :
                             getFirstSentence(reconstructAbstract(result.abstract_inverted_index))
                           }
                         </p>
                         {reconstructAbstract(result.abstract_inverted_index).length > getFirstSentence(reconstructAbstract(result.abstract_inverted_index)).length && !expandedAbstracts[result.id] && (
-                          <span 
+                          <span
                             className={styles.expandAbstractButton}
                             onClick={() => toggleAbstractExpansion(result.id)}
                             title="Expand Abstract"
@@ -350,7 +395,7 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
                           </span>
                         )}
                         {expandedAbstracts[result.id] && (
-                          <span 
+                          <span
                             className={styles.collapseAbstractButton}
                             onClick={() => toggleAbstractExpansion(result.id)}
                             title="Collapse Abstract"

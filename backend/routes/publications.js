@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
     try {
         const { search, page = 1, per_page = 25 } = req.query;
         const url = `${OPENALEX_API_BASE}/works`;
-        
+
         const params = {
             page,
             per_page,
@@ -20,9 +20,9 @@ router.get('/', async (req, res) => {
         res.json(response.data);
     } catch (error) {
         console.error('Error fetching publications:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Failed to fetch publications',
-            details: error.message 
+            details: error.message
         });
     }
 });
@@ -30,156 +30,50 @@ router.get('/', async (req, res) => {
 // Advanced search publications
 router.get('/search', async (req, res) => {
     try {
-        const { 
-            search = '', 
-            author = '', 
-            year = '', 
-            institution = '',
-            journal = '',
-            type = '', // New: publication type (article, book, etc.)          
-            language = '',// New: language of publication       
-            min_citations = '',  // New: minimum citation count
-            max_citations = '',  // New: maximum citation count
-            subject = '',        // New: subject area
-            doi = '',           // New: DOI identifier
-            is_open_access = '', // New: open access status
-            sort_by = 'cited_by_count:desc',
-            publisher = '',      // New: specific publisher
-            venue = '',         // New: conference or venue name
-            abstract = '',      // New: search in abstract
-            keywords = '',      // New: specific keywords
-            funding = '',       // New: funding organization
-            country = '',       // New: country of publication
-            min_year = '',      // New: minimum publication year
-            max_year = '',      // New: maximum publication year
-            has_abstract = '',  // New: publications with/without abstract
-            has_doi = '',       // New: publications with/without DOI
-            has_pdf = '',       // New: publications with/without PDF
-            has_software = '',  // New: publications with/without software
-            has_dataset = '',   // New: publications with/without dataset
-            page = 1, 
-            per_page = 25 
+        const {
+            filter = '',
+            sort = 'relevance_score:desc',
+            page = 1,
+            per_page = 25
         } = req.query;
 
         // Initialize params for OpenAlex API
         const params = {
-            page,
-            per_page,
-            sort: sort_by || 'cited_by_count:desc' // Default sort if not provided
+            page: parseInt(page),
+            per_page: parseInt(per_page),
+            sort,
+            filter
         };
-
-        // Add general search query if present
-        if (search) {
-            params.search = search.trim();
-        }
-
-        // Initialize filters array for specific OpenAlex filters
-        params.filter = [];
-
-        // Add specific filters to the filter array
-        if (author) params.filter.push(`authorships.author.display_name:"${author}"`);
-        if (journal) params.filter.push(`primary_location.source.display_name:"${journal}"`);
-        if (type) params.filter.push(`type:"${type}"`);
-        if (language) params.filter.push(`language:"${language}"`);
-        if (subject) params.filter.push(`concepts.display_name:"${subject}"`);
-        if (doi) params.filter.push(`doi:"${doi}"`);
-        if (is_open_access) params.filter.push(`is_oa:${is_open_access}`); // OpenAlex uses is_oa
-        if (publisher) params.filter.push(`primary_location.source.publisher:"${publisher}"`);
-        if (venue) params.filter.push(`primary_location.source.display_name:"${venue}"`); // Can be journal or conference
-        if (abstract) params.filter.push(`abstract_inverted_index:"${abstract}"`);
-        if (keywords) params.filter.push(`keywords.keyword:"${keywords}"`);
-        if (funding) params.filter.push(`grants.funder.display_name:"${funding}"`);
-        if (country) params.filter.push(`authorships.countries:${country}`); // OpenAlex uses 2-letter country codes
-
-        // Citation range
-        if (min_citations) params.filter.push(`cited_by_count:>=${min_citations}`);
-        if (max_citations) params.filter.push(`cited_by_count:<=${max_citations}`);
-
-        // Handle institution filter with a two-step approach: search institution by name, then filter works by ID
-        if (institution) {
-            try {
-                const institutionSearchUrl = `${OPENALEX_API_BASE}/institutions`;
-                const institutionSearchParams = { search: institution, per_page: 1 };
-                const institutionResponse = await axios.get(institutionSearchUrl, { params: institutionSearchParams });
-                const institutionResult = institutionResponse.data.results?.[0];
-
-                if (institutionResult && institutionResult.display_name.toLowerCase() === institution.toLowerCase()) {
-                    const institutionId = institutionResult.id.replace('https://openalex.org/', '');
-                    params.filter.push(`authorships.institutions.id:${institutionId}`);
-                } else {
-                    console.warn(`No exact institution match found for "${institution}", proceeding without institution ID filter.`);
-                }
-            } catch (instError) {
-                console.error(`Error searching for institution "${institution}":`, instError.message);
-                // Continue without institution filter if there's an error in institution search
-            }
-        }
-
-        // Year range (using publication_year as the field for range)
-        if (min_year) params.filter.push(`publication_year:>=${min_year}`);
-        if (max_year) params.filter.push(`publication_year:<=${max_year}`);
-
-        // Boolean filters
-        if (has_abstract) params.filter.push(`has_abstract:${has_abstract}`);
-        if (has_doi) params.filter.push(`has_doi:${has_doi}`);
-        if (has_pdf) params.filter.push(`has_pdf:${has_pdf}`);
-        if (has_software) params.filter.push(`has_software:${has_software}`);
-        if (has_dataset) params.filter.push(`has_dataset:${has_dataset}`);
 
         const url = `${OPENALEX_API_BASE}/works`;
-        
-        const response = await axios.get(url, { 
-            params,
-            paramsSerializer: params => {
-                return require('qs').stringify(params, { arrayFormat: 'repeat' })
-            }
-        });
-        
-        // Format the response
-        const formattedResponse = {
-            meta: {
-                page: parseInt(page),
-                per_page: parseInt(per_page),
-                total_results: response.data.meta?.count || 0,
-                search_params: {
-                    search,
-                    author,
-                    year,
-                    institution,
-                    journal,
-                    type,
-                    language,
-                    min_citations,
-                    max_citations,
-                    subject,
-                    doi,
-                    is_open_access,
-                    sort_by,
-                    publisher,
-                    venue,
-                    abstract,
-                    keywords,
-                    funding,
-                    country,
-                    min_year,
-                    max_year,
-                    has_abstract,
-                    has_doi,
-                    has_pdf,
-                    has_software,
-                    has_dataset
-                }
-            },
-            results: response.data.results || []
-        };
 
-        res.json(formattedResponse);
+        console.log('OpenAlex API Request:', { url, params }); // Debug log
+
+        try {
+            const response = await axios.get(url, {
+                params,
+                paramsSerializer: params => {
+                    return require('qs').stringify(params, {
+                        arrayFormat: 'repeat',
+                        encode: false // Don't encode the filter parameter
+                    })
+                }
+            });
+
+            // Return the results directly from OpenAlex
+            res.json(response.data);
+        } catch (error) {
+            console.error('OpenAlex API Error:', error.response?.data || error.message);
+            res.status(500).json({
+                error: 'Failed to fetch from OpenAlex API',
+                details: error.response?.data || error.message
+            });
+        }
     } catch (error) {
-        console.error('Error in advanced search:', error);
-        res.status(500).json({ 
-            error: 'Failed to perform advanced search',
-            details: error.message,
-            searchParams: req.query
+        console.error('Server Error:', error);
+        res.status(500).json({
+            error: 'Internal server error',
+            details: error.message
         });
     }
 });
@@ -338,14 +232,14 @@ router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const url = `${OPENALEX_API_BASE}/works/${id}`;
-        
+
         const response = await axios.get(url);
         res.json(response.data);
     } catch (error) {
         console.error('Error fetching publication:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Failed to fetch publication',
-            details: error.message 
+            details: error.message
         });
     }
 });
