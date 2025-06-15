@@ -10,12 +10,14 @@ import styles from './TopMenu.module.css';
  * @param {string} props.searchFieldIconOutlinedSearch - Search icon source
  * @param {Function} props.onSearch - Search handler function
  * @param {string} props.placeholder - Search placeholder text
+ * @param {boolean} props.hideSearch - Whether to hide the search bar
  */
 const TopMenu = ({
   className,
   searchFieldIconOutlinedSearch,
   onSearch,
-  placeholder = "Search..."
+  placeholder = "Search...",
+  hideSearch
 }) => {
   const navigate = useNavigate();
 
@@ -33,20 +35,22 @@ const TopMenu = ({
 
   return (
     <header className={`${styles.topMenu} ${className || ''}`}>
-      <div className={styles.searchContainer}>
-        <input
-          type="text"
-          className={styles.searchInput}
-          placeholder={placeholder}
-          onChange={handleSearch}
-          onKeyPress={handleSearch}
-        />
-        <img 
-          src={searchFieldIconOutlinedSearch} 
-          alt="Search" 
-          className={styles.searchIcon}
-        />
-      </div>
+      {!hideSearch && (
+        <div className={styles.searchContainer}>
+          <input
+            type="text"
+            className={styles.searchInput}
+            placeholder={placeholder}
+            onChange={handleSearch}
+            onKeyPress={handleSearch}
+          />
+          <img 
+            src={searchFieldIconOutlinedSearch} 
+            alt="Search" 
+            className={styles.searchIcon}
+          />
+        </div>
+      )}
     </header>
   );
 };

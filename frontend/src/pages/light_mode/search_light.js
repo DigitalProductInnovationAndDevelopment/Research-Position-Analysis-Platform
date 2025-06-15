@@ -1,18 +1,9 @@
 import React from "react";
-import DarkBtn from "../../components/shared/DarkBtn/DarkBtn";
-import SideMenu from "../../components/shared/SideMenu/SideMenu";
-import SearchTopMenu from "../../components/shared/SearchTopMenu/SearchTopMenu";
 import topResearchFunding from "../../assets/images/topResearchFunding.png";
 import topCollaborationProjectsGpt1 from "../../assets/images/top_collaboration_projects_gpt 1.png";
 import topResearchPartnerListGpt1 from "../../assets/images/top_research_partner_list_gpt 1.png";
 import styles from "../../assets/styles/search.module.css";
-
-// Imports for SideMenu icons and logo from src/assets
-import iconSidebarActive from "../../assets/icons/icon-sidebar-active.svg";
-import iconSidebar from "../../assets/icons/icon-sidebar.svg";
-import iconSidebar1 from "../../assets/icons/icon-sidebar-1.svg";
-import iconTickets from "../../assets/icons/icon-tickets.svg";
-import siemensLogo from "../../assets/images/siemens-logo.png";
+import PageLayout from "../../components/shared/PageLayout/PageLayout";
 
 const getFirstSentence = (text) => {
   if (!text) return "";
@@ -162,22 +153,8 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
   };
 
   return (
-    <div className={styles.searchPageLight}>
-      <SideMenu
-        className={styles.sideMenu}
-        darkMode={darkMode}
-        iconSidebar={iconSidebar}
-        iconSidebar1={iconSidebar1}
-        iconSidebarActive={iconSidebarActive}
-        img={iconTickets}
-        logo={siemensLogo}
-        logoPlaceholderLogoStyleImglogoClassName={styles.sideMenu2}
-        mobile={false}
-      />
-      <DarkBtn className={styles.darkBtnInstance} darkLight={darkMode} onClick={toggleDarkMode} />
-
+    <PageLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
       <div className={styles.mainContent}>
-        <SearchTopMenu className={styles.topmenuFill} />
         <div className={styles.searchPageContent}>
           <h1 className={styles.filterCriteriaTitle}>Filter Criteria</h1>
           <div className={styles.filterSection}>
@@ -392,6 +369,6 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
           </div>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 };

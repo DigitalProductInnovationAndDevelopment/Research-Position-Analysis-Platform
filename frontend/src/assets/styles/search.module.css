@@ -46,10 +46,6 @@
   padding: var(--spacing-medium);
 }
 
-.topmenuFill {
-  width: 100%;
-}
-
 .searchPageContent {
   display: flex;
   flex-direction: column;
@@ -198,41 +194,38 @@
 }
 
 .searchResultItem {
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-medium);
   background-color: var(--color-card-background);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-md);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
-  transition: all 0.3s ease;
+  gap: var(--spacing-sm);
+  transition: transform 0.2s ease-in-out;
+  position: relative;
 }
 
 .siemensPaper {
-  background-color: rgba(0, 153, 204, 0.1); /* Light blue background */
-  border: 2px solid #0099cc; /* Siemens blue border */
-  box-shadow: 0 2px 4px rgba(0, 153, 204, 0.2); /* Subtle blue shadow */
+  border: 2px solid var(--color-accent); /* Highlight Siemens papers */
 }
 
 .siemensPaper h3 {
-  color: #0099cc; /* Siemens blue for the title */
+  color: var(--color-accent-dark);
 }
 
 .siemensPaper:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 153, 204, 0.3);
+  transform: translateY(-5px);
 }
 
 .searchResultItem h3 {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-lg);
   color: var(--color-primary-dark);
-  margin: 0;
+  margin-bottom: var(--spacing-xs);
 }
 
 .searchResultItem p {
   font-size: var(--font-size-sm);
-  color: var(--color-text-light);
-  margin: 0;
+  color: var(--color-text-secondary);
 }
 
 .searchResultItem a {
@@ -245,127 +238,123 @@
 }
 
 .abstractContainer {
-  position: relative;
   margin-top: var(--spacing-sm);
-  padding-right: 40px; /* Make space for the expand button */
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+  position: relative;
 }
 
 .abstractText {
-  font-style: italic;
-  color: var(--color-text-light);
-  margin: 0;
+  line-height: 1.5;
 }
 
 .expandAbstractButton {
   position: absolute;
-  top: 0;
   right: 0;
-  font-size: var(--font-size-xs); /* Smaller font for the button */
-  color: var(--color-link); /* Link color */
+  top: 0;
+  background: none;
+  border: none;
+  color: var(--color-link);
   cursor: pointer;
+  font-size: var(--font-size-xs);
+  padding: 0;
   text-decoration: underline;
-  white-space: nowrap; /* Prevent wrapping */
+  display: flex;
+  align-items: center;
 }
 
 .expandIconBox {
-  display: inline-flex;
-  align-items: center;
+  width: 15px; /* Adjust size of the box */
+  height: 15px; /* Adjust size of the box */
+  display: flex;
   justify-content: center;
-  width: 20px; /* Small box size */
-  height: 20px;
-  border: 1px solid var(--color-border); /* Frame for the triangle */
-  border-radius: var(--border-radius-sm); /* Slightly rounded corners */
-  margin-left: 5px; /* Space from the ellipsis */
-  vertical-align: middle;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  cursor: pointer;
+  margin-left: 5px; /* Space between text and icon */
+  color: var(--color-text-secondary);
 }
 
 .collapseAbstractButton {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  font-size: var(--font-size-xs);
+  background: none;
+  border: none;
   color: var(--color-link);
   cursor: pointer;
+  font-size: var(--font-size-xs);
+  padding: 0;
   text-decoration: underline;
-  white-space: nowrap;
+  margin-top: var(--spacing-xs);
 }
 
 .criteriumWrapper {
-  background-color: var(--color-success);
-  color: var(--color-text-dark);
-  padding: var(--spacing-sm);
-  border-radius: var(--border-radius-md);
-  cursor: pointer;
+  display: flex;
+  flex-direction: column;
 }
 
 .resultList {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--spacing-lg);
-  justify-items: center; /* Center items within their grid cells */
-  align-items: start; /* Align items to the start of their grid cells */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-medium);
+  margin-top: var(--spacing-lg);
 }
 
 .imageBox {
-  background-color: var(--color-background-light);
+  background-color: var(--color-card-background);
   border-radius: var(--border-radius-md);
   box-shadow: var(--shadow-sm);
-  padding: var(--spacing-lg);
+  padding: var(--spacing-md);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  align-items: center;
   text-align: center;
 }
 
 .imageBoxTitle {
   font-size: var(--font-size-lg);
   font-weight: bold;
-  color: var(--color-text-light);
+  color: var(--color-primary);
   margin-bottom: var(--spacing-md);
 }
 
 .imageContent {
+  width: 100%;
+  height: 200px; /* Fixed height for image boxes */
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
+  justify-content: center;
+  align-items: center;
 }
 
 .imageContent p {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-light);
-  margin: 0;
+  color: var(--color-text-secondary);
+  font-style: italic;
 }
 
 .chartImage {
   max-width: 100%;
-  height: auto;
-  margin-top: var(--spacing-sm); /* Add some space between text and image */
+  max-height: 100%;
+  object-fit: contain;
 }
 
 /* Responsive styles */
 @media (max-width: var(--breakpoint-mobile)) {
   .searchPageLight {
     grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
   }
-
   .sideMenu {
     grid-column: 1;
-    grid-row: auto;
-    position: relative;
+    grid-row: 2;
   }
-
   .darkBtnInstance {
-    position: relative;
-    bottom: unset;
-    left: unset;
-    margin-bottom: var(--spacing-medium);
+    left: auto;
+    right: var(--spacing-medium);
   }
-
   .mainContent {
     grid-column: 1;
-    padding: var(--spacing-medium);
+    grid-row: 1;
   }
-
   .resultList {
     grid-template-columns: 1fr;
   }
