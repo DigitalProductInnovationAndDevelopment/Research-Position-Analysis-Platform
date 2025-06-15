@@ -1,5 +1,6 @@
 require('dotenv').config();
 
+
 const express = require('express');
 const publicationsRoutes = require('./routes/publications');
 const topicsRoutes = require('./routes/topics');
