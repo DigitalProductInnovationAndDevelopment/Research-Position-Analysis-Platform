@@ -2,9 +2,11 @@
 node_modules/
 /.pnp
 .pnp.js
+*/node_modules/
 
 # Testing
 /coverage
+lib-cov
 
 # Production
 /build
@@ -16,11 +18,20 @@ node_modules/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*.local
 
 # Debug logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
 
 # IDE specific files
 .idea/
