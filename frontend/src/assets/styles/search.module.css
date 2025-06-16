@@ -1,0 +1,361 @@
+/* Import global variables */
+@import './variables.css';
+
+/* Base styles for both light and dark themes */
+.searchPage {
+  padding: var(--spacing-medium);
+  font-family: var(--font-family-base);
+  min-height: 100vh;
+}
+
+/* Light theme specific styles */
+.searchPageLight {
+  composes: searchPage;
+  background-color: var(--color-background-light);
+  color: var(--color-text-light);
+  display: grid;
+  grid-template-columns: auto 1fr; /* SideMenu takes auto width, mainContent takes rest */
+  min-height: 100vh;
+}
+
+/* Dark theme specific styles */
+.searchPageDark {
+  composes: searchPage;
+  background-color: var(--color-background-dark);
+  color: var(--color-text-dark);
+}
+
+.sideMenu {
+  grid-column: 1;
+  grid-row: 1 / span 2; /* Span across TopMenu and content */
+  z-index: 10;
+}
+
+.darkBtnInstance {
+  position: absolute;
+  bottom: var(--spacing-medium);
+  left: var(--spacing-medium);
+  z-index: 11;
+}
+
+.mainContent {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-medium);
+  padding: var(--spacing-medium);
+}
+
+.searchPageContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-medium);
+  padding: var(--spacing-medium) 0;
+}
+
+.filterCriteriaTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: bold;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.filterSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Common component styles */
+.searchContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+}
+
+.searchResults {
+  margin-top: var(--spacing-lg);
+}
+
+.searchCriterium {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+}
+
+.label .criterium,
+.divWrapper .textWrapper3 {
+  font-weight: bold;
+  color: var(--color-text-light);
+}
+
+.input,
+.hereIsSpaceForWrapper {
+  flex: 1;
+}
+
+.input input,
+.hereIsSpaceForWrapper input {
+  width: 100%;
+  padding: var(--spacing-xs);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  box-sizing: border-box; /* Ensure padding doesn't add to the width */
+}
+
+.searchButtonContainer {
+  display: flex;
+  justify-content: flex-end; /* Align button to the right */
+  margin-top: var(--spacing-md); /* Add some space above the button */
+  width: 100%; /* Ensure container takes full width of its parent */
+}
+
+.searchButton {
+  background-color: var(--color-primary); /* Use a primary color for the button */
+  color: var(--color-text-dark); /* Dark text for contrast */
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  margin-left: var(--spacing-sm); /* Space between input and button */
+  transition: background-color 0.2s ease-in-out;
+}
+
+.searchButton:hover {
+  background-color: var(--color-primary-dark); /* Darker shade on hover */
+}
+
+.searchButton:disabled {
+  background-color: var(--color-border); /* Grayed out when disabled */
+  cursor: not-allowed;
+}
+
+.errorMessage {
+  color: var(--color-error); /* Red color for error messages */
+  margin-top: var(--spacing-sm);
+  text-align: center;
+  font-weight: bold;
+}
+
+.loadingMessage {
+  color: var(--color-text-light);
+  margin-top: var(--spacing-sm);
+  text-align: center;
+  font-style: italic;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--spacing-lg);
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: var(--color-primary); /* Use a primary color for the spinner */
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto; /* Center the spinner */
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.searchResultsSection {
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background-color: var(--color-background-light);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.searchResultsTitle {
+  font-size: var(--font-size-xl);
+  font-weight: bold;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+}
+
+.resultsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-medium);
+}
+
+.searchResultItem {
+  background-color: var(--color-card-background);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  transition: transform 0.2s ease-in-out;
+  position: relative;
+}
+
+.siemensPaper {
+  border: 2px solid var(--color-accent); /* Highlight Siemens papers */
+}
+
+.siemensPaper h3 {
+  color: var(--color-accent-dark);
+}
+
+.siemensPaper:hover {
+  transform: translateY(-5px);
+}
+
+.searchResultItem h3 {
+  font-size: var(--font-size-lg);
+  color: var(--color-primary-dark);
+  margin-bottom: var(--spacing-xs);
+}
+
+.searchResultItem p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.searchResultItem a {
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+.searchResultItem a:hover {
+  text-decoration: underline;
+}
+
+.abstractContainer {
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+  position: relative;
+}
+
+.abstractText {
+  line-height: 1.5;
+}
+
+.expandAbstractButton {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: none;
+  border: none;
+  color: var(--color-link);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  padding: 0;
+  text-decoration: underline;
+  display: flex;
+  align-items: center;
+}
+
+.expandIconBox {
+  width: 15px; /* Adjust size of the box */
+  height: 15px; /* Adjust size of the box */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  cursor: pointer;
+  margin-left: 5px; /* Space between text and icon */
+  color: var(--color-text-secondary);
+}
+
+.collapseAbstractButton {
+  background: none;
+  border: none;
+  color: var(--color-link);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  padding: 0;
+  text-decoration: underline;
+  margin-top: var(--spacing-xs);
+}
+
+.criteriumWrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.resultList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-medium);
+  margin-top: var(--spacing-lg);
+}
+
+.imageBox {
+  background-color: var(--color-card-background);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.imageBoxTitle {
+  font-size: var(--font-size-lg);
+  font-weight: bold;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.imageContent {
+  width: 100%;
+  height: 200px; /* Fixed height for image boxes */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.imageContent p {
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.chartImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Responsive styles */
+@media (max-width: var(--breakpoint-mobile)) {
+  .searchPageLight {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .sideMenu {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .darkBtnInstance {
+    left: auto;
+    right: var(--spacing-medium);
+  }
+  .mainContent {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .resultList {
+    grid-template-columns: 1fr;
+  }
+} 

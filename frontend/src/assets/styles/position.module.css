@@ -1,0 +1,229 @@
+/* Import global variables */
+@import './variables.css';
+
+/* Base styles for both light and dark themes */
+.positionPage {
+  padding: var(--spacing-medium);
+  font-family: var(--font-family-base);
+  min-height: 100vh;
+}
+
+/* Light theme specific styles */
+.positionPageLight {
+  composes: positionPage;
+  background-color: var(--color-background-light);
+  color: var(--color-text-light);
+}
+
+/* Dark theme specific styles */
+.positionPageDark {
+  composes: positionPage;
+  background-color: var(--color-background-dark);
+  color: var(--color-text-dark);
+}
+
+/* Common component styles */
+.detailContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-large);
+}
+
+.detailHeader {
+  margin-bottom: var(--spacing-large);
+}
+
+/* Responsive styles */
+@media (max-width: var(--breakpoint-mobile)) {
+  .detailContainer {
+    padding: var(--spacing-medium);
+  }
+}
+
+/* Trend Visualization Styles */
+.trendVisualizationBox {
+  background-color: var(--color-card-background);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  max-width: 700px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.trendTitle {
+  font-size: var(--font-size-xl);
+  font-weight: bold;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-md);
+  text-align: center;
+}
+
+.trendInputContainer {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.trendInput {
+  flex-grow: 1;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-base);
+  color: var(--color-text-light);
+  background-color: var(--color-background-light);
+}
+
+.trendButton {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-primary);
+  color: var(--color-button-text);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  transition: background-color 0.3s ease;
+}
+
+.trendButton:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.trendButton:disabled {
+  background-color: var(--color-button-disabled);
+  cursor: not-allowed;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-lg);
+  color: var(--color-text-light);
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: var(--color-primary); /* Use a primary color for the spinner */
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin-bottom: var(--spacing-sm);
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.trendChart {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  height: 200px;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--spacing-xs);
+  gap: 5px; /* Space between bars */
+}
+
+.trendBarContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+  position: relative; /* For positioning labels */
+}
+
+.trendBar {
+  width: 20px;
+  background-color: var(--color-accent);
+  transition: height 0.5s ease-out;
+  position: relative;
+  margin-bottom: 5px; /* Space for the label */
+}
+
+.trendBar::after {
+  content: attr(title);
+  position: absolute;
+  top: -25px; /* Position above the bar */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none; /* Allows clicks to pass through */
+}
+
+.trendBar:hover::after {
+  opacity: 1;
+}
+
+.trendBarLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-light);
+  transform: rotate(-45deg); /* Rotate year labels if they overlap */
+  transform-origin: center bottom;
+  white-space: nowrap;
+}
+
+.noResultsMessage {
+  text-align: center;
+  color: var(--color-text-light);
+  font-size: var(--font-size-base);
+  margin-top: var(--spacing-md);
+}
+
+.errorMessage {
+  color: var(--color-error);
+  text-align: center;
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+.ticketStatusColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  flex: 1;
+}
+
+.ticketStatusBox {
+  background-color: var(--color-card-background);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-md);
+  text-align: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.ticketStatusLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.ticketStatusValue {
+  font-size: var(--font-size-xl);
+  font-weight: bold;
+  color: var(--color-primary);
+}
+
+.overdue {
+  background-color: var(--color-error-light);
+  border: 1px solid var(--color-error);
+} 

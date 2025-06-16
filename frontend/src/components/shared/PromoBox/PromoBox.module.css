@@ -1,0 +1,28 @@
+.promoBox {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  background-color: var(--color-background-light);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  gap: var(--spacing-md);
+}
+
+.leftColumn {
+  flex: 1;
+}
+
+.textWrapper {
+  font-size: var(--font-size-lg);
+  color: var(--color-primary);
+}
+
+.rightColumn {
+  flex-shrink: 0;
+}
+
+.promoImg {
+  max-width: 200px;
+  height: auto;
+} 

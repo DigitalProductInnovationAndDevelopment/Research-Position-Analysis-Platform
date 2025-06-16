@@ -1,0 +1,203 @@
+/* Import global variables */
+@import './variables.css';
+
+/* Base styles for both light and dark themes */
+.aboutPage {
+  padding: var(--spacing-medium);
+  font-family: var(--font-family-base);
+  min-height: 100vh;
+}
+
+/* Light theme specific styles */
+.aboutPageLight {
+  composes: aboutPage;
+  background-color: var(--color-background-light);
+  color: var(--color-text-light);
+  display: grid;
+  grid-template-columns: auto 1fr; /* SideMenu takes auto width, mainContent takes rest */
+  min-height: 100vh;
+}
+
+/* Dark theme specific styles */
+.aboutPageDark {
+  composes: aboutPage;
+  background-color: var(--color-background-dark);
+  color: var(--color-text-dark);
+}
+
+.sideMenu {
+  grid-column: 1;
+  grid-row: 1 / span 2; /* Span across TopMenu and content */
+  z-index: 10;
+}
+
+.darkBtnInstance {
+  position: absolute;
+  bottom: var(--spacing-medium);
+  left: var(--spacing-medium);
+  z-index: 11;
+}
+
+.mainContent {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-medium);
+  padding: var(--spacing-medium);
+}
+
+.pageTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: bold;
+  margin-bottom: var(--spacing-lg);
+  color: var(--color-text-light);
+}
+
+/* Common component styles */
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+}
+
+.aboutContentGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.boxTitle {
+  font-size: var(--font-size-lg);
+  font-weight: bold;
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-light);
+}
+
+.subTitle {
+  font-size: var(--font-size-base);
+  font-weight: bold;
+  margin-top: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+.whatSparkDoesBox,
+.howToUseSparkBox,
+.disclaimerBox,
+.privacyPolicyBox {
+  background-color: var(--color-background-light);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg); /* General padding for all boxes */
+  box-shadow: var(--shadow-sm);
+}
+
+.whatSparkDoesBox {
+  border: 1px solid var(--color-primary);
+}
+
+.howToUseSparkBox {
+  border: 1px solid var(--color-warning);
+  /* Adjustments for How to use SPARK box */
+  padding-bottom: var(--spacing-md); /* Reduce bottom padding */
+}
+
+.howToUseSparkBox ol,
+.howToUseSparkBox ul {
+  padding-left: 0; /* Removed indent */
+  margin-top: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.howToUseSparkBox li {
+  margin-bottom: var(--spacing-xs);
+}
+
+.howToUseSparkBox p {
+  margin-bottom: var(--spacing-md);
+}
+
+.disclaimerBox {
+  border: 1px solid var(--color-success);
+  padding: var(--spacing-md); /* Smaller padding to hug text */
+  margin-bottom: var(--spacing-md); /* Space between disclaimer and privacy policy */
+}
+
+.privacyPolicyBox {
+  border: 1px solid var(--color-primary-dark);
+  padding: var(--spacing-md); /* Smaller padding to hug text */
+}
+
+.rightColumnAboutBoxes {
+  display: flex;
+  flex-direction: column;
+  gap: 0; /* Remove gap between disclaimer and privacy policy boxes */
+  grid-column: auto / span 1; /* Ensure it takes one column in the grid */
+}
+
+.whatSparkDoesBox p,
+.whatSparkDoesBox ol,
+.whatSparkDoesBox li,
+.disclaimerBox p,
+.privacyPolicyBox p {
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  margin-bottom: var(--spacing-sm);
+}
+
+.whatSparkDoesBox li strong {
+  font-weight: bold;
+}
+
+.impressumSection {
+  background-color: var(--color-background-light);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  grid-column: 1 / -1; /* Span full width in grid */
+  margin-top: var(--spacing-lg);
+}
+
+.impressumTitle {
+  font-size: var(--font-size-lg);
+  font-weight: bold;
+  margin-bottom: var(--spacing-md);
+}
+
+.impressumText {
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+/* Responsive styles */
+@media (max-width: var(--breakpoint-mobile)) {
+  .aboutPageLight {
+    grid-template-columns: 1fr;
+  }
+
+  .sideMenu {
+    grid-column: 1;
+    grid-row: auto;
+    position: relative;
+  }
+
+  .darkBtnInstance {
+    position: relative;
+    bottom: unset;
+    left: unset;
+    margin-bottom: var(--spacing-medium);
+  }
+
+  .mainContent {
+    grid-column: 1;
+    padding: var(--spacing-medium);
+  }
+
+  .aboutContentGrid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-medium);
+  }
+
+  .impressumSection {
+    grid-column: 1;
+  }
+} 

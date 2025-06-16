@@ -1,0 +1,38 @@
+@import '../../../assets/styles/variables.css';
+
+.darkBtn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--color-background-light);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.darkBtn:hover {
+  transform: scale(1.1);
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  color: var(--color-text-light);
+}
+
+/* Dark mode styles */
+:global(.dark) .darkBtn {
+  background-color: var(--color-background-dark);
+  border-color: var(--color-border-dark);
+}
+
+:global(.dark) .icon {
+  color: var(--color-text-dark);
+} 
