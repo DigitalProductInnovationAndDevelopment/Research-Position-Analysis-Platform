@@ -7,6 +7,7 @@ import homeIcon from '../../../assets/icons/home.svg';
 import searchIcon from '../../../assets/icons/search.svg';
 import graphIcon from '../../../assets/icons/graph.svg';
 import aboutIcon from '../../../assets/icons/about.png';
+import trendIcon from '../../../assets/icons/trend.svg';
 
 /**
  * SideMenu Component
@@ -40,6 +41,11 @@ const SideMenu = ({
         <Link to="/search" className={styles.menuItem}>
           <img src={searchIcon} alt="Search" className={styles.icon} />
           <span className={styles.label}>Search</span>
+        </Link>
+        
+        <Link to="/trends" className={styles.menuItem}>
+          <img src={trendIcon} alt="View Trends" className={styles.icon} />
+          <span className={styles.label}>View Trends</span>
         </Link>
         
         <Link to="/graph-view" className={styles.menuItem}>

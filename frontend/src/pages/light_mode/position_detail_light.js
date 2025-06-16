@@ -1,105 +1,118 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styles from "../../assets/styles/position.module.css";
-import Cards from "../../components/shared/Cards/Cards";
-import DarkBtn from "../../components/shared/DarkBtn/DarkBtn";
-import SideMenu from "../../components/shared/SideMenu/SideMenu";
-import TicketsAndTasks from "../../components/shared/TicketsAndTasks/TicketsAndTasks";
-import TodaysTrends from "../../components/shared/TodaysTrends/TodaysTrends";
-import TopmenuFill from "../../components/shared/TopMenu/TopMenu";
-import XLargeDataBox from "../../components/shared/XLargeDataBox/XLargeDataBox";
-
-// Image imports from assets
-import lineChartRed from "../../assets/images/line-chart-red.png";
-import cardsImage from "../../assets/images/Cards.png";
-import ticketsAndTasksImage from "../../assets/images/Tickets and tasks.png";
-import todaysTrendsImage from "../../assets/images/Today's trends.png";
-
-// Imports for SideMenu icons and logo from src/assets
-import homeIcon from "../../assets/icons/home.svg";
-import searchIcon from "../../assets/icons/search.svg";
-import graphIcon from "../../assets/icons/graph.svg";
-import aboutIcon from "../../assets/icons/about.png";
-import siemensLogo from "../../assets/images/siemens-logo.png";
-import search3Svg from "../../assets/icons/search-3.svg";
+import PageLayout from "../../components/shared/PageLayout/PageLayout";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
-  return (
-    <div className={styles.positionPageLight}>
-      <SideMenu
-        className={styles.sideMenu}
-        darkMode={darkMode}
-        iconSidebarActive={homeIcon}
-        iconSidebar={searchIcon}
-        iconSidebar1={graphIcon}
-        img={aboutIcon}
-        logo={siemensLogo}
-        logoPlaceholderLogoStyleImglogoClassName={styles.sideMenu2} // Assuming this prop name is still relevant for styling
-        logoPlaceholderSiemensLogoSvg={siemensLogo}
-        mobile={false}
-      />
-      <DarkBtn className={styles.darkBtnInstance} darkLight={darkMode} onClick={toggleDarkMode} />
+  const [keyword, setKeyword] = useState("");
+  const [trendData, setTrendData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [chartData, setChartData] = useState([]);
 
+  useEffect(() => {
+    if (trendData && trendData.yearly_distribution) {
+      const formattedData = Object.entries(trendData.yearly_distribution)
+        .sort(([yearA], [yearB]) => parseInt(yearA) - parseInt(yearB))
+        .map(([year, count]) => ({
+          year: year,
+          publications: count,
+        }));
+      setChartData(formattedData);
+    }
+  }, [trendData]);
+
+  const handleGetTrend = async () => {
+    if (!keyword.trim()) {
+      setError("Please enter a keyword to get the trend.");
+      setTrendData(null);
+      setChartData([]); // Clear chart data as well
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    setTrendData(null); // Clear previous data
+    setChartData([]); // Clear chart data
+
+    try {
+      const params = new URLSearchParams({ keyword: keyword.trim() });
+      const response = await fetch(`http://localhost:4000/api/publications/keyword_trends?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setTrendData(data);
+    } catch (e) {
+      setError("Failed to fetch publication trend. Error: " + e.message);
+      console.error("Keyword trend fetch error:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <PageLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode} hideSearch={true}>
       <div className={styles.mainContent}>
-        <TopmenuFill
-          className={styles.topmenuFill}
-          searchFieldIconOutlinedSearch={search3Svg}
-        />
         <div className={styles.pageContent}>
           {/* Top Row: Chart, Trends, Ticket Statuses */}
           <div className={styles.topRow}>
-            <XLargeDataBox
-              chartImage={lineChartRed}
-              chartTitle="Placeholder Chart for our actual results"
-              className={styles.chartBox}
-            />
-            <TodaysTrends
-              className={styles.trendsBox}
-              trends={[
-                { title: "Resolved", value: "449" },
-                { title: "Received", value: "426" },
-                { title: "Average first response time", value: "33m" },
-                { title: "Average response time", value: "3h 8m" },
-                { title: "Resolution within SLA", value: "94%" },
-              ]}
-            />
-            <div className={styles.ticketStatusColumn}>
-              <TicketStatusBox label="Unresolved" value="60" />
-              <TicketStatusBox label="Overdue" value="16" isOverdue={true} />
-              <TicketStatusBox label="Open" value="43" />
-              <TicketStatusBox label="On hold" value="64" />
-            </div>
-          </div>
+            {/* New Trend Visualization Box */}
+            <div className={styles.trendVisualizationBox}>
+              <h2 className={styles.trendTitle}>Publication Trend by Keyword</h2>
+              <div className={styles.trendInputContainer}>
+                <input
+                  type="text"
+                  className={styles.trendInput}
+                  placeholder="Enter keyword (e.g., 'artificial intelligence')"
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      handleGetTrend();
+                    }
+                  }}
+                />
+                <button
+                  className={styles.trendButton}
+                  onClick={handleGetTrend}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Loading..." : "Get Trend"}
+                </button>
+              </div>
 
-          {/* Bottom Row: Placeholder List and Tasks */}
-          <div className={styles.bottomRow}>
-            <Cards
-              className={styles.listSection}
-              cardData={[
-                { title: "Waiting on Feature Request", value: "4238" },
-                { title: "Awaiting Customer Response", value: "1005" },
-                { title: "Awaiting Developer Fix", value: "914" },
-                { title: "Pending", value: "281" },
-              ]}
-              title="Placeholder List for actual results"
-              viewDetailsText="View details"
-            />
-            <TicketsAndTasks
-              className={styles.tasksSection}
-              tickets={[]} // No specific tickets in screenshot
-              tasks={[
-                { title: "Create new task" },
-                { title: "Finish ticket update", status: "URGENT" },
-                { title: "Create new ticket example", status: "NEW" },
-                { title: "Update ticket report", status: "DEFAULT" },
-              ]} // Placeholder tasks, need to adjust TicketAndTasks component for this visual
-              title="Placeholder"
-              subtitle="Today"
-              createTaskText="Create new task"
-              viewAllText="View all"
-            />
+              {error && <div className={styles.errorMessage}>{error}</div>}
+              {isLoading && (
+                <div className={styles.loadingContainer}>
+                  <div className={styles.spinner}></div>
+                  <p>Fetching trend data...</p>
+                </div>
+              )}
+
+              {chartData.length > 0 && (
+                <ResponsiveContainer width="100%" height={600}>
+                  <BarChart
+                    data={chartData}
+                    margin={{
+                      top: 20, right: 0, left: 50, bottom: 40,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="year" angle={0} textAnchor="middle" height={40} />
+                    <YAxis label={{ value: 'publications', angle: -90, position: 'left', textAnchor: 'middle', dx: -10, dy: -100 }} />
+                    <Tooltip />
+                    <Bar dataKey="publications" fill="var(--color-primary)" />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+
+              {!isLoading && !error && chartData.length === 0 && trendData && trendData.total_publications === 0 && ( /* Ensure this only shows when no data and not loading/error */
+                <div className={styles.noResultsMessage}>No trend data found for this keyword.</div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 };

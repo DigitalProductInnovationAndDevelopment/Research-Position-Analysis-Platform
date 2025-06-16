@@ -45,10 +45,6 @@
   height: 100%;
 }
 
-.topmenuFill {
-  width: 100%;
-}
-
 .graphHeader {
   display: flex;
   justify-content: space-between;

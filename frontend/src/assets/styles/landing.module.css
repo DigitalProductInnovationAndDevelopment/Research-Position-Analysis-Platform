@@ -47,10 +47,6 @@
   padding: var(--spacing-medium);
 }
 
-.topmenuFill {
-  width: 100%;
-}
-
 .contentRows {
   display: flex;
   flex-direction: column;

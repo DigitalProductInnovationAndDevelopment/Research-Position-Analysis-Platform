@@ -1,8 +1,5 @@
 import React from "react";
-import DarkBtn from "../../components/shared/DarkBtn/DarkBtn";
 import PromoBox from "../../components/shared/PromoBox/PromoBox";
-import SideMenu from "../../components/shared/SideMenu/SideMenu";
-import TopmenuFill from "../../components/shared/TopMenu/TopMenu";
 import XLargeDataBox from "../../components/shared/XLargeDataBox/XLargeDataBox";
 import XSmallDataBox from "../../components/shared/XSmallDataBox/XSmallDataBox";
 import XxSmallDataBox from "../../components/shared/XxSmallDataBox/XxSmallDataBox";
@@ -15,38 +12,12 @@ import siemensLogo from "../../assets/images/siemens-logo.png";
 import barChartPng from "../../assets/images/bar-chart.png";
 import collaborationsBarChart from "../../assets/images/collaborations_over_time.png";
 import styles from "../../assets/styles/landing.module.css";
-
-
-// Imports for SideMenu icons and logo from src/assets
-import iconSidebarActive from "../../assets/icons/icon-sidebar-active.svg";
-import iconSidebar from "../../assets/icons/icon-sidebar.svg";
-import iconSidebar1 from "../../assets/icons/icon-sidebar-1.svg";
-import iconTickets from "../../assets/icons/icon-tickets.svg";
-import search3Svg from "../../assets/icons/search-3.svg";
-// import mainLogo from "../../assets/images/logo.svg"; // Assuming this is the main logo
+import PageLayout from "../../components/shared/PageLayout/PageLayout";
 
 export const LandingPageLight = ({ darkMode, toggleDarkMode }) => {
   return (
-    <div className={styles.landingPageLight}>
-      <SideMenu
-        className={styles.sideMenu}
-        darkMode={darkMode}
-        iconSidebar={iconSidebar}
-        iconSidebar1={iconSidebar1}
-        iconSidebarActive={iconSidebarActive}
-        img={iconTickets}
-        logo={siemensLogo}
-        logoPlaceholderLogoStyleImglogoClassName={styles.sideMenu2}
-        logoPlaceholderSiemensLogoSvg={siemensLogo}
-        mobile={false}
-      />
-      <DarkBtn className={styles.darkBtnInstance} darkLight={darkMode} onClick={toggleDarkMode} />
-
+    <PageLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
       <div className={styles.mainContent}>
-        <TopmenuFill
-          className={styles.topmenuFill}
-          searchFieldIconOutlinedSearch={search3Svg}
-        />
         <div className={styles.contentRows}>
           <div className={styles.strip}>
             <PromoBox
@@ -112,6 +83,6 @@ export const LandingPageLight = ({ darkMode, toggleDarkMode }) => {
           </div>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 };
