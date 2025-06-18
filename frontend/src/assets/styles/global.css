@@ -13,6 +13,9 @@ body {
   background-color: var(--color-background-light);
   color: var(--color-text-light);
   line-height: 1.5;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 /* Dark mode styles */
@@ -23,13 +26,14 @@ body.dark {
 
 /* App layout */
 .app {
-  min-height: 100vh;
+  height: 100vh;
   display: grid;
   grid-template-columns: 250px 1fr;
   grid-template-rows: auto 1fr;
   grid-template-areas:
     "sidebar topmenu"
     "sidebar main";
+  overflow: hidden;
 }
 
 .main-content {
@@ -49,8 +53,22 @@ body.dark {
   text-align: center;
 }
 
-.mt-1 { margin-top: var(--spacing-xs); }
-.mt-2 { margin-top: var(--spacing-sm); }
-.mt-3 { margin-top: var(--spacing-md); }
-.mt-4 { margin-top: var(--spacing-lg); }
-.mt-5 { margin-top: var(--spacing-xl); } 
+.mt-1 {
+  margin-top: var(--spacing-xs);
+}
+
+.mt-2 {
+  margin-top: var(--spacing-sm);
+}
+
+.mt-3 {
+  margin-top: var(--spacing-md);
+}
+
+.mt-4 {
+  margin-top: var(--spacing-lg);
+}
+
+.mt-5 {
+  margin-top: var(--spacing-xl);
+}

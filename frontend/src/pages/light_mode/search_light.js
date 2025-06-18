@@ -64,6 +64,12 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
   const [error, setError] = React.useState(null);
   const [expandedAbstracts, setExpandedAbstracts] = React.useState({});
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [totalResults, setTotalResults] = React.useState(0);
+  const [hasNextPage, setHasNextPage] = React.useState(false);
+  const [hasPreviousPage, setHasPreviousPage] = React.useState(false);
+
   const toggleAbstractExpansion = (resultId) => {
     setExpandedAbstracts(prev => ({
       ...prev,
@@ -71,7 +77,19 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
     }));
   };
 
-  const handleSearch = async () => {
+  const handleNextPage = () => {
+    if (hasNextPage) {
+      handleSearch(currentPage + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (hasPreviousPage) {
+      handleSearch(currentPage - 1);
+    }
+  };
+
+  const handleSearch = async (page = 1) => {
     setError(null);
     setIsLoading(true);
     setSearchResults([]);
@@ -155,7 +173,7 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
       }
 
       // Add other parameters
-      params.append("page", "1");
+      params.append("page", page.toString());
       params.append("per_page", "25");
       params.append("sort", "relevance_score:desc");
 
@@ -171,7 +189,17 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
         throw new Error(`HTTP error! status: ${response.status}${errorData ? `, details: ${JSON.stringify(errorData)}` : ''}`);
       }
       const data = await response.json();
+
+      // Update search results and pagination state
       setSearchResults(data.results || []);
+      setCurrentPage(page);
+      setTotalResults(data.meta?.count || 0);
+
+      // Calculate pagination state
+      const totalPages = Math.ceil((data.meta?.count || 0) / 25);
+      setHasNextPage(page < totalPages);
+      setHasPreviousPage(page > 1);
+
     } catch (e) {
       setError("Failed to fetch search results. Please try again. Error: " + e.message);
       console.error("Search fetch error:", e);
@@ -307,7 +335,7 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
             </div>
 
             <div className={styles.searchButtonContainer}>
-              <button onClick={handleSearch} disabled={isLoading} className={styles.searchButton}>
+              <button onClick={() => handleSearch()} disabled={isLoading} className={styles.searchButton}>
                 {isLoading ? "Searching..." : "Search"}
               </button>
             </div>
@@ -369,6 +397,30 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
                     {result.primary_location?.landing_page_url && <p><a href={result.primary_location.landing_page_url} target="_blank" rel="noopener noreferrer">Read More (Publisher)</a></p>}
                   </div>
                 ))}
+              </div>
+
+              {/* Pagination Bar */}
+              <div className={styles.paginationBar}>
+                <div className={styles.paginationInfo}>
+                  <span>Showing {((currentPage - 1) * 25) + 1} - {Math.min(currentPage * 25, totalResults)} of {totalResults} results</span>
+                </div>
+                <div className={styles.paginationControls}>
+                  <button
+                    onClick={handlePreviousPage}
+                    disabled={!hasPreviousPage || isLoading}
+                    className={styles.paginationButton}
+                  >
+                    Previous
+                  </button>
+                  <span className={styles.pageInfo}>Page {currentPage}</span>
+                  <button
+                    onClick={handleNextPage}
+                    disabled={!hasNextPage || isLoading}
+                    className={styles.paginationButton}
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             </div>
           )}
