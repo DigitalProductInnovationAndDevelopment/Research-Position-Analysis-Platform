@@ -37,7 +37,9 @@ export const SearchDark = () => {
 
       // Add search keyword filter
       if (searchKeyword.trim()) {
-        filters.push(`title_and_abstract.search:${searchKeyword.trim()}`);
+        // Replace spaces with + symbols for OpenAlex API compatibility
+        const encodedKeyword = searchKeyword.trim().replace(/\s+/g, '+');
+        filters.push(`title_and_abstract.search:${encodedKeyword}`);
       }
 
       // Add year filter
