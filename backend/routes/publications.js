@@ -60,8 +60,17 @@ router.get('/search', async (req, res) => {
                 }
             });
 
-            // Return the results directly from OpenAlex
-            res.json(response.data);
+            // Format the response to include citation counts
+            const formattedResults = response.data.results.map(work => ({
+                ...work,
+                citation_count: work.cited_by_count || 0
+            }));
+
+            // Return the formatted results
+            res.json({
+                ...response.data,
+                results: formattedResults
+            });
         } catch (error) {
             console.error('OpenAlex API Error:', error.response?.data || error.message);
             res.status(500).json({

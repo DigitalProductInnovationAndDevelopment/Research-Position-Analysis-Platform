@@ -337,6 +337,7 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
                     <p>Institutions: {result.authorships && result.authorships.length > 0
                       ? Array.from(new Set(result.authorships.flatMap(a => a.institutions || []).map(inst => inst.display_name))).join(", ")
                       : "N/A"}</p>
+                    <p className={styles.citationCount}>Cited by: {result.cited_by_count || 0}</p>
                     {result.abstract_inverted_index && (
                       <div className={styles.abstractContainer}>
                         <p className={styles.abstractText}>

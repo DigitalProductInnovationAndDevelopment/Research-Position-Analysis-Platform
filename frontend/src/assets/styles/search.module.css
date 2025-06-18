@@ -337,6 +337,12 @@
   object-fit: contain;
 }
 
+.citationCount {
+  color: var(--color-primary);
+  font-weight: 500;
+  margin: 0.5rem 0;
+}
+
 /* Responsive styles */
 @media (max-width: var(--breakpoint-mobile)) {
   .searchPageLight {
