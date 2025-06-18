@@ -16,20 +16,30 @@ const TopMenu = ({
   className,
   searchFieldIconOutlinedSearch,
   onSearch,
-  placeholder = "Search...",
+  placeholder = "Search keyword...",
   hideSearch
 }) => {
   const navigate = useNavigate();
 
   const handleSearch = (e) => {
     const query = e.target.value;
-    // You can call the original onSearch prop if it's still needed for other logic
-    onSearch?.(query);
+    
+    // Validate input type
+    if (e.key === 'Enter') {
+      // Check if the input is a number or contains only numbers
+      if (!isNaN(query) || /^\d+$/.test(query)) {
+        alert('Please enter a keyword (text) instead of numbers');
+        return;
+      }
+      
+      // Check if the input is empty or contains only whitespace
+      if (!query.trim()) {
+        alert('Please enter a keyword to search');
+        return;
+      }
 
-    // Navigate to the search page. You can add the query as a URL parameter if needed.
-    // For example: navigate(`/search?q=${query}`);
-    if (e.key === 'Enter') { // Only navigate on Enter key press
-        navigate(`/search?q=${query}`);
+      // Navigate to search page with the query
+      navigate(`/search?q=${encodeURIComponent(query.trim())}`);
     }
   };
 

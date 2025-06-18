@@ -1,4 +1,5 @@
 import React from "react";
+import { useLocation } from "react-router-dom";
 import topResearchFunding from "../../assets/images/topResearchFunding.png";
 import topCollaborationProjectsGpt1 from "../../assets/images/top_collaboration_projects_gpt 1.png";
 import topResearchPartnerListGpt1 from "../../assets/images/top_research_partner_list_gpt 1.png";
@@ -52,6 +53,7 @@ const reconstructAbstract = (invertedIndex) => {
 };
 
 export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
+  const location = useLocation();
   const [searchKeyword, setSearchKeyword] = React.useState("");
   const [institution, setInstitution] = React.useState("");
   const [yearFrom, setYearFrom] = React.useState("");
@@ -63,6 +65,18 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [expandedAbstracts, setExpandedAbstracts] = React.useState({});
+
+  // Add useEffect to handle URL query parameter
+  React.useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const query = searchParams.get('q');
+    
+    if (query) {
+      setSearchKeyword(query);
+      // Trigger search with the query from URL
+      handleSearchWithQuery(query);
+    }
+  }, [location.search]);
 
   const toggleAbstractExpansion = (resultId) => {
     setExpandedAbstracts(prev => ({
@@ -161,6 +175,53 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
 
       const url = `http://localhost:4000/api/publications/search?${params.toString()}`;
       console.log('Making request to:', url); // Debug log
+
+      const response = await fetch(url);
+      console.log('Response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        console.error('Error response:', errorData);
+        throw new Error(`HTTP error! status: ${response.status}${errorData ? `, details: ${JSON.stringify(errorData)}` : ''}`);
+      }
+      const data = await response.json();
+      setSearchResults(data.results || []);
+    } catch (e) {
+      setError("Failed to fetch search results. Please try again. Error: " + e.message);
+      console.error("Search fetch error:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSearchWithQuery = async (query) => {
+    setError(null);
+    setIsLoading(true);
+    setSearchResults([]);
+
+    try {
+      const params = new URLSearchParams();
+      const filters = [];
+
+      // Add search keyword filter
+      if (query) {
+        const encodedKeyword = query.trim().replace(/\s+/g, '+');
+        filters.push(`title_and_abstract.search:${encodedKeyword}`);
+      }
+
+      // Add all filters as a single parameter
+      if (filters.length > 0) {
+        const filterString = filters.join(',');
+        params.append("filter", filterString);
+      }
+
+      // Add other parameters
+      params.append("page", "1");
+      params.append("per_page", "25");
+      params.append("sort", "relevance_score:desc");
+
+      const url = `http://localhost:4000/api/publications/search?${params.toString()}`;
+      console.log('Making request to:', url);
 
       const response = await fetch(url);
       console.log('Response status:', response.status);
