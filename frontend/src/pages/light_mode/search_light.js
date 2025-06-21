@@ -1,10 +1,11 @@
-import React from "react";
-import { useLocation } from "react-router-dom";
-import topResearchFunding from "../../assets/images/topResearchFunding.png";
-import topCollaborationProjectsGpt1 from "../../assets/images/top_collaboration_projects_gpt 1.png";
-import topResearchPartnerListGpt1 from "../../assets/images/top_research_partner_list_gpt 1.png";
-import styles from "../../assets/styles/search.module.css";
-import PageLayout from "../../components/shared/PageLayout/PageLayout";
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import styles from '../../assets/styles/search.module.css';
+import PageLayout from '../../components/shared/PageLayout/PageLayout';
+import FilterMenu from '../../components/shared/FilterMenu/FilterMenu';
+import Autocomplete from '../../components/shared/Autocomplete/Autocomplete';
 
 const getFirstSentence = (text) => {
   if (!text) return "";
@@ -29,54 +30,116 @@ const isSiemensPaper = (result) => {
 const reconstructAbstract = (invertedIndex) => {
   if (!invertedIndex) return "";
 
-  const words = [];
   // Find the maximum index to determine the size of the array
   let maxIndex = 0;
-  for (const word in invertedIndex) {
+  Object.keys(invertedIndex).forEach(word => {
     invertedIndex[word].forEach(index => {
       if (index > maxIndex) maxIndex = index;
     });
-  }
+  });
 
   // Initialize an array with nulls to hold words in correct positions
   const abstractArray = new Array(maxIndex + 1).fill(null);
 
   // Place words into their correct positions
-  for (const word in invertedIndex) {
-    invertedIndex[word].forEach(index => {
+  Object.entries(invertedIndex).forEach(([word, positions]) => {
+    positions.forEach(index => {
       abstractArray[index] = word;
     });
-  }
+  });
 
   // Filter out nulls and join into a sentence
   return abstractArray.filter(word => word !== null).join(" ");
 };
 
-export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
+const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
   const location = useLocation();
-  const [searchKeyword, setSearchKeyword] = React.useState("");
-  const [institution, setInstitution] = React.useState("");
-  const [yearFrom, setYearFrom] = React.useState("");
-  const [yearTo, setYearTo] = React.useState("");
-  const [author, setAuthor] = React.useState("");
-  const [funding, setFunding] = React.useState("");
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [institution, setInstitution] = useState("");
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [author, setAuthor] = useState("");
+  const [funding, setFunding] = useState("");
 
-  const [searchResults, setSearchResults] = React.useState([]);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState(null);
-  const [expandedAbstracts, setExpandedAbstracts] = React.useState({});
+  const [topic, setTopic] = useState("");
+  const [publicationTypes, setPublicationTypes] = useState([]);
+  const [availableTypes, setAvailableTypes] = useState([]);
+  const [isOpenAccess, setIsOpenAccess] = useState(false);
+  const [publicationYear, setPublicationYear] = useState("");
+  const [startYear, setStartYear] = useState("");
+  const [endYear, setEndYear] = useState("");
 
-  // Add useEffect to handle URL query parameter
-  React.useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const query = searchParams.get('q');
-    
+  const [searchResults, setSearchResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [expandedAbstracts, setExpandedAbstracts] = useState({});
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [activeFilters, setActiveFilters] = useState(['Keyword', 'Author', 'Institution']);
+
+  useEffect(() => {
+    const fetchTypes = async () => {
+      try {
+        const response = await fetch('https://api.openalex.org/types');
+        const data = await response.json();
+        setAvailableTypes(data.results);
+      } catch (error) {
+        console.error('Failed to fetch publication types:', error);
+      }
+    };
+    fetchTypes();
+  }, []);
+
+  // Helper to normalize text for accent/diacritic/case-insensitive matching
+  const normalizeForMatch = (str) => {
+    return String(str)
+      .normalize('NFD')
+      .replace(/ß/g, 'ss')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+  };
+
+  // Function to highlight multiple search terms in text, accent/case-insensitive
+  const highlightText = (text, searchTerms, className) => {
+    if (!text) return String(text ?? '');
+    let safeText = String(text);
+    if (!searchTerms || (Array.isArray(searchTerms) && searchTerms.length === 0) || !className) return safeText;
+    const terms = Array.isArray(searchTerms) ? searchTerms.filter(Boolean) : [searchTerms];
+    if (terms.length === 0) return safeText;
+    // Normalize search terms for matching
+    const normalizedTerms = terms.map(normalizeForMatch);
+    // Split the text into words and non-words to preserve original formatting
+    const parts = [];
+    let lastIndex = 0;
+    const regex = /\b\w+\b/g;
+    let match;
+    while ((match = regex.exec(safeText)) !== null) {
+      const word = match[0];
+      const normWord = normalizeForMatch(word);
+      const shouldHighlight = normalizedTerms.some(term => term && normWord.includes(term));
+      if (match.index > lastIndex) {
+        parts.push(safeText.slice(lastIndex, match.index));
+      }
+      if (shouldHighlight) {
+        parts.push(<span key={match.index} className={className}>{word}</span>);
+      } else {
+        parts.push(word);
+      }
+      lastIndex = match.index + word.length;
+    }
+    if (lastIndex < safeText.length) {
+      parts.push(safeText.slice(lastIndex));
+    }
+    return parts;
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const query = params.get('q');
     if (query) {
       setSearchKeyword(query);
-      // Trigger search with the query from URL
       handleSearchWithQuery(query);
     }
-  }, [location.search]);
+  }, [location]);
 
   const toggleAbstractExpansion = (resultId) => {
     setExpandedAbstracts(prev => ({
@@ -87,20 +150,26 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
 
   const handleSearch = async () => {
     setError(null);
-    setIsLoading(true);
+    setLoading(true);
     setSearchResults([]);
 
     // Basic validation for at least one input
     if (
       !searchKeyword.trim() &&
       !institution.trim() &&
-      !yearFrom.trim() &&
-      !yearTo.trim() &&
+      !startDate &&
+      !endDate &&
       !author.trim() &&
-      !funding.trim()
+      !funding.trim() &&
+      !topic.trim() &&
+      !publicationYear.trim() &&
+      !startYear.trim() &&
+      !endYear.trim() &&
+      publicationTypes.length === 0 &&
+      !isOpenAccess
     ) {
       setError("Please enter at least one search criterion.");
-      setIsLoading(false);
+      setLoading(false);
       return;
     }
 
@@ -115,13 +184,30 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
         filters.push(`title_and_abstract.search:${encodedKeyword}`);
       }
 
-      // Add year filter
-      if (yearFrom.trim() || yearTo.trim()) {
-        if (yearFrom.trim() && yearTo.trim()) {
-          filters.push(`publication_year:${yearFrom.trim()}+-+${yearTo.trim()}`);
-        } else if (yearFrom.trim()) {
-          filters.push(`publication_year:${yearFrom.trim()}`);
+      // Add date filters
+      if (activeFilters.includes('Date Range')) {
+        const formatDate = (date) => date.toISOString().split('T')[0];
+        if (startDate || endDate) {
+          if (startDate && endDate) {
+            filters.push(`publication_date:${formatDate(startDate)},${formatDate(endDate)}`);
+          } else if (startDate) {
+            filters.push(`from_publication_date:${formatDate(startDate)}`);
+          } else { // only endDate
+            filters.push(`to_publication_date:${formatDate(endDate)}`);
+          }
         }
+      } else if (activeFilters.includes('Year Range')) {
+        if (startYear || endYear) {
+          if (startYear && endYear) {
+            filters.push(`publication_year:${startYear}-${endYear}`);
+          } else if (startYear) {
+            filters.push(`from_publication_date:${startYear}-01-01`);
+          } else {
+            filters.push(`to_publication_date:${endYear}-12-31`);
+          }
+        }
+      } else if (activeFilters.includes('Publication Year') && publicationYear) {
+        filters.push(`publication_year:${publicationYear}`);
       }
 
       // Handle institution search
@@ -145,7 +231,7 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
         } catch (error) {
           console.error('Error fetching institutions:', error);
           setError('Failed to fetch institution data. Please try again.');
-          setIsLoading(false);
+          setLoading(false);
           return;
         }
       }
@@ -159,6 +245,23 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
       // Add funding filter
       if (funding.trim()) {
         filters.push(`grants.funder.display_name:"${funding.trim()}"`);
+      }
+
+      // Add Open Access filter
+      if (isOpenAccess) {
+        filters.push('is_oa:true');
+      }
+
+      // Add Topic (Concept) filter
+      if (topic.trim()) {
+        // Assuming topic is an ID, if not, it should be resolved to an ID first
+        const topicFilterValue = topic.startsWith('C') ? `concepts.id:${topic}` : `concepts.display_name.search:${topic}`;
+        filters.push(topicFilterValue);
+      }
+
+      // Add Type filter
+      if (publicationTypes.length > 0) {
+        filters.push(`type:${publicationTypes.map(t => t.id).join('|')}`);
       }
 
       // Add all filters as a single parameter
@@ -190,275 +293,295 @@ export const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
       setError("Failed to fetch search results. Please try again. Error: " + e.message);
       console.error("Search fetch error:", e);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   const handleSearchWithQuery = async (query) => {
+    setLoading(true);
     setError(null);
-    setIsLoading(true);
-    setSearchResults([]);
 
     try {
-      const params = new URLSearchParams();
-      const filters = [];
+      const params = new URLSearchParams({
+        filter: `search:"${query}"`,
+        sort: 'relevance_score:desc',
+        page: 1,
+        per_page: 25
+      });
 
-      // Add search keyword filter
-      if (query) {
-        const encodedKeyword = query.trim().replace(/\s+/g, '+');
-        filters.push(`title_and_abstract.search:${encodedKeyword}`);
-      }
-
-      // Add all filters as a single parameter
-      if (filters.length > 0) {
-        const filterString = filters.join(',');
-        params.append("filter", filterString);
-      }
-
-      // Add other parameters
-      params.append("page", "1");
-      params.append("per_page", "25");
-      params.append("sort", "relevance_score:desc");
-
-      const url = `http://localhost:4000/api/publications/search?${params.toString()}`;
-      console.log('Making request to:', url);
-
-      const response = await fetch(url);
-      console.log('Response status:', response.status);
+      const response = await fetch(`http://localhost:4000/api/publications/search?${params}`);
+      const data = await response.json();
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        console.error('Error response:', errorData);
-        throw new Error(`HTTP error! status: ${response.status}${errorData ? `, details: ${JSON.stringify(errorData)}` : ''}`);
+        throw new Error(data.details || data.error || 'Failed to fetch search results');
       }
-      const data = await response.json();
+
       setSearchResults(data.results || []);
-    } catch (e) {
-      setError("Failed to fetch search results. Please try again. Error: " + e.message);
-      console.error("Search fetch error:", e);
+    } catch (error) {
+      console.error('Search error:', error);
+      setError(error.message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  const handleSelectFilter = (filter) => {
+    if (!activeFilters.includes(filter)) {
+      setActiveFilters([...activeFilters, filter]);
+    }
+    setShowFilterMenu(false);
+  };
+
+  const handleTypeToggle = (type) => {
+    setPublicationTypes(prev =>
+      prev.some(pt => pt.id === type.id)
+        ? prev.filter(pt => pt.id !== type.id)
+        : [...prev, type]
+    );
+  };
+
+  const allFilters = [
+    'Funding', 'Open Access', 'Topic', 'Type', 'Publication Year', 'Year Range', 'Date Range'
+  ];
+  const availableFilters = allFilters.filter(f => !activeFilters.includes(f));
+
   return (
     <PageLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-      <div className={styles.mainContent}>
+      <div style={{ padding: 'var(--spacing-xl)' }}>
         <div className={styles.searchPageContent}>
-          <h1 className={styles.filterCriteriaTitle}>Filter Criteria</h1>
-          <div className={styles.filterSection}>
-            <div className={styles.searchCriterium}>
-              <div className={styles.label}>
-                <div className={styles.criterium}>Search Keyword</div>
-              </div>
-              <div className={styles.input}>
-                <input
-                  className={styles.hereIsSpaceFor}
-                  placeholder="Enter keywords for research papers..."
-                  type="text"
-                  value={searchKeyword}
-                  onChange={(e) => setSearchKeyword(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      handleSearch();
-                    }
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className={styles.searchCriterium}>
-              <div className={styles.label}>
-                <div className={styles.criterium}>Institution</div>
-              </div>
-              <div className={styles.input}>
-                <input
-                  className={styles.hereIsSpaceFor}
-                  placeholder="Enter institution name..."
-                  type="text"
-                  value={institution}
-                  onChange={(e) => setInstitution(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      handleSearch();
-                    }
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className={styles.searchCriterium}>
-              <div className={styles.divWrapper}>
-                <div className={styles.textWrapper3}>Year From</div>
-              </div>
-              <div className={styles.hereIsSpaceForWrapper}>
-                <input
-                  className={styles.hereIsSpaceFor2}
-                  placeholder="e.g., 2000"
-                  type="text"
-                  value={yearFrom}
-                  onChange={(e) => setYearFrom(e.target.value.replace(/[^0-9]/g, ''))} // Only allow digits
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      handleSearch();
-                    }
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className={styles.searchCriterium}>
-              <div className={styles.divWrapper}>
-                <div className={styles.textWrapper3}>Year To</div>
-              </div>
-              <div className={styles.hereIsSpaceForWrapper}>
-                <input
-                  className={styles.hereIsSpaceFor2}
-                  placeholder="e.g., 2023"
-                  type="text"
-                  value={yearTo}
-                  onChange={(e) => setYearTo(e.target.value.replace(/[^0-9]/g, ''))} // Only allow digits
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      handleSearch();
-                    }
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className={styles.searchCriterium}>
-              <div className={styles.divWrapper}>
-                <div className={styles.textWrapper3}>Author</div>
-              </div>
-              <div className={styles.hereIsSpaceForWrapper}>
-                <input
-                  className={styles.hereIsSpaceFor2}
-                  placeholder="Enter author name..."
-                  type="text"
-                  value={author}
-                  onChange={(e) => setAuthor(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      handleSearch();
-                    }
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className={styles.searchCriterium}>
-              <div className={styles.divWrapper}>
-                <div className={styles.textWrapper3}>Funding</div>
-              </div>
-              <div className={styles.hereIsSpaceForWrapper}>
-                <input
-                  className={styles.hereIsSpaceFor2}
-                  placeholder="Enter funding organization..."
-                  type="text"
-                  value={funding}
-                  onChange={(e) => setFunding(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      handleSearch();
-                    }
-                  }}
-                />
+          <div className={styles.searchContainer}>
+            <div className={styles.filterControls}>
+              <div className={styles.activeFilters}>
+                {activeFilters.map(filter => (
+                  <div key={filter} className={styles.filterCriterium}>
+                    <label className={styles.label}>{filter}</label>
+                    {filter === 'Keyword' && (
+                      <Autocomplete
+                        value={searchKeyword}
+                        onValueChange={setSearchKeyword}
+                        placeholder="Enter keywords..."
+                        apiEndpoint="https://api.openalex.org/concepts"
+                        onEnterPress={handleSearch}
+                      />
+                    )}
+                    {filter === 'Author' && (
+                      <Autocomplete
+                        value={author}
+                        onValueChange={setAuthor}
+                        placeholder="Enter author name..."
+                        apiEndpoint="https://api.openalex.org/authors"
+                        onEnterPress={handleSearch}
+                      />
+                    )}
+                    {filter === 'Institution' && (
+                      <Autocomplete
+                        value={institution}
+                        onValueChange={setInstitution}
+                        placeholder="Enter institution name..."
+                        apiEndpoint="https://api.openalex.org/institutions"
+                        onEnterPress={handleSearch}
+                      />
+                    )}
+                    {filter === 'Funding' && (
+                      <input
+                        type="text"
+                        value={funding}
+                        onChange={(e) => setFunding(e.target.value)}
+                        placeholder="Enter funding organization..."
+                        className={styles.input}
+                        onKeyDown={handleKeyPress}
+                      />
+                    )}
+                    {filter === 'Open Access' && (
+                      <div className={styles.checkboxContainer}>
+                        <input
+                          type="checkbox"
+                          id="open-access-checkbox"
+                          checked={isOpenAccess}
+                          onChange={(e) => setIsOpenAccess(e.target.checked)}
+                          className={styles.checkbox}
+                        />
+                        <label htmlFor="open-access-checkbox" className={styles.checkboxLabel}>Only Open Access Results</label>
+                      </div>
+                    )}
+                    {filter === 'Topic' && (
+                      <Autocomplete
+                        value={topic}
+                        onValueChange={setTopic}
+                        placeholder="Enter topic name or ID..."
+                        apiEndpoint="https://api.openalex.org/concepts"
+                        onEnterPress={handleSearch}
+                      />
+                    )}
+                    {filter === 'Type' && (
+                      <div className={styles.multiSelectContainer}>
+                        <div className={styles.selectedTypes}>
+                          {publicationTypes.length > 0
+                            ? publicationTypes.map(t => t.display_name).join(', ')
+                            : "Select publication types..."}
+                        </div>
+                        <div className={styles.multiSelectDropdown}>
+                          {availableTypes.map(type => (
+                            <div key={type.id} className={styles.multiSelectItem}>
+                              <input
+                                type="checkbox"
+                                id={`type-${type.id}`}
+                                checked={publicationTypes.some(pt => pt.id === type.id)}
+                                onChange={() => handleTypeToggle(type)}
+                              />
+                              <label htmlFor={`type-${type.id}`}>{type.display_name}</label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {filter === 'Publication Year' && (
+                      <input
+                        type="number"
+                        value={publicationYear}
+                        onChange={(e) => setPublicationYear(e.target.value)}
+                        placeholder="e.g., 2023"
+                        className={styles.input}
+                        onKeyDown={handleKeyPress}
+                      />
+                    )}
+                    {filter === 'Year Range' && (
+                      <div className={styles.yearFilter}>
+                        <input
+                          type="number"
+                          value={startYear}
+                          onChange={(e) => setStartYear(e.target.value)}
+                          placeholder="From Year"
+                          className={styles.yearInput}
+                          onKeyDown={handleKeyPress}
+                        />
+                        <input
+                          type="number"
+                          value={endYear}
+                          onChange={(e) => setEndYear(e.target.value)}
+                          placeholder="To Year"
+                          className={styles.yearInput}
+                          onKeyDown={handleKeyPress}
+                        />
+                      </div>
+                    )}
+                    {filter === 'Date Range' && (
+                      <div className={styles.yearFilter}>
+                        <DatePicker
+                          selected={startDate}
+                          onChange={(date) => setStartDate(date)}
+                          selectsStart
+                          startDate={startDate}
+                          endDate={endDate}
+                          placeholderText="Start Date"
+                          className={styles.dateInput}
+                          dateFormat="yyyy-MM-dd"
+                        />
+                        <DatePicker
+                          selected={endDate}
+                          onChange={(date) => setEndDate(date)}
+                          selectsEnd
+                          startDate={startDate}
+                          endDate={endDate}
+                          minDate={startDate}
+                          placeholderText="End Date"
+                          className={styles.dateInput}
+                          dateFormat="yyyy-MM-dd"
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <div className={styles.addFilterContainer}>
+                  <button className={styles.addFilterBtn} onClick={() => setShowFilterMenu(!showFilterMenu)}>+</button>
+                  {showFilterMenu && <FilterMenu onSelectFilter={handleSelectFilter} availableFilters={availableFilters} />}
+                </div>
               </div>
             </div>
 
             <div className={styles.searchButtonContainer}>
-              <button onClick={handleSearch} disabled={isLoading} className={styles.searchButton}>
-                {isLoading ? "Searching..." : "Search"}
+              <button
+                onClick={handleSearch}
+                disabled={loading}
+                className={styles.searchButton}
+              >
+                {loading ? 'Searching...' : 'Search'}
               </button>
             </div>
 
+            {error && <p className={styles.errorMessage}>{error}</p>}
           </div>
 
-          {error && <div className={styles.errorMessage}>{error}</div>}
-          {isLoading && (
+          {loading && (
             <div className={styles.loadingContainer}>
               <div className={styles.spinner}></div>
-              <div className={styles.loadingMessage}>Loading search results...</div>
+              <p className={styles.loadingMessage}>Loading results...</p>
             </div>
           )}
 
           {searchResults.length > 0 && (
             <div className={styles.searchResultsSection}>
-              <h2 className={styles.searchResultsTitle}>Research Paper Results</h2>
               <div className={styles.resultsList}>
-                {searchResults.map((result, index) => (
-                  <div
-                    key={index}
-                    className={`${styles.searchResultItem} ${isSiemensPaper(result) ? styles.siemensPaper : ''}`}
-                  >
-                    <h3>{result.display_name || result.title || "No Title"}</h3>
-                    <p>Authors: {result.authorships ? result.authorships.map(a => a.author.display_name).join(", ") : "N/A"}</p>
-                    <p>Year: {result.publication_year || "N/A"}</p>
-                    <p>Institutions: {result.authorships && result.authorships.length > 0
-                      ? Array.from(new Set(result.authorships.flatMap(a => a.institutions || []).map(inst => inst.display_name))).join(", ")
-                      : "N/A"}</p>
-                    <p className={styles.citationCount}>Cited by: {result.cited_by_count || 0}</p>
-                    {result.abstract_inverted_index && (
-                      <div className={styles.abstractContainer}>
-                        <p className={styles.abstractText}>
-                          {expandedAbstracts[result.id] ?
-                            reconstructAbstract(result.abstract_inverted_index) :
-                            getFirstSentence(reconstructAbstract(result.abstract_inverted_index))
-                          }
-                        </p>
-                        {reconstructAbstract(result.abstract_inverted_index).length > getFirstSentence(reconstructAbstract(result.abstract_inverted_index)).length && !expandedAbstracts[result.id] && (
-                          <span
-                            className={styles.expandAbstractButton}
-                            onClick={() => toggleAbstractExpansion(result.id)}
-                            title="Expand Abstract"
-                          >
-                            <div className={styles.expandIconBox}>▼</div>
-                          </span>
-                        )}
-                        {expandedAbstracts[result.id] && (
-                          <span
-                            className={styles.collapseAbstractButton}
-                            onClick={() => toggleAbstractExpansion(result.id)}
-                            title="Collapse Abstract"
-                          >
-                            Collapse [ - ]
-                          </span>
-                        )}
+                {searchResults.map((result) => {
+                  const authorString = result.authorships?.map(a => a.author.display_name).join(', ');
+                  const institutionString = result.authorships
+                    ? Array.from(new Set(result.authorships.flatMap(a => a.institutions || []).map(inst => inst.display_name))).join(", ")
+                    : "";
+
+                  return (
+                    <div key={result.id} className={`${styles.searchResultItem} ${isSiemensPaper(result) ? styles.siemensPaper : ''}`}>
+                      <h3 className={styles.resultTitle}>
+                        <a href={result.id} target="_blank" rel="noopener noreferrer">
+                          {highlightText(result.display_name, searchKeyword.split(/\s+/), styles.highlightBackground)}
+                        </a>
+                      </h3>
+                      <div className={styles.resultMeta}>
+                        <span className={styles.authors}>
+                          {highlightText(authorString, [author], styles.highlightBold)}
+                        </span>
+                        <span className={styles.venue}>
+                          {highlightText(institutionString, [institution], styles.highlightBold)} - {result.primary_location?.source?.display_name || ''} ({result.publication_year})
+                        </span>
                       </div>
-                    )}
-                    {result.id && <p><a href={result.id} target="_blank" rel="noopener noreferrer">View on OpenAlex</a></p>}
-                    {result.primary_location?.landing_page_url && <p><a href={result.primary_location.landing_page_url} target="_blank" rel="noopener noreferrer">Read More (Publisher)</a></p>}
-                  </div>
-                ))}
+
+                      {result.abstract_inverted_index && (
+                        <div className={styles.abstractContainer}>
+                          <p className={styles.abstractText}>
+                            {expandedAbstracts[result.id]
+                              ? highlightText(reconstructAbstract(result.abstract_inverted_index), searchKeyword.split(/\s+/), styles.highlightBold)
+                              : getFirstSentence(reconstructAbstract(result.abstract_inverted_index))
+                            }
+                          </p>
+                          {reconstructAbstract(result.abstract_inverted_index).length > getFirstSentence(reconstructAbstract(result.abstract_inverted_index)).length && (
+                            <button onClick={() => toggleAbstractExpansion(result.id)} className={styles.toggleAbstractButton}>
+                              {expandedAbstracts[result.id] ? 'Show less' : 'Show more'}
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                      <div className={styles.resultActions}>
+                        <span className={styles.citationCount}>Cited by {result.cited_by_count}</span>
+                        <a href={result.primary_location?.landing_page_url} target="_blank" rel="noopener noreferrer" className={styles.actionLink}>
+                          View at Publisher
+                        </a>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
-
-          <div className={styles.resultList}>
-            <div className={styles.imageBox}>
-              <h2 className={styles.imageBoxTitle}>SIEMENS' TOP COLLABORATION PROJECTS</h2>
-              <div className={styles.imageContent}>
-                <img className={styles.chartImage} alt="Top Collaboration Projects" src={topCollaborationProjectsGpt1} />
-              </div>
-            </div>
-
-            <div className={styles.imageBox}>
-              <h2 className={styles.imageBoxTitle}>SIEMENS' TOP RESEARCH PARTNERS</h2>
-              <div className={styles.imageContent}>
-                <img className={styles.chartImage} alt="Top Research Partner List" src={topResearchPartnerListGpt1} />
-              </div>
-            </div>
-
-            <div className={styles.imageBox}>
-              <h2 className={styles.imageBoxTitle}>Top Funded Research Themes</h2>
-              <div className={styles.imageContent}>
-                <img className={styles.chartImage} alt="Top Research Funding" src={topResearchFunding} />
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </PageLayout>
   );
 };
+
+export default SearchPageLight;

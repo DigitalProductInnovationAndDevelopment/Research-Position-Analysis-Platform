@@ -13,8 +13,6 @@
   composes: searchPage;
   background-color: var(--color-background-light);
   color: var(--color-text-light);
-  display: grid;
-  grid-template-columns: auto 1fr; /* SideMenu takes auto width, mainContent takes rest */
   min-height: 100vh;
 }
 
@@ -43,14 +41,12 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-medium);
-  padding: var(--spacing-medium);
 }
 
 .searchPageContent {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-medium);
-  padding: var(--spacing-medium) 0;
 }
 
 .filterCriteriaTitle {
@@ -69,9 +65,7 @@
 
 /* Common component styles */
 .searchContainer {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--spacing-lg);
+  padding: 0; /* Let parent handle padding and alignment */
 }
 
 .searchResults {
@@ -195,14 +189,13 @@
 
 .searchResultItem {
   background-color: var(--color-card-background);
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow-sm);
-  padding: var(--spacing-md);
+  border-radius: 0; /* Remove border-radius for a flatter look */
+  border-bottom: 1px solid var(--color-border); /* Separator line */
+  box-shadow: none; /* Remove box shadow */
+  padding: var(--spacing-md) 0;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
-  transition: transform 0.2s ease-in-out;
-  position: relative;
+  gap: var(--spacing-xs); /* Tighter spacing */
 }
 
 .siemensPaper {
@@ -338,9 +331,8 @@
 }
 
 .citationCount {
-  color: var(--color-primary);
-  font-weight: 500;
-  margin: 0.5rem 0;
+  color: var(--color-text-secondary);
+  font-weight: normal;
 }
 
 /* Responsive styles */
@@ -364,4 +356,162 @@
   .resultList {
     grid-template-columns: 1fr;
   }
+}
+
+.highlightBackground {
+  background-color: #1de9b6; /* Bright turquoise blue */
+  color: #00363a; /* Dark teal for contrast */
+  padding: 0 2px;
+  border-radius: 2px;
+  font-weight: 500;
+  display: inline;
+}
+
+.highlightBold {
+  font-weight: bold;
+}
+
+.resultLabel {
+  font-weight: bold;
+  color: var(--color-primary-dark);
+  margin-right: 0.25em;
+  display: inline;
+}
+
+.resultValue {
+  display: inline;
+  color: var(--color-text-secondary);
+}
+
+.filterControls {
+  display: flex;
+  flex-direction: column; /* Stack filters vertically */
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.addFilterBtn {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-self: flex-start; /* Align button to the start of the container */
+}
+
+.activeFilters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  width: 100%; /* Make the container take full width */
+}
+
+.filterCriterium {
+  display: grid;
+  grid-template-columns: 150px 1fr; /* Label and input side-by-side */
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.addFilterContainer {
+  position: relative;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.filterMenu {
+  position: absolute;
+  top: 100%; /* Position dropdown below the button */
+  left: 0;
+  z-index: 20; /* Ensure menu is on top */
+}
+
+.yearFilter {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.dateInput {
+  width: 120px;
+  padding: var(--spacing-xs);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  box-sizing: border-box;
+}
+
+.yearInput {
+  width: 100px;
+}
+
+.resultTitle a {
+  font-size: var(--font-size-large);
+  color: var(--color-link);
+  text-decoration: none;
+  font-weight: 400;
+}
+.resultTitle a:hover {
+  text-decoration: underline;
+}
+
+.resultMeta {
+  font-size: var(--font-size-sm);
+  color: #006621; /* Green color like Google Scholar */
+}
+
+.authors, .venue {
+  display: block; /* Make them stack on smaller screens if needed */
+}
+
+.abstractContainer {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.toggleAbstractButton {
+  background: none;
+  border: none;
+  color: var(--color-link);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  font-size: var(--font-size-sm);
+}
+
+.resultActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.actionLink {
+  color: var(--color-link);
+  text-decoration: none;
+}
+.actionLink:hover {
+  text-decoration: underline;
+}
+
+.noResultsMessage {
+  text-align: center;
+  margin-top: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background-color: var(--color-background-light);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-secondary);
+}
+
+.noResultsMessage p:first-child {
+  font-weight: bold;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-light);
 } 

@@ -8,7 +8,6 @@
 
 .contentArea {
   flex-grow: 1;
-  padding: var(--spacing-medium);
   /* Adjust padding or other styles as needed to accommodate the side menu and dark mode button */
 }
 

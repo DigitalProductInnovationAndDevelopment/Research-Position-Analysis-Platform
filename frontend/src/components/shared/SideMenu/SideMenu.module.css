@@ -2,13 +2,14 @@
 @import '../../../assets/styles/variables.css';
 
 .sideMenu {
-  width: 250px;
+  width: clamp(220px, 18vw, 300px); /* Responsive width: min, preferred, max */
   height: 100vh;
   background-color: var(--color-background-light);
   padding: var(--spacing-medium);
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
+  flex-shrink: 0; /* Prevent the sidebar from shrinking */
 }
 
 .logoContainer {
@@ -31,7 +32,7 @@
 .menuItem {
   display: flex;
   align-items: center;
-  gap: var(--spacing-medium);
+  gap: var(--spacing-large); /* Increased gap for more space */
   padding: var(--spacing-small);
   border-radius: 4px;
   cursor: pointer;
@@ -48,7 +49,7 @@
 }
 
 .label {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-large); /* Increased font size */
   color: var(--color-text-light);
 }
 
