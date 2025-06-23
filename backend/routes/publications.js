@@ -5,7 +5,10 @@ const axios = require('axios');
 const OPENALEX_API_BASE = 'https://api.openalex.org';
 
 // Common headers for OpenAlex API calls
-
+const OPENALEX_HEADERS = {
+    'User-Agent': 'Research-Position-Analysis-Platform/1.0 (https://github.com/your-repo; mailto:your-email@example.com)',
+    'Accept': 'application/json'
+};
 
 //get all publications
 router.get('/', async (req, res) => {
