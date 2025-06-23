@@ -4,6 +4,12 @@ const axios = require('axios');
 
 const OPENALEX_API_BASE = 'https://api.openalex.org';
 
+// Common headers for OpenAlex API calls
+const OPENALEX_HEADERS = {
+    'User-Agent': 'Research-Position-Analysis-Platform/1.0 (https://github.com/your-repo; mailto:your-email@example.com)',
+    'Accept': 'application/json'
+};
+
 //get all publications
 router.get('/', async (req, res) => {
     try {
@@ -16,7 +22,10 @@ router.get('/', async (req, res) => {
             ...(search && { search })
         };
 
-        const response = await axios.get(url, { params });
+        const response = await axios.get(url, { 
+            params,
+            headers: OPENALEX_HEADERS
+        });
         res.json(response.data);
     } catch (error) {
         console.error('Error fetching publications:', error);
@@ -67,6 +76,7 @@ router.get('/search', async (req, res) => {
         try {
             const response = await axios.get(url, {
                 params,
+                headers: OPENALEX_HEADERS,
                 paramsSerializer: params => {
                     return require('qs').stringify(params, {
                         arrayFormat: 'repeat',
@@ -102,7 +112,7 @@ router.get('/search', async (req, res) => {
     }
 });
 
-// Keyword trends endpoint using concept-based filtering with fallback to keyword search if concept not found or invalid
+// Keyword trends endpoint using title and abstract search filtering
 router.get('/keyword_trends', async (req, res) => {
     try {
         const {
@@ -122,46 +132,29 @@ router.get('/keyword_trends', async (req, res) => {
         const startDate = start_date || `${startYear}-01-01`;
         const endDate = end_date || `${endYear}-12-31`;
 
-        let conceptId = null;
-        try {
-            const conceptRes = await axios.get(`${OPENALEX_API_BASE}/concepts`, {
-                params: { search: keyword, per_page: 1 }
-            });
-            const concept = conceptRes.data.results?.[0];
-            if (concept?.id && concept?.display_name.toLowerCase() === keyword.toLowerCase()) {
-                conceptId = concept.id.replace('https://openalex.org/', '');
-                console.log(`Found exact concept match for "${keyword}": ${concept.display_name} (${conceptId})`);
-            } else {
-                console.log(`No exact concept match found for "${keyword}", falling back to keyword search`);
-            }
-        } catch (e) {
-            console.warn('Concept lookup failed:', e.message);
-        }
-
         let worksRes;
         try {
-            if (conceptId) {
-                console.log(`Fetching works using concept ID: ${conceptId}`);
-                worksRes = await axios.get(`${OPENALEX_API_BASE}/works`, {
-                    params: {
-                        filter: `concept.id:${conceptId},from_publication_date:${startDate},to_publication_date:${endDate}`,
-                        group_by: 'publication_year'
-                    }
-                });
-            } else {
-                worksRes = await axios.get(`${OPENALEX_API_BASE}/works`, {
-                    params: {
-                        filter: `title_and_abstract.search:${keyword},from_publication_date:${startDate},to_publication_date:${endDate}`,
-                        group_by: 'publication_year'
-                    }
-                });
-            }
+            console.log(`Using title and abstract search for "${keyword}"`);
+            worksRes = await axios.get(`${OPENALEX_API_BASE}/works`, {
+                params: {
+                    filter: `title_and_abstract.search:"${keyword}",from_publication_date:${startDate},to_publication_date:${endDate}`,
+                    group_by: 'publication_year'
+                },
+
+            });
         } catch (e) {
             console.error('Error fetching works:', e.message);
+            if (e.response?.status === 403) {
+                return res.status(500).json({
+                    error: 'OpenAlex API rate limit exceeded',
+                    details: 'Please try again in a few minutes or contact support if the issue persists.',
+                    search_method: 'title_abstract'
+                });
+            }
             return res.status(500).json({
                 error: 'OpenAlex API error',
                 details: e.message,
-                search_method: conceptId ? 'concept' : 'keyword'
+                search_method: 'title_abstract'
             });
         }
 
@@ -222,8 +215,8 @@ router.get('/keyword_trends', async (req, res) => {
             yearly_distribution,
             date_range: { start: startDate, end: endDate, years: endYear - startYear + 1 },
             meta: {
-                concept_id: conceptId || null,
-                used_keyword_search: !conceptId,
+                search_method: 'title_abstract',
+                used_keyword_search: true,
                 trend_factors: {
                     average_growth_rate: +avgGrowth.toFixed(2),
                     relative_popularity: +popularity.toFixed(2),
@@ -245,18 +238,13 @@ router.get('/keyword_trends', async (req, res) => {
     }
 });
 
-
-
-
-
-
 //get a single publication
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const url = `${OPENALEX_API_BASE}/works/${id}`;
 
-        const response = await axios.get(url);
+        const response = await axios.get(url, { headers: OPENALEX_HEADERS });
         res.json(response.data);
     } catch (error) {
         console.error('Error fetching publication:', error);

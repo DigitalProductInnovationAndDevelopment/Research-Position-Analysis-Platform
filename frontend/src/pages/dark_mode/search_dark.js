@@ -12,7 +12,25 @@ export const SearchDark = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSearch = async () => {
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [hasPreviousPage, setHasPreviousPage] = useState(false);
+
+  const handleNextPage = () => {
+    if (hasNextPage) {
+      handleSearch(currentPage + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (hasPreviousPage) {
+      handleSearch(currentPage - 1);
+    }
+  };
+
+  const handleSearch = async (page = 1) => {
     setError(null);
     setIsLoading(true);
     setSearchResults([]);
@@ -96,7 +114,7 @@ export const SearchDark = () => {
       }
 
       // Add other parameters
-      params.append("page", "1");
+      params.append("page", page.toString());
       params.append("per_page", "25");
       params.append("sort", "relevance_score:desc");
 
@@ -113,6 +131,13 @@ export const SearchDark = () => {
       }
       const data = await response.json();
       setSearchResults(data.results || []);
+      setCurrentPage(page);
+      setTotalResults(data.meta?.count || 0);
+
+      // Calculate pagination state
+      const totalPages = Math.ceil((data.meta?.count || 0) / 25);
+      setHasNextPage(page < totalPages);
+      setHasPreviousPage(page > 1);
     } catch (e) {
       setError("Failed to fetch search results. Please try again. Error: " + e.message);
       console.error("Search fetch error:", e);
