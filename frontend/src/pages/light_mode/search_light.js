@@ -197,14 +197,12 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
           }
         }
       } else if (activeFilters.includes('Year Range')) {
-        if (startYear || endYear) {
-          if (startYear && endYear) {
-            filters.push(`publication_year:${startYear}-${endYear}`);
-          } else if (startYear) {
-            filters.push(`from_publication_date:${startYear}-01-01`);
-          } else {
-            filters.push(`to_publication_date:${endYear}-12-31`);
-          }
+        if (startYear && endYear) {
+          filters.push(`publication_year:${startYear}-${endYear}`);
+        } else if (startYear) {
+          filters.push(`publication_year:${startYear}`);
+        } else if (endYear) {
+          filters.push(`publication_year:${endYear}`);
         }
       } else if (activeFilters.includes('Publication Year') && publicationYear) {
         filters.push(`publication_year:${publicationYear}`);
@@ -530,9 +528,26 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
               <div className={styles.resultsList}>
                 {searchResults.map((result) => {
                   const authorString = result.authorships?.map(a => a.author.display_name).join(', ');
-                  const institutionString = result.authorships
-                    ? Array.from(new Set(result.authorships.flatMap(a => a.institutions || []).map(inst => inst.display_name))).join(", ")
-                    : "";
+                  // Gather all unique institutions for this result
+                  const institutionList = result.authorships
+                    ? Array.from(new Set(result.authorships.flatMap(a => a.institutions || []).map(inst => inst.display_name))).filter(Boolean)
+                    : [];
+                  const institutionString = institutionList.join(', ');
+                  // Format publication date as 'Published on Jan 01 2020' or 'Published on 2020'
+                  let publicationDate = '';
+                  if (result.publication_date) {
+                    const dateObj = new Date(result.publication_date);
+                    if (!isNaN(dateObj)) {
+                      const day = String(dateObj.getDate()).padStart(2, '0');
+                      const month = dateObj.toLocaleString('default', { month: 'short' });
+                      const year = dateObj.getFullYear();
+                      publicationDate = `Published on ${month} ${day} ${year}`;
+                    }
+                  }
+                  if (!publicationDate && result.publication_year) {
+                    publicationDate = `Published on ${result.publication_year}`;
+                  }
+                  const journalName = result.primary_location?.source?.display_name || '';
 
                   return (
                     <div key={result.id} className={`${styles.searchResultItem} ${isSiemensPaper(result) ? styles.siemensPaper : ''}`}>
@@ -545,9 +560,21 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
                         <span className={styles.authors}>
                           {highlightText(authorString, [author], styles.highlightBold)}
                         </span>
-                        <span className={styles.venue}>
-                          {highlightText(institutionString, [institution], styles.highlightBold)} - {result.primary_location?.source?.display_name || ''} ({result.publication_year})
-                        </span>
+                        {institutionList.length > 0 && (
+                          <div style={{ color: 'black', marginTop: 4 }}>
+                            {institutionString}
+                          </div>
+                        )}
+                        {journalName && (
+                          <div style={{ color: 'black', marginTop: 4 }}>
+                            {journalName}
+                          </div>
+                        )}
+                        {publicationDate && (
+                          <div style={{ color: 'black', marginTop: 4 }}>
+                            {publicationDate}
+                          </div>
+                        )}
                       </div>
 
                       {result.abstract_inverted_index && (
@@ -568,9 +595,11 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
 
                       <div className={styles.resultActions}>
                         <span className={styles.citationCount}>Cited by {result.cited_by_count}</span>
-                        <a href={result.primary_location?.landing_page_url} target="_blank" rel="noopener noreferrer" className={styles.actionLink}>
-                          View at Publisher
-                        </a>
+                        {result.primary_location?.landing_page_url && (
+                          <a href={result.primary_location.landing_page_url} target="_blank" rel="noopener noreferrer" className={styles.actionLink}>
+                            View at Publisher
+                          </a>
+                        )}
                       </div>
                     </div>
                   );

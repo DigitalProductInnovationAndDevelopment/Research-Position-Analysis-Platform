@@ -30,18 +30,33 @@ router.get('/', async (req, res) => {
 // Advanced search publications
 router.get('/search', async (req, res) => {
     try {
-        const {
+        let {
             filter = '',
             sort = 'relevance_score:desc',
             page = 1,
             per_page = 25
         } = req.query;
 
+        // Fix: Convert filter from search:"..." to title_and_abstract.search:...
+        if (typeof filter === 'string' && filter.startsWith('search:"')) {
+            const match = filter.match(/^search:"(.+)"$/);
+            if (match) {
+                const query = match[1];
+                filter = `title_and_abstract.search:${query}`;
+            }
+        }
+
+        // If filter does not contain any .search: field, do not use relevance_score sort
+        let effectiveSort = sort;
+        if (!filter.includes('.search:') && sort === 'relevance_score:desc') {
+            effectiveSort = 'publication_year:desc';
+        }
+
         // Initialize params for OpenAlex API
         const params = {
             page: parseInt(page),
             per_page: parseInt(per_page),
-            sort,
+            sort: effectiveSort,
             filter
         };
 
@@ -136,8 +151,7 @@ router.get('/keyword_trends', async (req, res) => {
             } else {
                 worksRes = await axios.get(`${OPENALEX_API_BASE}/works`, {
                     params: {
-                        search: keyword,
-                        filter: `from_publication_date:${startDate},to_publication_date:${endDate}`,
+                        filter: `title_and_abstract.search:${keyword},from_publication_date:${startDate},to_publication_date:${endDate}`,
                         group_by: 'publication_year'
                     }
                 });
