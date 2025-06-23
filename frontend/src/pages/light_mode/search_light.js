@@ -538,10 +538,6 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
                 className={styles.searchButton}
               >
                 {loading ? 'Searching...' : 'Search'}
-=======
-              <button onClick={() => handleSearch()} disabled={isLoading} className={styles.searchButton}>
-                {isLoading ? "Searching..." : "Search"}
->>>>>>> origin/development
               </button>
             </div>
 
@@ -646,7 +642,7 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
                 <div className={styles.paginationControls}>
                   <button
                     onClick={handlePreviousPage}
-                    disabled={!hasPreviousPage || isLoading}
+                    disabled={!hasPreviousPage || loading}
                     className={styles.paginationButton}
                   >
                     Previous
@@ -654,7 +650,7 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
                   <span className={styles.pageInfo}>Page {currentPage}</span>
                   <button
                     onClick={handleNextPage}
-                    disabled={!hasNextPage || isLoading}
+                    disabled={!hasNextPage || loading}
                     className={styles.paginationButton}
                   >
                     Next
