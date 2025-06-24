@@ -43,17 +43,6 @@
   gap: var(--spacing-medium);
   padding: var(--spacing-medium);
   overflow-y: auto;
-  height: 100vh;
-  /* Hide scrollbar but keep scrolling functionality */
-  scrollbar-width: none;
-  /* Firefox */
-  -ms-overflow-style: none;
-  /* Internet Explorer 10+ */
-}
-
-/* Hide scrollbar for WebKit browsers (Chrome, Safari, Edge) */
-.mainContent::-webkit-scrollbar {
-  display: none;
 }
 
 .searchPageContent {
@@ -212,8 +201,8 @@
 }
 
 .resultsList {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-medium);
 }
 
