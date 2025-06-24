@@ -66,3 +66,33 @@ body.dark {
 .mt-5 {
   margin-top: var(--spacing-xl);
 }
+
+html,
+body {
+  overflow-y: scroll;
+  /* Always show vertical scrollbar */
+}
+
+/* For Webkit browsers (Chrome, Safari, Edge) */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 12px;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 6px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* For Firefox */
+html,
+body {
+  scrollbar-width: auto;
+  scrollbar-color: #ccc #f1f1f1;
+}
