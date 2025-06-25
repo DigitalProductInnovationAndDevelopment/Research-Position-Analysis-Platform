@@ -163,8 +163,9 @@
 
 .indicator {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
+  gap: 8px;
   padding: var(--spacing-xs) 0;
   border-bottom: 1px solid var(--color-border-light);
 }
