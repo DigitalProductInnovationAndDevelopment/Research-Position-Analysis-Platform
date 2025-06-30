@@ -57,10 +57,15 @@ const InstitutionDropdown = ({ value, onChange, label = 'Select Institution', pl
   };
 
   const handleDropdownToggle = () => {
-    setDropdownOpen((open) => !open);
-    if (!dropdownOpen && institutions.length === 0) {
-      setPage(1);
-    }
+    setDropdownOpen((open) => {
+      const willOpen = !open;
+      if (willOpen && institutions.length === 0 && !loading) {
+        // Always fetch first page if opening and list is empty
+        setPage(1);
+        fetchInstitutions(1, search);
+      }
+      return willOpen;
+    });
   };
 
   const handleScroll = (e) => {
