@@ -27,7 +27,6 @@ body.dark {
 .app {
   width: 100%;
   min-height: 100vh;
-  padding: var(--spacing-xl);
 }
 
 .main-content {
@@ -69,8 +68,11 @@ body.dark {
 
 html,
 body {
-  overflow-y: scroll;
+  overflow-y: scroll !important;
   /* Always show vertical scrollbar */
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 /* For Webkit browsers (Chrome, Safari, Edge) */
