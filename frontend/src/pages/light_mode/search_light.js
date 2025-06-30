@@ -396,7 +396,6 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
   ];
   const availableFilters = allFilters.filter(f => !activeFilters.includes(f));
 
-  // Add this handler for form submission
   const handleFormSubmit = (e) => {
     e.preventDefault();
     handleSearch();
