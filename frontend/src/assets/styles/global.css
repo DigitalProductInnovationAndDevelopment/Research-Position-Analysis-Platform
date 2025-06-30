@@ -68,7 +68,7 @@ body.dark {
 
 html,
 body {
-  overflow-y: scroll;
+  overflow-y: scroll !important;
   /* Always show vertical scrollbar */
   height: 100%;
   margin: 0;
