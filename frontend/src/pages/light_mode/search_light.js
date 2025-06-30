@@ -171,6 +171,75 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
     setLoading(true);
     setSearchResults([]);
 
+    // Data type validation for year fields
+    if (activeFilters.includes('Publication Year')) {
+      const yearVal = publicationYear.trim();
+      if (yearVal !== '') {
+        if (/^-\d+$/.test(yearVal)) {
+          setError(`Invalid input: '${publicationYear}' is a negative year. Please enter a valid positive integer year (e.g., 2023).`);
+          setLoading(false);
+          return;
+        }
+        if (!/^\d+$/.test(yearVal)) {
+          setError(`Invalid input: '${publicationYear}' is not a valid year. Please enter a valid positive integer year (e.g., 2023).`);
+          setLoading(false);
+          return;
+        }
+      }
+    }
+    if (activeFilters.includes('Year Range')) {
+      const startVal = startYear.trim();
+      const endVal = endYear.trim();
+      if (startVal !== '') {
+        if (/^-\d+$/.test(startVal)) {
+          setError(`Invalid input: '${startYear}' is a negative year. Please enter a valid positive integer year (e.g., 2020).`);
+          setLoading(false);
+          return;
+        }
+        if (!/^\d+$/.test(startVal)) {
+          setError(`Invalid input: '${startYear}' is not a valid year. Please enter a valid positive integer year (e.g., 2020).`);
+          setLoading(false);
+          return;
+        }
+      }
+      if (endVal !== '') {
+        if (/^-\d+$/.test(endVal)) {
+          setError(`Invalid input: '${endYear}' is a negative year. Please enter a valid positive integer year (e.g., 2023).`);
+          setLoading(false);
+          return;
+        }
+        if (!/^\d+$/.test(endVal)) {
+          setError(`Invalid input: '${endYear}' is not a valid year. Please enter a valid positive integer year (e.g., 2023).`);
+          setLoading(false);
+          return;
+        }
+      }
+    }
+
+    // Data type validation for string fields
+    const stringFields = [
+      { value: searchKeyword, name: 'Keyword', active: activeFilters.includes('Keyword') },
+      { value: author, name: 'Author', active: activeFilters.includes('Author') },
+      { value: institution, name: 'Institution', active: activeFilters.includes('Institution') },
+      { value: funding, name: 'Funding', active: activeFilters.includes('Funding') },
+      { value: topic, name: 'Topic', active: activeFilters.includes('Topic') },
+    ];
+    for (const field of stringFields) {
+      if (field.active) {
+        const val = field.value;
+        // Only validate if the field is non-empty (including whitespace)
+        if (val && (val.trim() === '' || /^\d+$/.test(val.trim()))) {
+          if (field.name === 'Author') {
+            setError(`Invalid input: '${val}' is not a valid value for Author. Please enter a non-empty string without numbers.`);
+          } else {
+            setError(`Invalid input: '${val}' is not a valid value for ${field.name}. Please enter a non-empty string that is not only a number.`);
+          }
+          setLoading(false);
+          return;
+        }
+      }
+    }
+
     // Basic validation for at least one input
     if (
       !searchKeyword.trim() &&
@@ -396,171 +465,178 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
   ];
   const availableFilters = allFilters.filter(f => !activeFilters.includes(f));
 
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    handleSearch();
+  };
+
   return (
     <PageLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
       <div style={{ padding: 'var(--spacing-xl)' }}>
         <div className={styles.searchPageContent}>
-          <div className={styles.searchContainer}>
-            <div className={styles.filterControls}>
-              <div className={styles.activeFilters}>
-                {activeFilters.map(filter => (
-                  <div key={filter} className={styles.filterCriterium}>
-                    <label className={styles.label}>{filter}</label>
-                    {filter === 'Keyword' && (
-                      <Autocomplete
-                        value={searchKeyword}
-                        onValueChange={setSearchKeyword}
-                        placeholder="Enter keywords..."
-                        apiEndpoint="https://api.openalex.org/concepts"
-                        onEnterPress={handleSearch}
-                      />
-                    )}
-                    {filter === 'Author' && (
-                      <Autocomplete
-                        value={author}
-                        onValueChange={setAuthor}
-                        placeholder="Enter author name..."
-                        apiEndpoint="https://api.openalex.org/authors"
-                        onEnterPress={handleSearch}
-                      />
-                    )}
-                    {filter === 'Institution' && (
-                      <Autocomplete
-                        value={institution}
-                        onValueChange={setInstitution}
-                        placeholder="Enter institution name..."
-                        apiEndpoint="https://api.openalex.org/institutions"
-                        onEnterPress={handleSearch}
-                      />
-                    )}
-                    {filter === 'Funding' && (
-                      <Autocomplete
-                        value={funding}
-                        onValueChange={setFunding}
-                        placeholder="Enter funding organization..."
-                        apiEndpoint="https://api.openalex.org/funders"
-                        onEnterPress={handleSearch}
-                      />
-                    )}
-                    {filter === 'Open Access' && (
-                      <div className={styles.checkboxContainer}>
-                        <input
-                          type="checkbox"
-                          id="open-access-checkbox"
-                          checked={isOpenAccess}
-                          onChange={(e) => setIsOpenAccess(e.target.checked)}
-                          className={styles.checkbox}
+          <form onSubmit={handleFormSubmit}>
+            <div className={styles.searchContainer}>
+              <div className={styles.filterControls}>
+                <div className={styles.activeFilters}>
+                  {activeFilters.map(filter => (
+                    <div key={filter} className={styles.filterCriterium}>
+                      <label className={styles.label}>{filter}</label>
+                      {filter === 'Keyword' && (
+                        <Autocomplete
+                          value={searchKeyword}
+                          onValueChange={setSearchKeyword}
+                          placeholder="Enter keywords..."
+                          type="keyword"
+                          onEnterPress={handleSearch}
                         />
-                        <label htmlFor="open-access-checkbox" className={styles.checkboxLabel}>Only Open Access Results</label>
-                      </div>
-                    )}
-                    {filter === 'Topic' && (
-                      <Autocomplete
-                        value={topic}
-                        onValueChange={setTopic}
-                        placeholder="Enter topic name or ID..."
-                        apiEndpoint="https://api.openalex.org/concepts"
-                        onEnterPress={handleSearch}
-                      />
-                    )}
-                    {filter === 'Type' && (
-                      <div className={styles.multiSelectContainer}>
-                        <div className={styles.selectedTypes}>
-                          {publicationTypes.length > 0
-                            ? publicationTypes.map(t => t.display_name).join(', ')
-                            : "Select publication types..."}
+                      )}
+                      {filter === 'Author' && (
+                        <Autocomplete
+                          value={author}
+                          onValueChange={setAuthor}
+                          placeholder="Enter author name..."
+                          type="author"
+                          onEnterPress={handleSearch}
+                        />
+                      )}
+                      {filter === 'Institution' && (
+                        <Autocomplete
+                          value={institution}
+                          onValueChange={setInstitution}
+                          placeholder="Enter institution name..."
+                          type="institution"
+                          onEnterPress={handleSearch}
+                        />
+                      )}
+                      {filter === 'Funding' && (
+                        <Autocomplete
+                          value={funding}
+                          onValueChange={setFunding}
+                          placeholder="Enter funding organization..."
+                          apiEndpoint="https://api.openalex.org/funders"
+                          onEnterPress={handleSearch}
+                        />
+                      )}
+                      {filter === 'Open Access' && (
+                        <div className={styles.checkboxContainer}>
+                          <input
+                            type="checkbox"
+                            id="open-access-checkbox"
+                            checked={isOpenAccess}
+                            onChange={(e) => setIsOpenAccess(e.target.checked)}
+                            className={styles.checkbox}
+                          />
+                          <label htmlFor="open-access-checkbox" className={styles.checkboxLabel}>Only Open Access Results</label>
                         </div>
-                        <div className={styles.multiSelectDropdown}>
-                          {availableTypes.map(type => (
-                            <div key={type.id} className={styles.multiSelectItem}>
-                              <input
-                                type="checkbox"
-                                id={`type-${type.id}`}
-                                checked={publicationTypes.some(pt => pt.id === type.id)}
-                                onChange={() => handleTypeToggle(type)}
-                              />
-                              <label htmlFor={`type-${type.id}`}>{type.display_name}</label>
-                            </div>
-                          ))}
+                      )}
+                      {filter === 'Topic' && (
+                        <Autocomplete
+                          value={topic}
+                          onValueChange={setTopic}
+                          placeholder="Enter topic name or ID..."
+                          apiEndpoint="https://api.openalex.org/concepts"
+                          onEnterPress={handleSearch}
+                        />
+                      )}
+                      {filter === 'Type' && (
+                        <div className={styles.multiSelectContainer}>
+                          <div className={styles.selectedTypes}>
+                            {publicationTypes.length > 0
+                              ? publicationTypes.map(t => t.display_name).join(', ')
+                              : "Select publication types..."}
+                          </div>
+                          <div className={styles.multiSelectDropdown}>
+                            {availableTypes.map(type => (
+                              <div key={type.id} className={styles.multiSelectItem}>
+                                <input
+                                  type="checkbox"
+                                  id={`type-${type.id}`}
+                                  checked={publicationTypes.some(pt => pt.id === type.id)}
+                                  onChange={() => handleTypeToggle(type)}
+                                />
+                                <label htmlFor={`type-${type.id}`}>{type.display_name}</label>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    {filter === 'Publication Year' && (
-                      <input
-                        type="number"
-                        value={publicationYear}
-                        onChange={(e) => setPublicationYear(e.target.value)}
-                        placeholder="e.g., 2023"
-                        className={styles.input}
-                        onKeyDown={handleKeyPress}
-                      />
-                    )}
-                    {filter === 'Year Range' && (
-                      <div className={styles.yearFilter}>
+                      )}
+                      {filter === 'Publication Year' && (
                         <input
                           type="number"
-                          value={startYear}
-                          onChange={(e) => setStartYear(e.target.value)}
-                          placeholder="From Year"
-                          className={styles.yearInput}
+                          value={publicationYear}
+                          onChange={(e) => setPublicationYear(e.target.value)}
+                          placeholder="e.g., 2023"
+                          className={styles.input}
                           onKeyDown={handleKeyPress}
                         />
-                        <input
-                          type="number"
-                          value={endYear}
-                          onChange={(e) => setEndYear(e.target.value)}
-                          placeholder="To Year"
-                          className={styles.yearInput}
-                          onKeyDown={handleKeyPress}
-                        />
-                      </div>
-                    )}
-                    {filter === 'Date Range' && (
-                      <div className={styles.yearFilter}>
-                        <DatePicker
-                          selected={startDate}
-                          onChange={(date) => setStartDate(date)}
-                          selectsStart
-                          startDate={startDate}
-                          endDate={endDate}
-                          placeholderText="Start Date"
-                          className={styles.dateInput}
-                          dateFormat="yyyy-MM-dd"
-                        />
-                        <DatePicker
-                          selected={endDate}
-                          onChange={(date) => setEndDate(date)}
-                          selectsEnd
-                          startDate={startDate}
-                          endDate={endDate}
-                          minDate={startDate}
-                          placeholderText="End Date"
-                          className={styles.dateInput}
-                          dateFormat="yyyy-MM-dd"
-                        />
-                      </div>
-                    )}
+                      )}
+                      {filter === 'Year Range' && (
+                        <div className={styles.yearFilter}>
+                          <input
+                            type="number"
+                            value={startYear}
+                            onChange={(e) => setStartYear(e.target.value)}
+                            placeholder="From Year"
+                            className={styles.yearInput}
+                            onKeyDown={handleKeyPress}
+                          />
+                          <input
+                            type="number"
+                            value={endYear}
+                            onChange={(e) => setEndYear(e.target.value)}
+                            placeholder="To Year"
+                            className={styles.yearInput}
+                            onKeyDown={handleKeyPress}
+                          />
+                        </div>
+                      )}
+                      {filter === 'Date Range' && (
+                        <div className={styles.yearFilter}>
+                          <DatePicker
+                            selected={startDate}
+                            onChange={(date) => setStartDate(date)}
+                            selectsStart
+                            startDate={startDate}
+                            endDate={endDate}
+                            placeholderText="Start Date"
+                            className={styles.dateInput}
+                            dateFormat="yyyy-MM-dd"
+                          />
+                          <DatePicker
+                            selected={endDate}
+                            onChange={(date) => setEndDate(date)}
+                            selectsEnd
+                            startDate={startDate}
+                            endDate={endDate}
+                            minDate={startDate}
+                            placeholderText="End Date"
+                            className={styles.dateInput}
+                            dateFormat="yyyy-MM-dd"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  <div className={styles.addFilterContainer}>
+                    <button className={styles.addFilterBtn} onClick={() => setShowFilterMenu(!showFilterMenu)} type="button">+</button>
+                    {showFilterMenu && <FilterMenu onSelectFilter={handleSelectFilter} availableFilters={availableFilters} />}
                   </div>
-                ))}
-                <div className={styles.addFilterContainer}>
-                  <button className={styles.addFilterBtn} onClick={() => setShowFilterMenu(!showFilterMenu)}>+</button>
-                  {showFilterMenu && <FilterMenu onSelectFilter={handleSelectFilter} availableFilters={availableFilters} />}
                 </div>
               </div>
-            </div>
 
-            <div className={styles.searchButtonContainer}>
-              <button
-                onClick={handleSearch}
-                disabled={loading}
-                className={styles.searchButton}
-              >
-                {loading ? 'Searching...' : 'Search'}
-              </button>
-            </div>
+              <div className={styles.searchButtonContainer}>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={styles.searchButton}
+                >
+                  {loading ? 'Searching...' : 'Search'}
+                </button>
+              </div>
 
-            {error && <p className={styles.errorMessage}>{error}</p>}
-          </div>
+              {error && <p className={styles.errorMessage}>{error}</p>}
+            </div>
+          </form>
 
           {loading && (
             <div className={styles.loadingContainer}>
