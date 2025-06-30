@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const fetch = require('node-fetch');
 
 router.get('/', async (req, res) => {
   const { search = '', page = 1, per_page = 20 } = req.query;
