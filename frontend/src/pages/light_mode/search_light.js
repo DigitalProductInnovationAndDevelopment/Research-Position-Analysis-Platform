@@ -258,9 +258,28 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
         filters.push(`raw_author_name.search:${encodeURIComponent(author.trim())}`);
       }
 
-      // Add funding filter
+      // Handle funding search
       if (funding.trim()) {
-        filters.push(`grants.funder.display_name:"${funding.trim()}"`);
+        try {
+          // Step 1: Search for funders by name
+          const funderResponse = await fetch(`https://api.openalex.org/funders?search=${encodeURIComponent(funding.trim())}`);
+          if (!funderResponse.ok) {
+            throw new Error('Failed to fetch funders');
+          }
+          const funderData = await funderResponse.json();
+          // Get all funder IDs
+          const funderIds = funderData.results.map(funder => funder.id.split('/').pop());
+
+          if (funderIds.length > 0) {
+            // Step 2: Add funder IDs to the filter
+            filters.push(`grants.funder:${funderIds.join('|')}`);
+          }
+        } catch (error) {
+          console.error('Error fetching funders:', error);
+          setError('Failed to fetch funder data. Please try again.');
+          setLoading(false);
+          return;
+        }
       }
 
       // Add Open Access filter
@@ -415,13 +434,12 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
                       />
                     )}
                     {filter === 'Funding' && (
-                      <input
-                        type="text"
+                      <Autocomplete
                         value={funding}
-                        onChange={(e) => setFunding(e.target.value)}
+                        onValueChange={setFunding}
                         placeholder="Enter funding organization..."
-                        className={styles.input}
-                        onKeyDown={handleKeyPress}
+                        apiEndpoint="https://api.openalex.org/funders"
+                        onEnterPress={handleSearch}
                       />
                     )}
                     {filter === 'Open Access' && (
