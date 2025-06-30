@@ -43,51 +43,73 @@
   grid-column: 2; /* Main content takes the second column */
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-medium);
-  padding: var(--spacing-medium);
+  gap: 2.5rem;
+  padding: 2.5rem 2rem;
 }
 
 .contentRows {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-medium);
+  gap: 2.5rem;
 }
 
 /* Common component styles */
 .strip {
   display: flex;
-  gap: var(--spacing-medium);
-  margin-bottom: var(--spacing-medium);
+  gap: 2rem;
+  margin-bottom: 2rem;
   flex-wrap: wrap; /* Allow items to wrap to the next line */
   justify-content: space-between; /* Distribute items evenly */
   align-items: flex-start;
 }
 
+/* Modern card style for all data boxes */
+.card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1.5px 6px rgba(0,0,0,0.04);
+  padding: 2rem;
+  transition: box-shadow 0.2s, transform 0.2s;
+  border: 1px solid #f0f0f0;
+}
+.card:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 3px 12px rgba(0,0,0,0.06);
+  transform: translateY(-2px) scale(1.01);
+}
+
+/* Update existing data box styles to use .card */
 .promoBoxInstance,
 .designComponentInstanceNode2,
-.xxSmallDataBox3 {
-  flex: 1;
-  min-width: 300px; /* Adjust as needed for responsiveness */
+.xxSmallDataBox3,
+.mediumDataBox {
+  composes: card;
+  min-width: 320px;
+  margin-bottom: 1.5rem;
 }
 
 .promoBoxInstance {
-  max-width: 60%; /* Adjust based on desired ratio with XSmallDataBox */
+  max-width: 60%;
 }
 
 .designComponentInstanceNode2 {
-  max-width: 30%; /* Adjust to fit three in a row for XxSmallDataBox */
+  max-width: 30%;
 }
 
 .mediumDataBox {
-  flex: 1;
-  min-width: 300px; /* Adjust as needed for responsiveness */
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-small);
-  padding: var(--spacing-medium);
-  background-color: var(--color-background-light);
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow-sm);
+  max-width: 40%;
+}
+
+/* Typography improvements */
+.textWrapper8 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #222;
+}
+.textWrapper9 {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #4caf50;
 }
 
 .topText {
@@ -100,12 +122,6 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-extra-small);
-}
-
-.textWrapper8,
-.textWrapper9 {
-  font-size: var(--font-size-md);
-  font-weight: bold;
 }
 
 .arrowUpward2 {
@@ -127,6 +143,27 @@
 }
 
 /* Responsive styles */
+@media (max-width: 900px) {
+  .promoBoxInstance,
+  .designComponentInstanceNode2,
+  .xxSmallDataBox3,
+  .mediumDataBox {
+    min-width: unset;
+    width: 100%;
+    max-width: 100%;
+  }
+  .mainContent, .contentRows {
+    gap: 1.2rem;
+    padding: 1.2rem 0.5rem;
+  }
+  .strip {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
+    margin-bottom: 1.2rem;
+  }
+}
+
 @media (max-width: var(--breakpoint-mobile)) {
   .landingPageLight {
     grid-template-columns: 1fr; /* Stack items vertically on small screens */

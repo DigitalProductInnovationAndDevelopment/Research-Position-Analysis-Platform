@@ -21,7 +21,7 @@ export const LandingPageLight = ({ darkMode, toggleDarkMode }) => {
         <div className={styles.contentRows}>
           <div className={styles.strip}>
             <PromoBox
-              className={styles.promoBoxInstance}
+              className={`${styles.promoBoxInstance} ${styles.card}`}
               divClassName={styles.designComponentInstanceNode}
               img={dashboardPromo}
               mobile={false}
@@ -32,7 +32,7 @@ export const LandingPageLight = ({ darkMode, toggleDarkMode }) => {
               text="Welcome to the SPARK dashboard! Explore the interactive dashboard to pinpoint Siemens' research contributions - apply filters for topics or institutions and watch the visuals update. Try typing a keyword and hitting 'Enter' to quickly see the latest results."
             />
             <XSmallDataBox
-              className={styles.designComponentInstanceNode2}
+              className={`${styles.designComponentInstanceNode2} ${styles.card}`}
               chartImage={collaborationsBarChart}
               text="Collaborations over Time"
             />
@@ -42,17 +42,17 @@ export const LandingPageLight = ({ darkMode, toggleDarkMode }) => {
             <XxSmallDataBox
               chartImage={lineChartRed}
               chartTitle="CHART TITLE"
-              className={styles.designComponentInstanceNode2}
+              className={`${styles.designComponentInstanceNode2} ${styles.card}`}
             />
             <XxSmallDataBox
               chartImage={lineChartGreen}
               chartTitle="CHART TITLE"
-              className={styles.designComponentInstanceNode2}
+              className={`${styles.designComponentInstanceNode2} ${styles.card}`}
             />
             <XxSmallDataBox
               chartImage={lineChartRed}
               chartTitle="CHART TITLE"
-              className={styles.xxSmallDataBox3}
+              className={`${styles.xxSmallDataBox3} ${styles.card}`}
             />
           </div>
 
@@ -60,9 +60,9 @@ export const LandingPageLight = ({ darkMode, toggleDarkMode }) => {
             <XLargeDataBox
               chartImage={barChartPng}
               chartTitle="Chart Title"
-              className={styles.designComponentInstanceNode2}
+              className={`${styles.designComponentInstanceNode2} ${styles.card}`}
             />
-            <div className={styles.mediumDataBox}>
+            <div className={`${styles.mediumDataBox} ${styles.card}`}>
               <div className={styles.topText}>
                 <div className={styles.textWrapper8}>
                   Contribution per Business Unit
