@@ -486,7 +486,7 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
                           value={searchKeyword}
                           onValueChange={setSearchKeyword}
                           placeholder="Enter keywords..."
-                          apiEndpoint="https://api.openalex.org/concepts"
+                          type="keyword"
                           onEnterPress={handleSearch}
                         />
                       )}
@@ -495,7 +495,7 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
                           value={author}
                           onValueChange={setAuthor}
                           placeholder="Enter author name..."
-                          apiEndpoint="https://api.openalex.org/authors"
+                          type="author"
                           onEnterPress={handleSearch}
                         />
                       )}
@@ -504,7 +504,7 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
                           value={institution}
                           onValueChange={setInstitution}
                           placeholder="Enter institution name..."
-                          apiEndpoint="https://api.openalex.org/institutions"
+                          type="institution"
                           onEnterPress={handleSearch}
                         />
                       )}

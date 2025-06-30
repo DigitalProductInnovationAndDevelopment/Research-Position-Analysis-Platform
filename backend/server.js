@@ -5,6 +5,7 @@ const express = require('express');
 const publicationsRoutes = require('./routes/publications');
 const cors = require('cors');
 const topicsRoutes = require('./routes/topics');
+const autocompleteRoutes = require('./routes/autocomplete');
 
 // express app
 const app = express();
@@ -22,6 +23,7 @@ app.use((req, res, next) => {
 // routes
 app.use('/api/publications', publicationsRoutes);
 app.use('/api/topics', topicsRoutes);
+app.use('/autocomplete', autocompleteRoutes);
 
 // listen for requests
 app.listen(process.env.PORT, () => {
