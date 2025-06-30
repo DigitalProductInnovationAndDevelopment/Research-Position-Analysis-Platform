@@ -4,10 +4,12 @@
   display: flex;
   width: 100%;
   min-height: 100vh;
+  align-items: stretch; /* Ensure children fill height */
 }
 
 .contentArea {
   flex-grow: 1;
+  margin-left: clamp(180px, 15vw, 250px);
   /* Adjust padding or other styles as needed to accommodate the side menu and dark mode button */
 }
 
