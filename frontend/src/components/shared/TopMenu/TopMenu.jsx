@@ -43,6 +43,10 @@ const TopMenu = ({
     }
   };
 
+  const handleWorldMapClick = () => {
+    navigate('/world-map');
+  };
+
   return (
     <header className={`${styles.topMenu} ${className || ''}`}>
       {!hideSearch && (
@@ -61,6 +65,13 @@ const TopMenu = ({
           />
         </div>
       )}
+      <button
+        className={styles.worldMapNavBtn}
+        onClick={handleWorldMapClick}
+        style={{ marginLeft: 'auto', marginRight: 16, padding: '8px 18px', borderRadius: 6, border: 'none', background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)', color: '#fff', fontWeight: 600, fontSize: 16, cursor: 'pointer', boxShadow: '0 2px 8px rgba(102,126,234,0.08)' }}
+      >
+        World Map
+      </button>
     </header>
   );
 };
