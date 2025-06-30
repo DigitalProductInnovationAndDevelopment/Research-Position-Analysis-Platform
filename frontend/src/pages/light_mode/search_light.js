@@ -171,6 +171,75 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
     setLoading(true);
     setSearchResults([]);
 
+    // Data type validation for year fields
+    if (activeFilters.includes('Publication Year')) {
+      const yearVal = publicationYear.trim();
+      if (yearVal !== '') {
+        if (/^-\d+$/.test(yearVal)) {
+          setError(`Invalid input: '${publicationYear}' is a negative year. Please enter a valid positive integer year (e.g., 2023).`);
+          setLoading(false);
+          return;
+        }
+        if (!/^\d+$/.test(yearVal)) {
+          setError(`Invalid input: '${publicationYear}' is not a valid year. Please enter a valid positive integer year (e.g., 2023).`);
+          setLoading(false);
+          return;
+        }
+      }
+    }
+    if (activeFilters.includes('Year Range')) {
+      const startVal = startYear.trim();
+      const endVal = endYear.trim();
+      if (startVal !== '') {
+        if (/^-\d+$/.test(startVal)) {
+          setError(`Invalid input: '${startYear}' is a negative year. Please enter a valid positive integer year (e.g., 2020).`);
+          setLoading(false);
+          return;
+        }
+        if (!/^\d+$/.test(startVal)) {
+          setError(`Invalid input: '${startYear}' is not a valid year. Please enter a valid positive integer year (e.g., 2020).`);
+          setLoading(false);
+          return;
+        }
+      }
+      if (endVal !== '') {
+        if (/^-\d+$/.test(endVal)) {
+          setError(`Invalid input: '${endYear}' is a negative year. Please enter a valid positive integer year (e.g., 2023).`);
+          setLoading(false);
+          return;
+        }
+        if (!/^\d+$/.test(endVal)) {
+          setError(`Invalid input: '${endYear}' is not a valid year. Please enter a valid positive integer year (e.g., 2023).`);
+          setLoading(false);
+          return;
+        }
+      }
+    }
+
+    // Data type validation for string fields
+    const stringFields = [
+      { value: searchKeyword, name: 'Keyword', active: activeFilters.includes('Keyword') },
+      { value: author, name: 'Author', active: activeFilters.includes('Author') },
+      { value: institution, name: 'Institution', active: activeFilters.includes('Institution') },
+      { value: funding, name: 'Funding', active: activeFilters.includes('Funding') },
+      { value: topic, name: 'Topic', active: activeFilters.includes('Topic') },
+    ];
+    for (const field of stringFields) {
+      if (field.active) {
+        const val = field.value;
+        // Only validate if the field is non-empty (including whitespace)
+        if (val && (val.trim() === '' || /^\d+$/.test(val.trim()))) {
+          if (field.name === 'Author') {
+            setError(`Invalid input: '${val}' is not a valid value for Author. Please enter a non-empty string without numbers.`);
+          } else {
+            setError(`Invalid input: '${val}' is not a valid value for ${field.name}. Please enter a non-empty string that is not only a number.`);
+          }
+          setLoading(false);
+          return;
+        }
+      }
+    }
+
     // Basic validation for at least one input
     if (
       !searchKeyword.trim() &&
