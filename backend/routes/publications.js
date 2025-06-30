@@ -46,12 +46,25 @@ router.get('/search', async (req, res) => {
             per_page = 25
         } = req.query;
 
-        // Fix: Convert filter from search:"..." to title_and_abstract.search:...
-        if (typeof filter === 'string' && filter.startsWith('search:"')) {
-            const match = filter.match(/^search:"(.+)"$/);
-            if (match) {
-                const query = match[1];
-                filter = `title_and_abstract.search:${query}`;
+        // Decode the filter parameter to handle encoded characters from frontend
+        filter = decodeURIComponent(filter);
+        console.log('Decoded filter:', filter);
+
+        // Handle different filter formats from frontend
+        if (typeof filter === 'string') {
+            // Handle title_and_abstract.search:"..." format (from frontend)
+            if (filter.startsWith('title_and_abstract.search:"')) {
+                // This is already in the correct format, no conversion needed
+                console.log('Using title_and_abstract.search filter:', filter);
+            }
+            // Handle legacy search:"..." format (fallback)
+            else if (filter.startsWith('search:"')) {
+                const match = filter.match(/^search:"(.+)"$/);
+                if (match) {
+                    const query = match[1];
+                    filter = `title_and_abstract.search:${query}`;
+                    console.log('Converted search filter to:', filter);
+                }
             }
         }
 
@@ -80,7 +93,7 @@ router.get('/search', async (req, res) => {
                 paramsSerializer: params => {
                     return require('qs').stringify(params, {
                         arrayFormat: 'repeat',
-                        encode: false // Don't encode the filter parameter
+                        encode: true // Enable encoding to handle special characters
                     })
                 }
             });
