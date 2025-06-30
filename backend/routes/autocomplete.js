@@ -1,5 +1,12 @@
 const express = require('express');
+const axios = require('axios');
 const router = express.Router();
+
+const OPENALEX_API_BASE = 'https://api.openalex.org';
+const OPENALEX_HEADERS = {
+  'User-Agent': 'Research-Position-Analysis-Platform/1.0 (https://github.com/your-repo; mailto:your-email@example.com)',
+  'Accept': 'application/json'
+};
 
 // Mock data for demonstration
 const mockData = {
@@ -54,8 +61,58 @@ const mockData = {
   ],
 };
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   const { query = '', type = 'author' } = req.query;
+
+  if (type === 'author' && query.length >= 2) {
+    try {
+      const url = `${OPENALEX_API_BASE}/authors`;
+      const params = { search: query, per_page: 10 };
+      const response = await axios.get(url, { params, headers: OPENALEX_HEADERS });
+      const data = response.data;
+      const results = (data.results || []).map(author => ({
+        id: author.id,
+        display_name: author.display_name
+      }));
+      return res.json({ results });
+    } catch (err) {
+      return res.status(500).json({ results: [], error: 'Failed to fetch from OpenAlex' });
+    }
+  }
+
+  if (type === 'institution' && query.length >= 2) {
+    try {
+      const url = `${OPENALEX_API_BASE}/institutions`;
+      const params = { search: query, per_page: 10 };
+      const response = await axios.get(url, { params, headers: OPENALEX_HEADERS });
+      const data = response.data;
+      const results = (data.results || []).map(inst => ({
+        id: inst.id,
+        display_name: inst.display_name
+      }));
+      return res.json({ results });
+    } catch (err) {
+      return res.status(500).json({ results: [], error: 'Failed to fetch from OpenAlex' });
+    }
+  }
+
+  if (type === 'keyword' && query.length >= 2) {
+    try {
+      const url = `${OPENALEX_API_BASE}/concepts`;
+      const params = { search: query, per_page: 10 };
+      const response = await axios.get(url, { params, headers: OPENALEX_HEADERS });
+      const data = response.data;
+      const results = (data.results || []).map(concept => ({
+        id: concept.id,
+        display_name: concept.display_name
+      }));
+      return res.json({ results });
+    } catch (err) {
+      return res.status(500).json({ results: [], error: 'Failed to fetch from OpenAlex' });
+    }
+  }
+
+  // fallback to mock data for other types
   const data = mockData[type] || [];
   const results = data.filter(item =>
     item.display_name.toLowerCase().includes(query.toLowerCase())
