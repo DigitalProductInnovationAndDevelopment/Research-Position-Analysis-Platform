@@ -1,0 +1,604 @@
+/* Import global variables */
+@import './variables.css';
+
+/* Base styles for both light and dark themes */
+.searchPage {
+  padding: var(--spacing-medium);
+  font-family: var(--font-family-base);
+}
+
+/* Light theme specific styles */
+.searchPageLight {
+  composes: searchPage;
+  background-color: var(--color-background-light);
+  color: var(--color-text-light);
+  min-height: 100vh;
+}
+
+/* Dark theme specific styles */
+.searchPageDark {
+  composes: searchPage;
+  background-color: var(--color-background-dark);
+  color: var(--color-text-dark);
+}
+
+.sideMenu {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  /* Span across TopMenu and content */
+  z-index: 10;
+}
+
+.darkBtnInstance {
+  position: absolute;
+  bottom: var(--spacing-medium);
+  left: var(--spacing-medium);
+  z-index: 11;
+}
+
+.mainContent {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-medium);
+  padding: var(--spacing-medium);
+  overflow-y: auto;
+}
+
+.searchPageContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-medium);
+}
+
+.filterCriteriaTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: bold;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.filterSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Common component styles */
+.searchContainer {
+  padding: 0; /* Let parent handle padding and alignment */
+}
+
+.searchResults {
+  margin-top: var(--spacing-lg);
+}
+
+.searchCriterium {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+}
+
+.label .criterium,
+.divWrapper .textWrapper3 {
+  font-weight: bold;
+  color: var(--color-text-light);
+}
+
+.input,
+.hereIsSpaceForWrapper {
+  flex: 1;
+}
+
+.input input,
+.hereIsSpaceForWrapper input {
+  width: 100%;
+  padding: var(--spacing-xs);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  box-sizing: border-box;
+  /* Ensure padding doesn't add to the width */
+}
+
+.searchButtonContainer {
+  display: flex;
+  justify-content: flex-end;
+  /* Align button to the right */
+  margin-top: var(--spacing-md);
+  /* Add some space above the button */
+  width: 100%;
+  /* Ensure container takes full width of its parent */
+}
+
+.searchButton {
+  background-color: var(--color-primary);
+  /* Use a primary color for the button */
+  color: var(--color-text-dark);
+  /* Dark text for contrast */
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  margin-left: var(--spacing-sm);
+  /* Space between input and button */
+  transition: background-color 0.2s ease-in-out;
+}
+
+.searchButton:hover {
+  background-color: var(--color-primary-dark);
+  /* Darker shade on hover */
+}
+
+.searchButton:disabled {
+  background-color: var(--color-border);
+  /* Grayed out when disabled */
+  cursor: not-allowed;
+}
+
+.errorMessage {
+  color: var(--color-error);
+  /* Red color for error messages */
+  margin-top: var(--spacing-sm);
+  text-align: center;
+  font-weight: bold;
+}
+
+.loadingMessage {
+  color: var(--color-text-light);
+  margin-top: var(--spacing-sm);
+  text-align: center;
+  font-style: italic;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--spacing-lg);
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: var(--color-primary);
+  /* Use a primary color for the spinner */
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+  /* Center the spinner */
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.searchResultsSection {
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background-color: var(--color-background-light);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.searchResultsTitle {
+  font-size: var(--font-size-xl);
+  font-weight: bold;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+}
+
+.resultsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-medium);
+}
+
+.searchResultItem {
+  background-color: var(--color-card-background);
+  border-radius: 0; /* Remove border-radius for a flatter look */
+  border-bottom: 1px solid var(--color-border); /* Separator line */
+  box-shadow: none; /* Remove box shadow */
+  padding: var(--spacing-md) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs); /* Tighter spacing */
+}
+
+.siemensPaper {
+  border: 2px solid var(--color-accent);
+  /* Highlight Siemens papers */
+}
+
+.siemensPaper h3 {
+  color: var(--color-accent-dark);
+}
+
+.siemensPaper:hover {
+  transform: translateY(-5px);
+}
+
+.searchResultItem h3 {
+  font-size: var(--font-size-lg);
+  color: var(--color-primary-dark);
+  margin-bottom: var(--spacing-xs);
+}
+
+.searchResultItem p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.searchResultItem a {
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+.searchResultItem a:hover {
+  text-decoration: underline;
+}
+
+.abstractContainer {
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+  position: relative;
+}
+
+.abstractText {
+  line-height: 1.5;
+}
+
+.expandAbstractButton {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: none;
+  border: none;
+  color: var(--color-link);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  padding: 0;
+  text-decoration: underline;
+  display: flex;
+  align-items: center;
+}
+
+.expandIconBox {
+  width: 15px;
+  /* Adjust size of the box */
+  height: 15px;
+  /* Adjust size of the box */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  cursor: pointer;
+  margin-left: 5px;
+  /* Space between text and icon */
+  color: var(--color-text-secondary);
+}
+
+.collapseAbstractButton {
+  background: none;
+  border: none;
+  color: var(--color-link);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  padding: 0;
+  text-decoration: underline;
+  margin-top: var(--spacing-xs);
+}
+
+.criteriumWrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.resultList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-medium);
+  margin-top: var(--spacing-lg);
+}
+
+.imageBox {
+  background-color: var(--color-card-background);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.imageBoxTitle {
+  font-size: var(--font-size-lg);
+  font-weight: bold;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.imageContent {
+  width: 100%;
+  height: 200px;
+  /* Fixed height for image boxes */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.imageContent p {
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.chartImage {
+  width: 100%;
+  height: auto;
+  border-radius: var(--border-radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Pagination Styles */
+.paginationBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-md);
+  background-color: var(--color-card-background);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.paginationInfo {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+  font-weight: 500;
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.paginationButton {
+  background-color: var(--color-primary);
+  color: var(--color-text-dark);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.paginationButton:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+}
+
+.paginationButton:disabled {
+  background-color: var(--color-border);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pageInfo {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-light);
+  min-width: 60px;
+  text-align: center;
+}
+
+.citationCount {
+  color: var(--color-text-secondary);
+  font-weight: normal;
+}
+
+.citationCount {
+  color: var(--color-text-secondary);
+  font-weight: normal;
+}
+
+/* Responsive styles */
+@media (max-width: var(--breakpoint-mobile)) {
+  .searchPageLight {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .sideMenu {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .darkBtnInstance {
+    left: auto;
+    right: var(--spacing-medium);
+  }
+
+  .mainContent {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .resultList {
+    grid-template-columns: 1fr;
+  }
+}
+
+.highlightBackground {
+  background-color: #1de9b6; /* Bright turquoise blue */
+  color: #00363a; /* Dark teal for contrast */
+  padding: 0 2px;
+  border-radius: 2px;
+  font-weight: 500;
+  display: inline;
+}
+
+.highlightBold {
+  font-weight: bold;
+}
+
+.resultLabel {
+  font-weight: bold;
+  color: var(--color-primary-dark);
+  margin-right: 0.25em;
+  display: inline;
+}
+
+.resultValue {
+  display: inline;
+  color: var(--color-text-secondary);
+}
+
+.filterControls {
+  display: flex;
+  flex-direction: column; /* Stack filters vertically */
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.addFilterBtn {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-self: flex-start; /* Align button to the start of the container */
+}
+
+.activeFilters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  width: 100%; /* Make the container take full width */
+}
+
+.filterCriterium {
+  display: grid;
+  grid-template-columns: 150px 1fr; /* Label and input side-by-side */
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.addFilterContainer {
+  position: relative;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.filterMenu {
+  position: absolute;
+  top: 100%; /* Position dropdown below the button */
+  left: 0;
+  z-index: 20; /* Ensure menu is on top */
+}
+
+.yearFilter {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.dateInput {
+  width: 120px;
+  padding: var(--spacing-xs);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  box-sizing: border-box;
+}
+
+.yearInput {
+  width: 100px;
+}
+
+.resultTitle a {
+  font-size: var(--font-size-large);
+  color: var(--color-link);
+  text-decoration: none;
+  font-weight: 400;
+}
+.resultTitle a:hover {
+  text-decoration: underline;
+}
+
+.resultMeta {
+  font-size: var(--font-size-sm);
+  color: #006621; /* Green color like Google Scholar */
+}
+
+.authors, .venue {
+  display: block; /* Make them stack on smaller screens if needed */
+}
+
+.abstractContainer {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.toggleAbstractButton {
+  background: none;
+  border: none;
+  color: var(--color-link);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  font-size: var(--font-size-sm);
+}
+
+.resultActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.actionLink {
+  color: var(--color-link);
+  text-decoration: none;
+}
+.actionLink:hover {
+  text-decoration: underline;
+}
+
+.noResultsMessage {
+  text-align: center;
+  margin-top: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background-color: var(--color-background-light);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-secondary);
+}
+
+.noResultsMessage p:first-child {
+  font-weight: bold;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-light);
+}

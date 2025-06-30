@@ -1,0 +1,145 @@
+/* Import global variables */
+@import './variables.css';
+
+/* Base styles for both light and dark themes */
+.aggregationPage {
+  padding: var(--spacing-medium);
+  font-family: var(--font-family-base);
+  min-height: 100vh;
+}
+
+/* Light theme specific styles */
+.aggregationPageLight {
+  composes: aggregationPage;
+  background-color: var(--color-background-light);
+  color: var(--color-text-light);
+  display: grid;
+  grid-template-columns: auto 1fr; /* SideMenu takes auto width, mainContent takes rest */
+  min-height: 100vh;
+}
+
+/* Dark theme specific styles */
+.aggregationPageDark {
+  composes: aggregationPage;
+  background-color: var(--color-background-dark);
+  color: var(--color-text-dark);
+}
+
+.sideMenu {
+  grid-column: 1;
+  grid-row: 1 / span 2; /* Span across TopMenu and content */
+  z-index: 10;
+}
+
+.darkBtnInstance {
+  position: absolute;
+  bottom: var(--spacing-medium);
+  left: var(--spacing-medium);
+  z-index: 11;
+}
+
+.mainContent {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.graphHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  padding: 0 var(--spacing-md);
+}
+
+.graphTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: bold;
+  color: var(--color-text-light);
+}
+
+.graphControls {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.sortControl,
+.filterControl {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  cursor: pointer;
+}
+
+.controlIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.controlText {
+  font-size: var(--font-size-base);
+  color: var(--color-text-light);
+}
+
+.graphContainer {
+  background-color: #e0e6f2; /* Light blue background as in the image */
+  border-radius: var(--border-radius-md);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1; /* Take remaining space */
+  height: 100%;
+}
+
+.mainGraphImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Common component styles */
+.analysisContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-medium);
+  padding: var(--spacing-large);
+}
+
+/* Responsive styles */
+@media (max-width: var(--breakpoint-mobile)) {
+  .aggregationPageLight {
+    grid-template-columns: 1fr;
+  }
+
+  .sideMenu {
+    grid-column: 1;
+    grid-row: auto;
+    position: relative;
+  }
+
+  .darkBtnInstance {
+    position: relative;
+    bottom: unset;
+    left: unset;
+    margin-bottom: var(--spacing-medium);
+  }
+
+  .mainContent {
+    grid-column: 1;
+  }
+
+  .graphHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+
+  .graphControls {
+    width: 100%;
+    justify-content: space-around;
+  }
+
+  .graphContainer {
+  }
+} 
