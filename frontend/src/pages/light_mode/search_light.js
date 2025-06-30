@@ -462,7 +462,7 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
                         onValueChange={setSearchKeyword}
                         placeholder="Enter keywords..."
                         apiEndpoint="https://api.openalex.org/concepts"
-                        onEnterPress={handleSearch}
+                        onEnterPress={() => handleSearch()}
                       />
                     )}
                     {filter === 'Author' && (
@@ -471,7 +471,7 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
                         onValueChange={setAuthor}
                         placeholder="Enter author name..."
                         apiEndpoint="https://api.openalex.org/authors"
-                        onEnterPress={handleSearch}
+                        onEnterPress={() => handleSearch()}
                       />
                     )}
                     {filter === 'Institution' && (
@@ -480,7 +480,7 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
                         onValueChange={setInstitution}
                         placeholder="Enter institution name..."
                         apiEndpoint="https://api.openalex.org/institutions"
-                        onEnterPress={handleSearch}
+                        onEnterPress={() => handleSearch()}
                       />
                     )}
                     {filter === 'Funding' && (
@@ -511,7 +511,7 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
                         onValueChange={setTopic}
                         placeholder="Enter topic name or ID..."
                         apiEndpoint="https://api.openalex.org/concepts"
-                        onEnterPress={handleSearch}
+                        onEnterPress={() => handleSearch()}
                       />
                     )}
                     {filter === 'Type' && (
@@ -602,7 +602,7 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
 
             <div className={styles.searchButtonContainer}>
               <button
-                onClick={handleSearch}
+                onClick={() => handleSearch()}
                 disabled={loading}
                 className={styles.searchButton}
               >
