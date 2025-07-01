@@ -116,4 +116,12 @@
   .sideMenu:not(.mobile) {
     display: none;
   }
+}
+
+.active {
+  background: #e0f7fa;
+  color: #009999;
+  font-weight: 700;
+  border-left: 4px solid #009999;
+  box-shadow: 0 2px 12px 0 rgba(0,153,153,0.07);
 } 
