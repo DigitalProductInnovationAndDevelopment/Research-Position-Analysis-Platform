@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import PageLayout from '../../components/shared/PageLayout/PageLayout';
-import InstitutionDropdown from '../../components/shared/InstitutionDropdown/InstitutionDropdown';
+import InstitutionDropdown from '../../components/shared/Dropdown/InstitutionDropdown';
 import ForceGraph2D from 'react-force-graph-2d';
+import VenueDropdown from '../../components/shared/Dropdown/VenueDropdown';
+import JournalDropdown from '../../components/shared/Dropdown/JournalDropdown';
 
 const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
   const [selectedInstitution, setSelectedInstitution] = useState(null);
@@ -10,7 +12,9 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
   const [error, setError] = useState(null);
   const [hoverLink, setHoverLink] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [triggerSearch, setTriggerSearch] = useState(false);
+  const [filterMode, setFilterMode] = useState('journal'); // 'journal' or 'venue'
+  const [selectedJournal, setSelectedJournal] = useState('');
+  const [selectedVenue, setSelectedVenue] = useState('');
   const inputRef = useRef(null);
   const fgRef = useRef();
   const [selectedEdge, setSelectedEdge] = useState(null);
@@ -25,9 +29,8 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
     }
   }, [graphData]);
 
-  // Only generate the graph when triggerSearch changes and selectedInstitution is set
-  useEffect(() => {
-    if (!selectedInstitution || !triggerSearch) return;
+  // Only generate the graph when search is triggered and institution is set
+  const triggerSearch = () => {
     setLoading(true);
     setError(null);
 
@@ -52,6 +55,12 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
       const filterParts = [`authorships.institutions.id:${institutionId}`];
       if (searchTerm.trim()) {
         filterParts.push(`title_and_abstract.search:${encodeURIComponent(searchTerm.trim())}`);
+      }
+      if (filterMode === 'journal' && selectedJournal) {
+        filterParts.push(`host_venue.display_name.search:${encodeURIComponent(selectedJournal)}`);
+      }
+      if (filterMode === 'venue' && selectedVenue) {
+        filterParts.push(`host_venue.display_name.search:${encodeURIComponent(selectedVenue)}`);
       }
       const filterString = filterParts.join(',');
       console.log('OpenAlex group_by API filter:', filterString);
@@ -107,18 +116,8 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
     };
 
     fetchAndBuild();
-    // Reset triggerSearch so user can search again
-    // (prevents effect from running again unless explicitly triggered)
-    // eslint-disable-next-line
-    setTriggerSearch(false);
-  }, [triggerSearch]);
+    };
 
-  // Handle Enter key in search input
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      setTriggerSearch(s => !s);
-    }
-  };
 
   // Helper to get node label from id or node object
   const getNodeLabel = (node) => {
@@ -135,22 +134,74 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
           onChange={setSelectedInstitution}
           label="Select Institution"
         />
+        {/* Filter mode toggle */}
+        <div style={{ marginBottom: 16 }}>
+          <button
+            onClick={() => setFilterMode('journal')}
+            style={{
+              fontWeight: filterMode === 'journal' ? 'bold' : 'normal',
+              background: filterMode === 'journal' ? '#1976d2' : '#f0f0f0',
+              color: filterMode === 'journal' ? '#fff' : '#222',
+              border: '1px solid #ccc',
+              borderRadius: 4,
+              marginRight: 8,
+              padding: '8px 16px',
+              cursor: 'pointer'
+            }}
+          >
+            Filter by Journal
+          </button>
+          <button
+            onClick={() => setFilterMode('venue')}
+            style={{
+              fontWeight: filterMode === 'venue' ? 'bold' : 'normal',
+              background: filterMode === 'venue' ? '#1976d2' : '#f0f0f0',
+              color: filterMode === 'venue' ? '#fff' : '#222',
+              border: '1px solid #ccc',
+              borderRadius: 4,
+              padding: '8px 16px',
+              cursor: 'pointer'
+            }}
+          >
+            Filter by Conference Venue
+          </button>
+        </div>
+        {/* Conditionally render dropdown */}
+        {filterMode === 'journal' ? (
+          <JournalDropdown
+            value={selectedJournal}
+            onChange={setSelectedJournal}
+            label="Select Journal"
+            placeholder="Type to search journals..."
+            onInputKeyDown={e => { if (e.key === 'Enter') triggerSearch(); }}
+          />
+        ) : (
+          <VenueDropdown
+            value={selectedVenue}
+            onChange={setSelectedVenue}
+            label="Select Conference Venue"
+            placeholder="Type to search venues..."
+            onInputKeyDown={e => { if (e.key === 'Enter') triggerSearch(); }}
+          />
+        )}
+        {/* TODO: Using display_name for filtering is less precise than using OpenAlex IDs! */}
         {selectedInstitution && (
           <div style={{ marginTop: '2rem' }}>
             <strong>Selected Institution:</strong> {selectedInstitution.display_name}
           </div>
         )}
+        <label style={{ fontWeight: 600, marginBottom: 4, display: 'block' }}>Keyword Filter</label>
         <input
           ref={inputRef}
           type="text"
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
-          onKeyDown={handleKeyDown}
+          onKeyDown={e => { if (e.key === 'Enter') triggerSearch(); }}
           placeholder="Enter keyword to filter papers..."
           style={{ marginBottom: 16, width: 350, padding: 10, fontSize: 16, borderRadius: 6, border: '1px solid #ccc', background: '#f9f9f9' }}
         />
         <button
-          onClick={() => setTriggerSearch(s => !s)}
+          onClick={triggerSearch}
           disabled={!selectedInstitution}
           style={{
             marginLeft: 12,

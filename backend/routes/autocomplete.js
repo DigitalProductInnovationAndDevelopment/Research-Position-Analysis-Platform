@@ -112,6 +112,38 @@ router.get('/', async (req, res) => {
     }
   }
 
+  if (type === 'venues' && query.length >= 2) {
+    try {
+      const url = `${OPENALEX_API_BASE}/venues`;
+      const params = { filter: `display_name.search:${query}`, per_page: 10 };
+      const response = await axios.get(url, { params, headers: OPENALEX_HEADERS });
+      const data = response.data;
+      const results = (data.results || []).map(venue => ({
+        id: venue.id,
+        display_name: venue.display_name
+      }));
+      return res.json({ results });
+    } catch (err) {
+      return res.status(500).json({ results: [], error: 'Failed to fetch from OpenAlex' });
+    }
+  }
+
+  if (type === 'journals' && query.length >= 2) {
+    try {
+      const url = `${OPENALEX_API_BASE}/venues`;
+      const params = { filter: `type:journal,display_name.search:${query}`, per_page: 10 };
+      const response = await axios.get(url, { params, headers: OPENALEX_HEADERS });
+      const data = response.data;
+      const results = (data.results || []).map(journal => ({
+        id: journal.id,
+        display_name: journal.display_name
+      }));
+      return res.json({ results });
+    } catch (err) {
+      return res.status(500).json({ results: [], error: 'Failed to fetch from OpenAlex' });
+    }
+  }
+
   // fallback to mock data for other types
   const data = mockData[type] || [];
   const results = data.filter(item =>
