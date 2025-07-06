@@ -11,6 +11,9 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
   const [hoverLink, setHoverLink] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [triggerSearch, setTriggerSearch] = useState(false);
+  const [selectedJournal, setSelectedJournal] = useState(null);
+  const [journalInput, setJournalInput] = useState('');
+  const [journalSuggestions, setJournalSuggestions] = useState([]);
   const inputRef = useRef(null);
   const fgRef = useRef();
   const [selectedEdge, setSelectedEdge] = useState(null);
@@ -24,6 +27,36 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
       fgRef.current.d3Force('link').distance(200);
     }
   }, [graphData]);
+
+  // Journal autocomplete suggestions
+  useEffect(() => {
+    const fetchJournals = async () => {
+      if (journalInput.length < 2) {
+        setJournalSuggestions([]);
+        return;
+      }
+      try {
+        const res = await fetch(`https://api.openalex.org/sources?filter=type:journal&search=${encodeURIComponent(journalInput)}&per_page=10`);
+        const data = await res.json();
+        setJournalSuggestions(data.results || []);
+      } catch {
+        setJournalSuggestions([]);
+      }
+    };
+    fetchJournals();
+  }, [journalInput]);
+
+  // Handle journal selection from suggestions
+  const handleJournalSelect = (displayName) => {
+    const found = journalSuggestions.find(j => j.display_name === displayName);
+    if (found) {
+      setSelectedJournal(found);
+      setJournalInput(found.display_name);
+    } else {
+      setSelectedJournal(null);
+      setJournalInput(displayName);
+    }
+  };
 
   // Only generate the graph when triggerSearch changes and selectedInstitution is set
   useEffect(() => {
@@ -39,11 +72,9 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
         const res = await fetch(`https://api.openalex.org/institutions?search=${encodeURIComponent(selectedInstitution.display_name)}`);
         const data = await res.json();
         const id = data.results[0]?.id?.split('/').pop();
-        console.log('Fetched institutionId from OpenAlex:', id);
         return id;
       }
       const id = selectedInstitution.id.split('/').pop();
-      console.log('Using institutionId from dropdown:', id);
       return id;
     };
 
@@ -53,32 +84,61 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
       if (searchTerm.trim()) {
         filterParts.push(`title_and_abstract.search:${encodeURIComponent(searchTerm.trim())}`);
       }
+      if (selectedJournal && selectedJournal.id) {
+        // Use OpenAlex source id for journal filter
+        const sourceId = selectedJournal.id.split('/').pop();
+        filterParts.push(`primary_location.source.id:${sourceId}`);
+      }
       const filterString = filterParts.join(',');
-      console.log('OpenAlex group_by API filter:', filterString);
       const res = await fetch(
         `https://api.openalex.org/works?filter=${filterString}&group_by=authorships.institutions.id&per_page=200`
       );
       const data = await res.json();
-      console.log('Raw group_by API response:', data.group_by);
       // Each group has a key (institution id) and count
       // Filter out the selected institution itself
       const groups = (data.group_by || []).filter(g => g.key !== `https://openalex.org/I${institutionId}`);
-      console.log('Filtered groups (excluding self):', groups);
       // Sort by count and take top 10
       const top10 = groups.sort((a, b) => b.count - a.count).slice(0, 10);
-      console.log('Top 10 collaborators:', top10);
       return top10;
     };
 
     // Fetch institution details for collaborator IDs
     const fetchInstitutionDetails = async (ids) => {
       if (ids.length === 0) return [];
-      console.log('Fetching details for collaborator IDs:', ids);
-      // OpenAlex supports batch fetching with id filter
       const res = await fetch(`https://api.openalex.org/institutions?filter=id:${ids.map(id => 'I' + id).join('|')}`);
       const data = await res.json();
-      console.log('Collaborator institution details:', data.results);
       return data.results || [];
+    };
+
+    // Fetch all works for the institution (and optionally journal filter)
+    const fetchWorks = async (institutionId, collaboratorIds) => {
+      let filterParts = [`authorships.institutions.id:${institutionId}`];
+      if (searchTerm.trim()) {
+        filterParts.push(`title_and_abstract.search:${encodeURIComponent(searchTerm.trim())}`);
+      }
+      if (selectedJournal && selectedJournal.id) {
+        const sourceId = selectedJournal.id.split('/').pop();
+        filterParts.push(`primary_location.source.id:${sourceId}`);
+      }
+      // Only fetch works for top collaborators
+      if ((!selectedJournal || !selectedJournal.id) && collaboratorIds.length > 0) {
+        filterParts.push(`authorships.institutions.id:${collaboratorIds.map(id => id).join('|')}`);
+      }
+      const filterString = filterParts.join(',');
+      let allWorks = [];
+      let page = 1;
+      let hasMore = true;
+      const perPage = 50;
+      while (hasMore && page <= 5) { // limit to 250 for performance
+        const res = await fetch(
+          `https://api.openalex.org/works?filter=${filterString}&per_page=${perPage}&page=${page}`
+        );
+        const data = await res.json();
+        allWorks = allWorks.concat(data.results || []);
+        hasMore = data.results && data.results.length === perPage;
+        page++;
+      }
+      return allWorks;
     };
 
     const fetchAndBuild = async () => {
@@ -87,29 +147,64 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
         const topCollaborators = await fetchTopCollaborators(institutionId);
         const collaboratorIds = topCollaborators.map(c => c.key.split('/').pop());
         const collaboratorDetails = await fetchInstitutionDetails(collaboratorIds);
-        // Build nodes and links
-        const nodes = [
-          { id: institutionId, label: selectedInstitution.display_name, type: 'institution', main: true },
-          ...collaboratorDetails
-            .filter(inst => inst.id.split('/').pop() !== institutionId)
-            .map(inst => ({ id: inst.id.split('/').pop(), label: inst.display_name, type: 'institution' }))
-        ];
-        const links = topCollaborators.map(c => ({ source: institutionId, target: c.key.split('/').pop(), value: c.count }));
-        console.log('Final nodes:', nodes);
-        console.log('Final links:', links);
-        setGraphData({ nodes, links });
+        // If a journal is selected, only show filtered collaborations
+        if (selectedJournal && selectedJournal.id) {
+          // Build nodes and links as before, but filtered by journal
+          const nodes = [
+            { id: institutionId, label: selectedInstitution.display_name, type: 'institution', main: true },
+            ...collaboratorDetails
+              .filter(inst => inst.id.split('/').pop() !== institutionId)
+              .map(inst => ({ id: inst.id.split('/').pop(), label: inst.display_name, type: 'institution' }))
+          ];
+          const links = topCollaborators.map(c => ({ source: institutionId, target: c.key.split('/').pop(), value: c.count }));
+          setGraphData({ nodes, links });
+        } else {
+          // No journal selected: show top 10 collaborators and all unique sources as nodes
+          const works = await fetchWorks(institutionId, collaboratorIds);
+          // Collect all unique sources from works
+          const sourceMap = new Map(); // id -> display_name
+          works.forEach(work => {
+            (work.locations || []).forEach(loc => {
+              if (loc.source && loc.source.id && loc.source.display_name) {
+                sourceMap.set(loc.source.id, loc.source.display_name);
+              }
+            });
+          });
+          // Build institution nodes
+          const nodes = [
+            { id: institutionId, label: selectedInstitution.display_name, type: 'institution', main: true },
+            ...collaboratorDetails
+              .filter(inst => inst.id.split('/').pop() !== institutionId)
+              .map(inst => ({ id: inst.id.split('/').pop(), label: inst.display_name, type: 'institution' })),
+            ...Array.from(sourceMap.entries()).map(([id, label]) => ({ id, label, type: 'source' }))
+          ];
+          // Build links: institution-to-institution and institution-to-source
+          const links = [
+            ...topCollaborators.map(c => ({ source: institutionId, target: c.key.split('/').pop(), value: c.count })),
+          ];
+          // Add institution-to-source links
+          works.forEach(work => {
+            const instIds = work.authorships?.flatMap(auth => auth.institutions.map(inst => inst.id.split('/').pop())) || [];
+            (work.locations || []).forEach(loc => {
+              if (loc.source && loc.source.id) {
+                instIds.forEach(instId => {
+                  if (instId === institutionId || collaboratorIds.includes(instId)) {
+                    links.push({ source: instId, target: loc.source.id, value: 1, type: 'published_in' });
+                  }
+                });
+              }
+            });
+          });
+          setGraphData({ nodes, links });
+        }
       } catch (e) {
         setError('Failed to fetch collaborators or build graph.');
-        console.error('Error in fetchAndBuild:', e);
       } finally {
         setLoading(false);
       }
     };
 
     fetchAndBuild();
-    // Reset triggerSearch so user can search again
-    // (prevents effect from running again unless explicitly triggered)
-    // eslint-disable-next-line
     setTriggerSearch(false);
   }, [triggerSearch]);
 
@@ -135,6 +230,27 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
           onChange={setSelectedInstitution}
           label="Select Institution"
         />
+        {/* Journal Dropdown */}
+        <div style={{ marginBottom: 16, maxWidth: 400 }}>
+          <label style={{ fontWeight: 600, marginBottom: 4, display: 'block' }}>Filter by Journal (optional)</label>
+          <input
+            type="text"
+            value={journalInput}
+            onChange={e => {
+              setJournalInput(e.target.value);
+              setSelectedJournal(null);
+            }}
+            placeholder="Type to search journals..."
+            style={{ width: '100%', padding: 8, fontSize: 16, borderRadius: 6, border: '1px solid #ccc', background: '#f9f9f9' }}
+            list="journal-suggestions"
+            onBlur={e => handleJournalSelect(e.target.value)}
+          />
+          <datalist id="journal-suggestions">
+            {journalSuggestions.map(j => (
+              <option key={j.id} value={j.display_name} />
+            ))}
+          </datalist>
+        </div>
         {selectedInstitution && (
           <div style={{ marginTop: '2rem' }}>
             <strong>Selected Institution:</strong> {selectedInstitution.display_name}
@@ -194,10 +310,17 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
                 const label = node.label.length > 30 ? node.label.slice(0, 29) + '…' : node.label;
                 const fontSize = 12;
                 ctx.font = `${fontSize}px Sans-Serif`;
-                ctx.fillStyle = '#1976d2';
+                // Color logic
+                let fill = '#1976d2'; // default: blue for institutions
+                if (node.type === 'source') {
+                  fill = '#8e24aa'; // purple for journals/sources
+                } else if (node.main) {
+                  fill = '#ff9800'; // orange for selected institution
+                }
+                ctx.fillStyle = fill;
                 ctx.beginPath();
-                ctx.arc(node.x, node.y, 8, 0, 2 * Math.PI, false);
-                ctx.shadowColor = '#1976d2';
+                ctx.arc(node.x, node.y, 10, 0, 2 * Math.PI, false);
+                ctx.shadowColor = fill;
                 ctx.shadowBlur = 4;
                 ctx.fill();
                 ctx.shadowBlur = 0;
