@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+    # Uncomment and edit the following lines if you need to pass additional environment variables
+    # env_file:
+    #   - .env
+    # volumes:
+    #   - ./some/local/path:/app/some/container/path
+    # depends_on:
+    #   - db
+    # Add a database or other services below as needed 
