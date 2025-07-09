@@ -15,6 +15,7 @@ function App() {
     document.body.classList.toggle('dark');
   };
 
+  
   return (
     <Router>
       <div className={`app ${isDarkMode ? 'dark' : ''}`}>
