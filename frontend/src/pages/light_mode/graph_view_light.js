@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import PageLayout from '../../components/shared/PageLayout/PageLayout';
 import InstitutionDropdown from '../../components/shared/InstitutionDropdown/InstitutionDropdown';
 import ForceGraph2D from 'react-force-graph-2d';
+import TopBar from '../../components/shared/TopBar';
 
 const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
   const [selectedInstitution, setSelectedInstitution] = useState(null);
@@ -222,9 +223,10 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
   };
 
   return (
-    <PageLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-      <div style={{ padding: 'var(--spacing-xl)' }}>
-        <h2 style={{ marginBottom: '1.5rem' }}>Collaboration Network</h2>
+    <div style={{ background: '#f5f6fa', minHeight: '100vh' }}>
+      <TopBar />
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem 1rem' }}>
+        <h1 style={{ color: '#4F6AF6', fontWeight: 700, fontSize: '2.5rem', marginBottom: '1.5rem', lineHeight: 1.1 }}>Collaboration Network</h1>
         <InstitutionDropdown
           value={selectedInstitution}
           onChange={setSelectedInstitution}
@@ -434,7 +436,7 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
           </div>
         )}
       </div>
-    </PageLayout>
+    </div>
   );
 };
 

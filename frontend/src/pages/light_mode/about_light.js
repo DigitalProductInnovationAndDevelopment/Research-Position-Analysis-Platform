@@ -5,24 +5,17 @@ import HowToUseSparkBox from "../../components/about/HowToUseSparkBox";
 import DisclaimerBox from "../../components/about/DisclaimerBox";
 import PrivacyPolicyBox from "../../components/about/PrivacyPolicyBox";
 import ImpressumBox from "../../components/about/ImpressumBox";
+import TopBar from "../../components/shared/TopBar";
 import styles from "../../assets/styles/landing.module.css";
 
 export const AboutPage = () => {
   const [tab, setTab] = useState("what");
   return (
     <div className={styles.landingPageContainer}>
-      {/* Logo at top left */}
-      <Link to="/" style={{ position: "absolute", top: 24, left: 24, zIndex: 10, display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-        <span className={styles.sparkleIcon} role="img" aria-label="sparkles">✨</span>
-        <span className={styles.heroTitle} style={{ fontSize: 28, marginLeft: 8, color: 'inherit' }}>SPARK</span>
-      </Link>
-      {/* World Map button in top right */}
-      <Link to="/world-map" className={styles.worldMapBtnHeroTopRight}>World Map</Link>
-      <section className={styles.heroSection}>
-        <div className={styles.heroContent}>
-          <h1 className={styles.heroTitle}>Learn more</h1>
-        </div>
-      </section>
+      <TopBar />
+      <div style={{ maxWidth: 900, margin: '0 auto', textAlign: 'left', paddingLeft: 2, marginTop: 32 }}>
+        <h1 style={{ color: '#4F6AF6', fontWeight: 700, fontSize: '2.5rem', marginBottom: '0.5rem', lineHeight: 1.1 }}>Learn more</h1>
+      </div>
       {/* Toggle Tabs for Main Content */}
       <section className={styles.featuresSection}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
@@ -72,9 +65,9 @@ export const AboutPage = () => {
       {/* Small boxes row at the bottom */}
       <section className={styles.statisticsSection}>
         <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 32, flexWrap: 'wrap' }}>
-          <div className={styles.featureCard} style={{ minWidth: 220, maxWidth: 300, padding: 16, background: '#fff', border: '1px solid #eee' }}><DisclaimerBox /></div>
-          <div className={styles.featureCard} style={{ minWidth: 220, maxWidth: 300, padding: 16, background: '#fff', border: '1px solid #eee' }}><PrivacyPolicyBox /></div>
-          <div className={styles.featureCard} style={{ minWidth: 220, maxWidth: 300, padding: 16, background: '#fff', border: '1px solid #eee' }}><ImpressumBox /></div>
+          <div className={styles.featureCard} style={{ minWidth: 220, maxWidth: 300, padding: 16, border: '1px solid #eee' }}><DisclaimerBox /></div>
+          <div className={styles.featureCard} style={{ minWidth: 220, maxWidth: 300, padding: 16, border: '1px solid #eee' }}><PrivacyPolicyBox /></div>
+          <div className={styles.featureCard} style={{ minWidth: 220, maxWidth: 300, padding: 16, border: '1px solid #eee' }}><ImpressumBox /></div>
         </div>
       </section>
     </div>
