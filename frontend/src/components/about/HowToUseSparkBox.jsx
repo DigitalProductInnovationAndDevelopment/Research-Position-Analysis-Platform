@@ -3,7 +3,7 @@ import styles from "../../assets/styles/about.module.css";
 
 const HowToUseSparkBox = () => {
   return (
-    <div style={{padding: '2rem', borderRadius: '20px', border: '1px solid #ddd'}}>
+    <div style={{borderRadius: '20px'}}>
       <h2 className={styles.boxTitle}>How to use SPARK:</h2>
       <ol className={styles.howToUseList}>
         <li>

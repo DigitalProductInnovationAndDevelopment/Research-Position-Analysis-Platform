@@ -572,11 +572,10 @@
 
 /* Box style for ImpressumBox on landing */
 .impressumBoxLanding {
-  background: #fff;
   border-radius: 1rem;
-  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.06);
-  border: 1px solid #e0e0e0;
-  padding: 1.5rem 1.2rem;
+  box-shadow: none;
+  border: none;
+  padding: 0;
   height: 100%;
   display: flex;
   flex-direction: column;
