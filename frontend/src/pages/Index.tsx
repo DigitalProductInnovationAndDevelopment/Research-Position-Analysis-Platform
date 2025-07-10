@@ -2,6 +2,9 @@ import { Link } from "react-router-dom";
 import { Search, TrendingUp, Network, BarChart3, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import DisclaimerBox from "../../about/DisclaimerBox";
+import PrivacyPolicyBox from "../../about/PrivacyPolicyBox";
+import ImpressumBox from "../../about/ImpressumBox";
 
 const Index = () => {
   const features = [
@@ -56,8 +59,8 @@ const Index = () => {
               <Button size="lg" asChild className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all duration-300">
                 <Link to="/search">Start Exploring</Link>
               </Button>
-              <Button variant="outline" size="lg" className="border-primary/20 hover:bg-primary/5">
-                Learn More
+              <Button variant="outline" size="lg" className="border-primary/20 hover:bg-primary/5" asChild>
+                <Link to="/learn-more">Learn More</Link>
               </Button>
             </div>
           </div>
@@ -109,35 +112,11 @@ const Index = () => {
       </section>
 
       {/* Statistics Section */}
-      <section className="bg-gradient-to-r from-primary/5 to-primary-glow/5 py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8 text-center">
-            <div className="animate-fade-in relative">
-              <div className="text-4xl font-bold text-primary mb-2">10M+</div>
-              <div className="text-muted-foreground mb-2">Publications Analyzed</div>
-              {/* Dropdown for privacy, impressum, etc. */}
-              <div className="flex justify-center">
-                <details className="relative">
-                  <summary className="cursor-pointer text-sm text-primary underline underline-offset-2">Legal & Info</summary>
-                  <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg z-10 text-left">
-                    <ul className="py-2 text-sm">
-                      <li><Link to="/privacy" className="block px-4 py-2 hover:bg-gray-100">Privacy Policy</Link></li>
-                      <li><Link to="/impressum" className="block px-4 py-2 hover:bg-gray-100">Impressum</Link></li>
-                      <li><Link to="/disclaimer" className="block px-4 py-2 hover:bg-gray-100">Disclaimer</Link></li>
-                    </ul>
-                  </div>
-                </details>
-              </div>
-            </div>
-            <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              <div className="text-4xl font-bold text-primary mb-2">50K+</div>
-              <div className="text-muted-foreground">Research Institutions</div>
-            </div>
-            <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
-              <div className="text-4xl font-bold text-primary mb-2">1M+</div>
-              <div className="text-muted-foreground">Collaboration Networks</div>
-            </div>
-          </div>
+      <section className="container mx-auto px-4 py-16">
+        <div className="grid md:grid-cols-3 gap-8">
+          <DisclaimerBox />
+          <PrivacyPolicyBox />
+          <ImpressumBox />
         </div>
       </section>
     </div>

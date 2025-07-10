@@ -10,6 +10,8 @@ import Clustering from "./pages/Clustering";
 import Collaboration from "./pages/Collaboration";
 import NotFound from "./pages/NotFound";
 import LogoHeader from "./components/LogoHeader";
+import Worldmap from "./pages/Worldmap";
+import LearnMore from "./pages/LearnMore";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +28,8 @@ const App = () => (
           <Route path="/trends" element={<Trends />} />
           <Route path="/clustering" element={<Clustering />} />
           <Route path="/collaboration" element={<Collaboration />} />
+          <Route path="/worldmap" element={<Worldmap />} />
+          <Route path="/learn-more" element={<LearnMore />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
