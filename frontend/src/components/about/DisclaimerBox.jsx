@@ -3,7 +3,7 @@ import styles from "../../assets/styles/about.module.css";
 
 const DisclaimerBox = () => {
   return (
-    <div style={{padding: '1rem', borderRadius: '16px', border: '1px solid #ddd'}}>
+    <div style={{padding: '1rem', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', background: '#fff', border: '1px solid #eee'}}>
       <h2 className={styles.boxTitle}>Disclaimer</h2>
       <p>
         SPARK is intended for internal research teams and does not guarantee exhaustive coverage of every publication source. External data changes or API updates may affect result completeness. Use SPARK insights as a guide, not a definitive source of record.

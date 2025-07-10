@@ -16,6 +16,8 @@ export const AboutPage = () => {
         <span className={styles.sparkleIcon} role="img" aria-label="sparkles">✨</span>
         <span className={styles.heroTitle} style={{ fontSize: 28, marginLeft: 8, color: 'inherit' }}>SPARK</span>
       </Link>
+      {/* World Map button in top right */}
+      <Link to="/world-map" className={styles.worldMapBtnHeroTopRight}>World Map</Link>
       <section className={styles.heroSection}>
         <div className={styles.heroContent}>
           <h1 className={styles.heroTitle}>Learn more</h1>

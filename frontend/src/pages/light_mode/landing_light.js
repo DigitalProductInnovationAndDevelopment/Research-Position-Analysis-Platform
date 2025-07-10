@@ -43,14 +43,13 @@ export const LandingPageLight = () => {
             <span className={styles.sparkleIcon} role="img" aria-label="sparkles">✨</span>
             <h1 className={styles.heroTitle}>SPARK</h1>
           </div>
+          <p className={styles.heroSubtitle}>
+            Comprehensive research publication analysis platform for discovering trends, collaborations, and emerging topics in academic literature
+          </p>
           <div className={styles.heroButtonsRow}>
             <Link to="/about" className={styles.learnMoreBtnHero}>Learn More</Link>
             <Link to="/search" className={styles.startExploringBtnHero}>Start Exploring</Link>
           </div>
-          <p className={styles.heroSubtitle}>
-            Comprehensive research publication analysis platform for discovering trends, collaborations, and emerging topics in academic literature
-          </p>
-
         </div>
       </section>
 
