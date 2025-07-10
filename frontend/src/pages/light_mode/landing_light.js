@@ -46,9 +46,13 @@ export const LandingPageLight = () => {
           <p className={styles.heroSubtitle}>
             Comprehensive research publication analysis platform for discovering trends, collaborations, and emerging topics in academic literature
           </p>
-          <div className={styles.heroButtonsRow}>
-            <Link to="/about" className={styles.learnMoreBtnHero}>Learn More</Link>
-            <Link to="/search" className={styles.startExploringBtnHero}>Start Exploring</Link>
+          <div className={styles.heroButtonsRow} style={{ display: 'flex', gap: 6, marginTop: 24 }}>
+            <Link to="/search" className={styles.startExploringBtnHero} style={{ flex: 1, minWidth: 180, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
+              Start Exploring
+            </Link>
+            <Link to="/about" className={styles.learnMoreBtnHero} style={{ flex: 1, minWidth: 180, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
+              Learn More
+            </Link>
           </div>
         </div>
       </section>
