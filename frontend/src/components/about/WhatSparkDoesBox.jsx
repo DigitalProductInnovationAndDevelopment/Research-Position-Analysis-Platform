@@ -3,7 +3,7 @@ import styles from "../../assets/styles/about.module.css";
 
 const WhatSparkDoesBox = () => {
   return (
-    <div className={styles.whatSparkDoesBox}>
+    <div style={{padding: '2rem', borderRadius: '20px', border: '1px solid #ddd'}}>
       <h2 className={styles.boxTitle}>What SPARK Does:</h2>
       <p>
         SPARK (Siemens Publications and Research Knowledgebase) is a web-based analytics
