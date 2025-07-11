@@ -1,4 +1,56 @@
-# Getting Started with Create React App
+
+# Frontend - Research-Position-Analysis-Platform
+
+This is the frontend application for the Research-Position-Analysis-Platform. It is built with React.
+
+## Getting Started
+
+### Prerequisites
+- Node.js (v16 or higher recommended)
+- npm
+
+### Installation
+
+```
+npm install
+```
+
+### Running the App
+
+```
+npm start
+```
+The app will start on [http://localhost:3000](http://localhost:3000) by default and connect to the backend server.
+
+## Project Structure
+- Main entry: `src/index.js`
+- Components: `src/components/`
+- Pages: `src/pages/`
+- Styles: `src/index.css`, `src/assets/styles/`
+- Utilities: `src/utils/`
+
+## Testing
+
+To run frontend tests:
+
+```
+npm test
+```
+
+## Build
+
+To create a production build:
+
+```
+npm run build
+```
+The build output will be in the `build/` directory.
+
+---
+
+For further questions, contact the frontend maintainers.
+
+# Additional Information
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 

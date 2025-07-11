@@ -1,46 +1,36 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import styles from '../../../assets/styles/institutionDropdown.module.css';
-
-const PAGE_SIZE = 20;
 
 const InstitutionDropdown = ({ value, onChange, label = 'Select Institution', placeholder = 'Type to search institutions...', style = {}, className = '' }) => {
   const [search, setSearch] = useState('');
   const [institutions, setInstitutions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const debounceTimeout = useRef(null);
 
   useEffect(() => {
-    setInstitutions([]);
-    setPage(1);
-    setHasMore(true);
+    // Debounce search
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    if (search.length >= 2) {
+      debounceTimeout.current = setTimeout(() => {
+        fetchInstitutions(search);
+      }, 300);
+    } else {
+      setInstitutions([]);
+    }
+    return () => {
+      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    };
   }, [search]);
 
-  useEffect(() => {
-    if (!dropdownOpen) return;
-    fetchInstitutions(page, search);
-  }, [page, search, dropdownOpen]);
-
-  const fetchInstitutions = async (pageNum, searchTerm) => {
+  const fetchInstitutions = async (searchTerm) => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        page: pageNum,
-        per_page: PAGE_SIZE,
-        search: searchTerm || '',
-      });
-      const res = await fetch(`/api/institutions?${params.toString()}`);
+      const res = await fetch(`/autocomplete?query=${encodeURIComponent(searchTerm)}&type=institution`);
       const data = await res.json();
-      if (pageNum === 1) {
-        setInstitutions(data.results);
-      } else {
-        setInstitutions(prev => [...prev, ...data.results]);
-      }
-      setHasMore(data.results.length === PAGE_SIZE);
+      setInstitutions((data.results || []).slice(0, 10));
     } catch (e) {
       setInstitutions([]);
-      setHasMore(false);
     } finally {
       setLoading(false);
     }
@@ -48,31 +38,27 @@ const InstitutionDropdown = ({ value, onChange, label = 'Select Institution', pl
 
   const handleInputChange = (e) => {
     setSearch(e.target.value);
-    setPage(1);
+    setDropdownOpen(true);
   };
 
   const handleSelect = (institution) => {
     onChange && onChange(institution);
     setDropdownOpen(false);
+    setSearch(institution.display_name);
   };
 
   const handleDropdownToggle = () => {
     setDropdownOpen((open) => {
       const willOpen = !open;
-      if (willOpen && institutions.length === 0 && !loading) {
-        // Always fetch first page if opening and list is empty
-        setPage(1);
-        fetchInstitutions(1, search);
+      if (willOpen && search.length >= 2 && institutions.length === 0 && !loading) {
+        fetchInstitutions(search);
       }
       return willOpen;
     });
   };
 
-  const handleScroll = (e) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.target;
-    if (scrollHeight - scrollTop <= clientHeight + 10 && hasMore && !loading) {
-      setPage((p) => p + 1);
-    }
+  const handleBlur = () => {
+    setTimeout(() => setDropdownOpen(false), 100);
   };
 
   return (
@@ -84,16 +70,18 @@ const InstitutionDropdown = ({ value, onChange, label = 'Select Institution', pl
           value={search}
           onChange={handleInputChange}
           onFocus={handleDropdownToggle}
+          onBlur={handleBlur}
           placeholder={placeholder}
           className={styles.input}
+          autoComplete="off"
         />
         <button type="button" className={styles.toggleBtn} onClick={handleDropdownToggle}>
           ▼
         </button>
       </div>
-      {dropdownOpen && (
-        <div className={styles.dropdownList} onScroll={handleScroll}>
-          {loading && institutions.length === 0 && <div className={styles.loading}>Loading...</div>}
+      {dropdownOpen && search.length >= 2 && (
+        <div className={styles.dropdownList}>
+          {loading && <div className={styles.loading}>Loading...</div>}
           {institutions.map(inst => (
             <div
               key={inst.id}
@@ -103,11 +91,10 @@ const InstitutionDropdown = ({ value, onChange, label = 'Select Institution', pl
               {inst.display_name}
             </div>
           ))}
-          {loading && institutions.length > 0 && <div className={styles.loading}>Loading more...</div>}
           {!loading && institutions.length === 0 && <div className={styles.noResults}>No institutions found.</div>}
         </div>
       )}
-      {value && (
+      {value && value.display_name && (
         <div className={styles.selectedValue}>
           Selected: {value.display_name}
         </div>
