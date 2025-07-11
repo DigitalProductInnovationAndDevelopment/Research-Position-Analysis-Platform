@@ -47,6 +47,28 @@ Open your browser and go to [http://localhost:3000](http://localhost:3000) to us
 
 ---
 
+## Docker Usage
+
+To build and run the project using Docker:
+
+1. Build the containers:
+   ```pwsh
+   docker-compose build
+   ```
+
+2. Start the containers:
+   ```pwsh
+   docker-compose up
+   ```
+
+3. Access the frontend at [http://localhost:3000](http://localhost:3000)
+   and the backend at [http://localhost:4000](http://localhost:4000)
+
+To stop the containers:
+   ```pwsh
+   docker-compose down
+   ```
+
 ## Additional Information
 
 - For backend API details and endpoints, see `backend/README.md`.
