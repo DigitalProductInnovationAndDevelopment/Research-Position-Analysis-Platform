@@ -356,7 +356,8 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
         filter,
         per_page: 20
       });
-      const response = await fetch(`http://localhost:4000/api/publications/search?${params.toString()}`);
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:4000';
+      const response = await fetch(`${backendUrl}/api/publications/search?${params.toString()}`);
       if (!response.ok) throw new Error('API error');
       const data = await response.json();
       if (!data.results || !Array.isArray(data.results) || data.results.length === 0) {

@@ -118,7 +118,8 @@ export const SearchDark = () => {
       params.append("per_page", "25");
       params.append("sort", "relevance_score:desc");
 
-      const url = `http://localhost:4000/api/publications/search?${params.toString()}`;
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:4000';
+      const url = `${backendUrl}/api/publications/search?${params.toString()}`;
       console.log('Making request to:', url); // Debug log
 
       const response = await fetch(url);
