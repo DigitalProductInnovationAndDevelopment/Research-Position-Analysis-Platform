@@ -5,6 +5,8 @@ import SearchForm from '../../components/shared/SearchForm';
 import AdvancedFiltersDrawer from '../../components/shared/AdvancedFiltersDrawer';
 import SearchResultsList from '../../components/shared/SearchResultsList';
 
+const OPENALEX_API_BASE = 'https://api.openalex.org';
+
 const SearchPageLight = () => {
   // Main search/filter state
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -43,7 +45,7 @@ const SearchPageLight = () => {
       if (institution.trim()) {
         // Fetch institution ID from OpenAlex
         try {
-          const instRes = await fetch(`https://api.openalex.org/institutions?search=${encodeURIComponent(institution.trim())}`);
+          const instRes = await fetch(`${OPENALEX_API_BASE}/institutions?search=${encodeURIComponent(institution.trim())}`);
           const instData = await instRes.json();
           if (instData.results && instData.results.length > 0) {
             const instId = instData.results[0].id.split('/').pop();
@@ -75,7 +77,7 @@ const SearchPageLight = () => {
       const params = new URLSearchParams();
       if (filterString) params.append('filter', filterString);
       // Add pagination/sort if needed
-      const url = `http://localhost:4000/api/publications/search?${params.toString()}`;
+      const url = `${OPENALEX_API_BASE}/works?${params.toString()}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch search results');
       const data = await response.json();
