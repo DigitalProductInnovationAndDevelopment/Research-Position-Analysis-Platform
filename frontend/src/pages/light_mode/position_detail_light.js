@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import styles from "../../assets/styles/position.module.css";
 import TopBar from "../../components/shared/TopBar";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { OPENALEX_API_BASE } from '../../config/api';
 
 export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
   const [keyword, setKeyword] = useState("Siemens");
@@ -70,7 +71,7 @@ export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
       if (startDate) params.append('start_date', startDate);
       if (endDate) params.append('end_date', endDate);
 
-      const response = await fetch(`http://localhost:4000/api/publications/keyword_trends?${params.toString()}`);
+      const response = await fetch(`${OPENALEX_API_BASE}/works?${params.toString()}`);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

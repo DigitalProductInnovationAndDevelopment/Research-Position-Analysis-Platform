@@ -216,6 +216,8 @@ const countryCentroids = {
 
 const getCountryCentroid = (countryCode) => countryCentroids[countryCode] || [0, 0];
 
+const OPENALEX_API_BASE = 'https://api.openalex.org';
+
 const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
   const [papers, setPapers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -356,7 +358,7 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
         filter,
         per_page: 20
       });
-      const response = await fetch(`http://localhost:4000/api/publications/search?${params.toString()}`);
+      const response = await fetch(`${OPENALEX_API_BASE}/works?${params.toString()}`);
       if (!response.ok) throw new Error('API error');
       const data = await response.json();
       if (!data.results || !Array.isArray(data.results) || data.results.length === 0) {

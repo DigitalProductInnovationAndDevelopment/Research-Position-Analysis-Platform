@@ -118,7 +118,8 @@ export const SearchDark = () => {
       params.append("per_page", "25");
       params.append("sort", "relevance_score:desc");
 
-      const url = `http://localhost:4000/api/publications/search?${params.toString()}`;
+      const OPENALEX_API_BASE = 'https://api.openalex.org';
+      const url = `${OPENALEX_API_BASE}/works?${params.toString()}`;
       console.log('Making request to:', url); // Debug log
 
       const response = await fetch(url);

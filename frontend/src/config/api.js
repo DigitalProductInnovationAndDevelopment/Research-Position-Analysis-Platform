@@ -1,0 +1,1 @@
+export const OPENALEX_API_BASE = 'https://api.openalex.org'; 
