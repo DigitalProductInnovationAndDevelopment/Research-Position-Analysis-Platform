@@ -9,5 +9,8 @@
   "scripts": {
     "build": "GENERATE_SOURCEMAP=false react-scripts build",
     "start": "react-scripts start"
+  },
+  "devDependencies": {
+    "parcel": "^2.15.4"
   }
 }
