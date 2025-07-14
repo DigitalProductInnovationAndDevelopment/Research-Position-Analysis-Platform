@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styles from "../../assets/styles/position.module.css";
-import PageLayout from "../../components/shared/PageLayout/PageLayout";
+import TopBar from "../../components/shared/TopBar";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 
 export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
@@ -164,145 +164,147 @@ export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
   };
 
   return (
-    <PageLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode} hideSearch={true}>
-      <div className={styles.mainContent}>
-        <div className={styles.pageContent}>
-          <div className={styles.topRow}>
-            <div className={styles.trendVisualizationBox}>
-              <h2 className={styles.trendTitle}>Publication Trend by Keyword</h2>
-              
-              {/* Enhanced Input Section */}
-              <div className={styles.inputSection}>
-                <div className={styles.mainInputRow}>
-                  <input
-                    type="text"
-                    className={styles.trendInput}
-                    placeholder="Enter keyword (e.g., 'artificial intelligence')"
-                    value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter") {
-                        handleGetTrend();
-                      }
-                    }}
-                  />
-                  <button
-                    className={styles.trendButton}
-                    onClick={handleGetTrend}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Loading..." : "Get Trend"}
-                  </button>
-                </div>
-                
-                <div className={styles.parameterRow}>
-                  <div className={styles.parameterGroup}>
-                    <label>Years:</label>
+    <div style={{ background: '#f5f6fa', minHeight: '100vh' }}>
+      <TopBar />
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem 1rem' }}>
+        <h1 style={{ color: '#4F6AF6', fontWeight: 700, fontSize: '2.5rem', marginBottom: '1.5rem', lineHeight: 1.1 }}>Publication Trend by Keyword</h1>
+        <div className={styles.mainContent}>
+          <div className={styles.pageContent}>
+            <div className={styles.topRow}>
+              <div className={styles.trendVisualizationBox}>
+                {/* Enhanced Input Section */}
+                <div className={styles.inputSection}>
+                  <div className={styles.mainInputRow}>
                     <input
-                      type="number"
-                      min="1"
-                      max="20"
-                      value={years}
-                      onChange={(e) => setYears(parseInt(e.target.value) || 5)}
-                      className={styles.parameterInput}
-                    />
-                  </div>
-                  <div className={styles.parameterGroup}>
-                    <label>Limit:</label>
-                    <input
-                      type="number"
-                      min="5"
-                      max="20"
-                      value={limit}
-                      onChange={(e) => setLimit(parseInt(e.target.value) || 10)}
-                      className={styles.parameterInput}
-                    />
-                  </div>
-                  <div className={styles.parameterGroup}>
-                    <label>Start Date:</label>
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className={styles.parameterInput}
-                    />
-                  </div>
-                  <div className={styles.parameterGroup}>
-                    <label>End Date:</label>
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className={styles.parameterInput}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {error && <div className={styles.errorMessage}>{error}</div>}
-              
-              {isLoading && (
-                <div className={styles.loadingContainer}>
-                  <div className={styles.spinner}></div>
-                  <p>Fetching trend data...</p>
-                </div>
-              )}
-
-              {/* Trend Indicators */}
-              {trendData && !isLoading && !error && renderTrendIndicators()}
-
-              {/* Main Chart */}
-              {chartData.length > 0 && (
-                <div className={styles.chartContainer}>
-                  <h3>Publication Count by Year</h3>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <BarChart
-                      data={chartData}
-                      margin={{
-                        top: 20, right: 30, left: 50, bottom: 40,
+                      type="text"
+                      className={styles.trendInput}
+                      placeholder="Enter keyword (e.g., 'artificial intelligence')"
+                      value={keyword}
+                      onChange={(e) => setKeyword(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                          handleGetTrend();
+                        }
                       }}
+                    />
+                    <button
+                      className={styles.trendButton}
+                      onClick={handleGetTrend}
+                      disabled={isLoading}
                     >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="year" 
-                        angle={0} 
-                        textAnchor="middle" 
-                        height={40}
-                        tick={{ fontSize: 12 }}
+                      {isLoading ? "Loading..." : "Get Trend"}
+                    </button>
+                  </div>
+                  
+                  <div className={styles.parameterRow}>
+                    <div className={styles.parameterGroup}>
+                      <label>Years:</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={years}
+                        onChange={(e) => setYears(parseInt(e.target.value) || 5)}
+                        className={styles.parameterInput}
                       />
-                      <YAxis 
-                        label={{ 
-                          value: 'Publications', 
-                          angle: -90, 
-                          position: 'insideLeft',
-                          style: { textAnchor: 'middle' }
+                    </div>
+                    <div className={styles.parameterGroup}>
+                      <label>Limit:</label>
+                      <input
+                        type="number"
+                        min="5"
+                        max="20"
+                        value={limit}
+                        onChange={(e) => setLimit(parseInt(e.target.value) || 10)}
+                        className={styles.parameterInput}
+                      />
+                    </div>
+                    <div className={styles.parameterGroup}>
+                      <label>Start Date:</label>
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className={styles.parameterInput}
+                      />
+                    </div>
+                    <div className={styles.parameterGroup}>
+                      <label>End Date:</label>
+                      <input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className={styles.parameterInput}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {error && <div className={styles.errorMessage}>{error}</div>}
+                
+                {isLoading && (
+                  <div className={styles.loadingContainer}>
+                    <div className={styles.spinner}></div>
+                    <p>Fetching trend data...</p>
+                  </div>
+                )}
+
+                {/* Trend Indicators */}
+                {trendData && !isLoading && !error && renderTrendIndicators()}
+
+                {/* Main Chart */}
+                {chartData.length > 0 && (
+                  <div className={styles.chartContainer}>
+                    <h3>Publication Count by Year</h3>
+                    <ResponsiveContainer width="100%" height={400}>
+                      <BarChart
+                        data={chartData}
+                        margin={{
+                          top: 20, right: 30, left: 50, bottom: 40,
                         }}
-                      />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar 
-                        dataKey="publications" 
-                        fill="var(--color-primary)"
-                        stroke="var(--color-primary-dark)"
-                        strokeWidth={1}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="year" 
+                          angle={0} 
+                          textAnchor="middle" 
+                          height={40}
+                          tick={{ fontSize: 12 }}
+                        />
+                        <YAxis 
+                          label={{ 
+                            value: 'Publications', 
+                            angle: -90, 
+                            position: 'insideLeft',
+                            style: { textAnchor: 'middle' }
+                          }}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Bar 
+                          dataKey="publications" 
+                          fill="var(--color-primary)"
+                          stroke="var(--color-primary-dark)"
+                          strokeWidth={1}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
 
-              {/* Growth Rate Chart */}
-              {growthData.length > 0 && renderGrowthChart()}
+                {/* Growth Rate Chart */}
+                {growthData.length > 0 && renderGrowthChart()}
 
-              {/* No Results Message */}
-              {!isLoading && !error && chartData.length === 0 && trendData && (
-                <div className={styles.noResultsMessage}>
-                  No trend data found for "{keyword}". Try a different keyword or adjust the date range.
-                </div>
-              )}
+                {/* No Results Message */}
+                {!isLoading && !error && chartData.length === 0 && trendData && (
+                  <div className={styles.noResultsMessage}>
+                    No trend data found for "{keyword}". Try a different keyword or adjust the date range.
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </PageLayout>
+    </div>
   );
 };
