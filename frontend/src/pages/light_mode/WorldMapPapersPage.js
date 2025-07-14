@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import PageLayout from "../../components/shared/PageLayout/PageLayout";
+import TopBar from "../../components/shared/TopBar";
 import WorldMapPapers from "../../components/shared/WorldMapPapers/WorldMapPapers";
 
-const WorldMapPapersPage = ({ darkMode, toggleDarkMode }) => {
+const WorldMapPapersPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleInputChange = (e) => {
@@ -10,8 +10,10 @@ const WorldMapPapersPage = ({ darkMode, toggleDarkMode }) => {
   };
 
   return (
-    <PageLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 0' }}>
+    <div style={{ background: '#f5f6fa', minHeight: '100vh' }}>
+      <TopBar />
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem 1rem' }}>
+        <h1 style={{ color: '#4F6AF6', fontWeight: 700, fontSize: '2.5rem', marginBottom: '1.5rem', lineHeight: 1.1 }}>World Map of Publications</h1>
         <div style={{ marginBottom: 24, textAlign: 'center' }}>
           <input
             type="text"
@@ -32,7 +34,7 @@ const WorldMapPapersPage = ({ darkMode, toggleDarkMode }) => {
         </div>
         <WorldMapPapers searchQuery={searchQuery} />
       </div>
-    </PageLayout>
+    </div>
   );
 };
 

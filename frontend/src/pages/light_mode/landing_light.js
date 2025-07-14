@@ -1,88 +1,98 @@
 import React from "react";
-import PromoBox from "../../components/shared/PromoBox/PromoBox";
-import XLargeDataBox from "../../components/shared/XLargeDataBox/XLargeDataBox";
-import XSmallDataBox from "../../components/shared/XSmallDataBox/XSmallDataBox";
-import XxSmallDataBox from "../../components/shared/XxSmallDataBox/XxSmallDataBox";
-import arrowUpward6 from "../../assets/icons/arrow-upward-6.svg";
-import lineChartRed from "../../assets/images/line-chart-red.png";
-import lineChartGreen from "../../assets/images/line-chart-green.png";
-import donutChart from "../../assets/images/donut-chart.png";
-import dashboardPromo from "../../assets/images/dashboard-promo.png";
-import siemensLogo from "../../assets/images/siemens-logo.png";
-import barChartPng from "../../assets/images/bar-chart.png";
-import collaborationsBarChart from "../../assets/images/collaborations_over_time.png";
+import { Link } from "react-router-dom";
+import DisclaimerBox from "../../components/about/DisclaimerBox";
+import PrivacyPolicyBox from "../../components/about/PrivacyPolicyBox";
+import ImpressumBox from "../../components/about/ImpressumBox";
+import searchIcon from "../../assets/icons/search.svg";
+import trendIcon from "../../assets/icons/trend.svg";
+import graphIcon from "../../assets/icons/graph.svg";
+import barChartIcon from "../../assets/images/bar-chart.png";
 import styles from "../../assets/styles/landing.module.css";
-import PageLayout from "../../components/shared/PageLayout/PageLayout";
 
-export const LandingPageLight = ({ darkMode, toggleDarkMode }) => {
+export const LandingPageLight = () => {
+  const features = [
+    {
+      title: "Keyword Search & Filtering",
+      description: "Search publications with advanced filters by year, affiliation, and more",
+      icon: searchIcon,
+      link: "/search",
+    },
+    {
+      title: "Topic Trends",
+      description: "Visualize publication frequency over time for emerging research topics",
+      icon: trendIcon,
+      link: "/trends",
+    },
+
+    {
+      title: "Collaboration Graph",
+      description: "Analyze institutional research networks and partnerships",
+      icon: graphIcon,
+      link: "/graph-view",
+    },
+  ];
+
   return (
-    <PageLayout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-      <div className={styles.mainContent}>
-        <div className={styles.contentRows}>
-          <div className={styles.strip}>
-            <PromoBox
-              className={`${styles.promoBoxInstance} ${styles.card}`}
-              divClassName={styles.designComponentInstanceNode}
-              img={dashboardPromo}
-              mobile={false}
-              rightColumnImg={dashboardPromo}
-              rightColumnImgClassName={styles.promoBox2}
-              rightColumnImgClassNameOverride={styles.promoBox2}
-              style="color"
-              text="Welcome to the SPARK dashboard! Explore the interactive dashboard to pinpoint Siemens' research contributions - apply filters for topics or institutions and watch the visuals update. Try typing a keyword and hitting 'Enter' to quickly see the latest results."
-            />
-            <XSmallDataBox
-              className={`${styles.designComponentInstanceNode2} ${styles.card}`}
-              chartImage={collaborationsBarChart}
-              text="Collaborations over Time"
-            />
+    <div className={styles.landingPageContainer}>
+      {/* World Map button in top right */}
+      <Link to="/world-map" className={styles.worldMapBtnHeroTopRight}>World Map</Link>
+      {/* Hero Section */}
+      <section className={styles.heroSection}>
+        <div className={styles.heroContent}>
+          <div className={styles.heroTitleRow}>
+            <span className={styles.sparkleIcon} role="img" aria-label="sparkles">✨</span>
+            <h1 className={styles.heroTitle}>SPARK</h1>
           </div>
-
-          <div className={styles.strip}>
-            <XxSmallDataBox
-              chartImage={lineChartRed}
-              chartTitle="CHART TITLE"
-              className={`${styles.designComponentInstanceNode2} ${styles.card}`}
-            />
-            <XxSmallDataBox
-              chartImage={lineChartGreen}
-              chartTitle="CHART TITLE"
-              className={`${styles.designComponentInstanceNode2} ${styles.card}`}
-            />
-            <XxSmallDataBox
-              chartImage={lineChartRed}
-              chartTitle="CHART TITLE"
-              className={`${styles.xxSmallDataBox3} ${styles.card}`}
-            />
-          </div>
-
-          <div className={styles.strip}>
-            <XLargeDataBox
-              chartImage={barChartPng}
-              chartTitle="Chart Title"
-              className={`${styles.designComponentInstanceNode2} ${styles.card}`}
-            />
-            <div className={`${styles.mediumDataBox} ${styles.card}`}>
-              <div className={styles.topText}>
-                <div className={styles.textWrapper8}>
-                  Contribution per Business Unit
-                </div>
-                <div className={styles.rightText}>
-                  <img
-                    className={styles.arrowUpward2}
-                    alt="Arrow upward"
-                    src={arrowUpward6}
-                  />
-                  <div className={styles.textWrapper9}>1.10% Since yesterday</div>
-                </div>
-              </div>
-              <div className={styles.simpledonutchart}>
-                <img src={donutChart} alt="Donut Chart" className={styles.donutChartImage} />
-              </div>
-            </div>
+          <p className={styles.heroSubtitle}>
+            Comprehensive research publication analysis platform for discovering trends, collaborations, and emerging topics in academic literature
+          </p>
+          <div className={styles.heroButtonsRow} style={{ display: 'flex', gap: 6, marginTop: 24 }}>
+            <Link to="/search" className={styles.startExploringBtnHero} style={{ flex: 1, minWidth: 180, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
+              Start Exploring
+            </Link>
+            <Link to="/about" className={styles.learnMoreBtnHero} style={{ flex: 1, minWidth: 180, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
+              Learn More
+            </Link>
           </div>
         </div>
-      </div>
-    </PageLayout>
+      </section>
+
+      {/* Features Grid */}
+      <section className={styles.featuresSection}>
+        <div className={styles.featuresHeader}>
+          <h2 className={styles.featuresTitle}>Research Analysis Tools</h2>
+          <p className={styles.featuresSubtitle}>
+            Powerful features to analyze research publications, track trends, and discover collaborations
+          </p>
+        </div>
+        <div className={styles.featuresGrid}>
+          {features.map((feature) => (
+            <div key={feature.title} className={styles.featureCard}>
+              <div className={styles.featureIconWrapper}>
+                <img src={feature.icon} alt={feature.title} className={styles.featureIcon} />
+              </div>
+              <div className={styles.featureCardContent}>
+                <h3 className={styles.featureCardTitle}>{feature.title}</h3>
+                <p className={styles.featureCardDescription}>{feature.description}</p>
+              </div>
+              <Link to={feature.link} className={styles.featureCardButton + " text-foreground"}>
+                Explore
+              </Link>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Statistics Section */}
+      <section className={styles.statisticsSection}>
+        <div className={styles.statisticsGrid}>
+          <DisclaimerBox />
+          <PrivacyPolicyBox />
+          <div className={styles.impressumBoxLanding}>
+            <ImpressumBox />
+          </div>
+        </div>
+      </section>
+    </div>
   );
 };

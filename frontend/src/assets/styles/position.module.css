@@ -93,7 +93,7 @@
 .trendButton {
   padding: var(--spacing-sm) var(--spacing-md);
   background-color: var(--color-primary);
-  color: var(--color-button-text);
+  color: #fff;
   border: none;
   border-radius: var(--border-radius-sm);
   cursor: pointer;

@@ -3,7 +3,7 @@ import styles from "../../assets/styles/about.module.css";
 
 const ImpressumBox = () => {
   return (
-    <div className={styles.impressumSection}>
+    <div style={{borderRadius: '16px'}}>
       <h2 className={styles.impressumTitle}>Impressum</h2>
       <p className={styles.impressumText}>
         Information in accordance with Section 5 TMG<br />

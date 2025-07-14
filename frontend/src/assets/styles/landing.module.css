@@ -13,7 +13,8 @@
   background-color: var(--color-background-light);
   color: var(--color-text-light);
   display: grid;
-  grid-template-columns: auto 1fr; /* SideMenu takes auto width, mainContent takes rest */
+  grid-template-columns: auto 1fr;
+  /* SideMenu takes auto width, mainContent takes rest */
   min-height: 100vh;
 }
 
@@ -27,8 +28,10 @@
 .sideMenu {
   /* Specific styles for SideMenu to be in the upper left corner */
   grid-column: 1;
-  grid-row: 1 / span 2; /* Span across TopMenu and content */
-  z-index: 10; /* Ensure it's above other content */
+  grid-row: 1 / span 2;
+  /* Span across TopMenu and content */
+  z-index: 10;
+  /* Ensure it's above other content */
   /* Add any specific positioning if needed, e.g., position: fixed; top: 0; left: 0; */
 }
 
@@ -40,7 +43,8 @@
 }
 
 .mainContent {
-  grid-column: 2; /* Main content takes the second column */
+  grid-column: 2;
+  /* Main content takes the second column */
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
@@ -58,8 +62,10 @@
   display: flex;
   gap: 2rem;
   margin-bottom: 2rem;
-  flex-wrap: wrap; /* Allow items to wrap to the next line */
-  justify-content: space-between; /* Distribute items evenly */
+  flex-wrap: wrap;
+  /* Allow items to wrap to the next line */
+  justify-content: space-between;
+  /* Distribute items evenly */
   align-items: flex-start;
 }
 
@@ -67,13 +73,14 @@
 .card {
   background: #fff;
   border-radius: 20px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1.5px 6px rgba(0,0,0,0.04);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1.5px 6px rgba(0, 0, 0, 0.04);
   padding: 2rem;
   transition: box-shadow 0.2s, transform 0.2s;
   border: 1px solid #f0f0f0;
 }
+
 .card:hover {
-  box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 3px 12px rgba(0,0,0,0.06);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 3px 12px rgba(0, 0, 0, 0.06);
   transform: translateY(-2px) scale(1.01);
 }
 
@@ -106,6 +113,7 @@
   letter-spacing: 0.01em;
   color: #222;
 }
+
 .textWrapper9 {
   font-size: 1rem;
   font-weight: 400;
@@ -133,7 +141,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 200px; /* Adjust height as needed */
+  height: 200px;
+  /* Adjust height as needed */
 }
 
 .donutChartImage {
@@ -144,6 +153,7 @@
 
 /* Responsive styles */
 @media (max-width: 900px) {
+
   .promoBoxInstance,
   .designComponentInstanceNode2,
   .xxSmallDataBox3,
@@ -152,10 +162,13 @@
     width: 100%;
     max-width: 100%;
   }
-  .mainContent, .contentRows {
+
+  .mainContent,
+  .contentRows {
     gap: 1.2rem;
     padding: 1.2rem 0.5rem;
   }
+
   .strip {
     flex-direction: column;
     align-items: center;
@@ -166,13 +179,15 @@
 
 @media (max-width: var(--breakpoint-mobile)) {
   .landingPageLight {
-    grid-template-columns: 1fr; /* Stack items vertically on small screens */
+    grid-template-columns: 1fr;
+    /* Stack items vertically on small screens */
   }
 
   .sideMenu {
     grid-column: 1;
     grid-row: auto;
-    position: relative; /* Remove fixed positioning for mobile */
+    position: relative;
+    /* Remove fixed positioning for mobile */
   }
 
   .mainContent {
@@ -193,4 +208,406 @@
     width: 100%;
     max-width: 100%;
   }
-} 
+}
+
+.worldMapBtnHeroTopRight {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  padding: 0.5rem 1.3rem;
+  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+  color: #fff;
+  font-weight: 600;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.10);
+  text-decoration: none;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  display: inline-block;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.worldMapBtnHeroTopRight:hover {
+  background: linear-gradient(90deg, hsl(var(--primary-glow)), hsl(var(--primary)));
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.16);
+  transform: translateY(-2px) scale(1.04);
+}
+
+.learnMoreBtnHero {
+  margin-left: 1.2rem;
+  padding: 0.45rem 1.1rem;
+  background: hsl(var(--secondary));
+  color: hsl(var(--primary));
+  font-weight: 600;
+  font-size: 1.05rem;
+  border: 2px solid hsl(var(--primary));
+  border-radius: 0.5rem;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s, border 0.2s, transform 0.2s;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.learnMoreBtnHero:hover {
+  background: hsl(var(--primary));
+  color: #fff;
+  border-color: hsl(var(--primary-glow));
+  transform: translateY(-2px) scale(1.04);
+}
+
+.landingPageContainer {
+  position: relative;
+  z-index: 2;
+}
+
+.heroFeaturesRow {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  gap: 3rem;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto 2.5rem auto;
+}
+
+.heroSection {
+  flex: 1 1 40%;
+  min-width: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary-glow) 100%);
+  border-radius: 1.5rem;
+  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.06);
+  padding: 2.5rem 1.5rem;
+}
+
+.heroContent {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.heroTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.sparkleIcon {
+  font-size: 2.5rem;
+  color: var(--color-primary);
+  animation: glow 1.5s infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    filter: drop-shadow(0 0 2px var(--color-primary));
+  }
+
+  to {
+    filter: drop-shadow(0 0 12px var(--color-primary-glow));
+  }
+}
+
+.heroTitle {
+  font-size: 3rem;
+  font-weight: 800;
+  color: hsl(var(--primary));
+  letter-spacing: 0.04em;
+}
+
+.heroSubtitle {
+  font-size: 1.25rem;
+  color: var(--color-text-muted);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.heroButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 600px) {
+  .heroButtons {
+    flex-direction: row;
+  }
+}
+
+.primaryButton {
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-glow));
+  color: #fff;
+  font-weight: 600;
+  padding: 0.9rem 2.2rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  border: none;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
+  transition: box-shadow 0.2s, transform 0.2s;
+  text-decoration: none;
+}
+
+.primaryButton:hover {
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.16);
+  transform: translateY(-2px) scale(1.03);
+}
+
+.secondaryButton {
+  background: transparent;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary-light);
+  font-weight: 600;
+  padding: 0.9rem 2.2rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.secondaryButton:hover {
+  background: var(--color-primary-light);
+  color: #fff;
+}
+
+.featuresSection {
+  flex: 1 1 60%;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: var(--color-background-light);
+  border-radius: 1.5rem;
+  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.06);
+  padding: 2.5rem 1.5rem;
+  align-items: center;
+}
+
+.featuresHeader {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  width: 100%;
+}
+
+.featuresTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.featuresSubtitle {
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.featuresGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  justify-items: center;
+  align-items: start;
+}
+
+@media (min-width: 700px) {
+  .featuresGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1100px) {
+  .featuresGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.featureCard {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.2s, transform 0.2s;
+  border: 1px solid #f0f0f0;
+}
+
+.featureCard:hover {
+  box-shadow: 0 6px 24px rgba(102, 126, 234, 0.10);
+  transform: translateY(-4px) scale(1.03);
+}
+
+.featureIconWrapper {
+  background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary-glow));
+  border-radius: 50%;
+  padding: 1.1rem;
+  margin-bottom: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+
+.featureCard:hover .featureIconWrapper {
+  transform: scale(1.12);
+}
+
+.featureIcon {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: block;
+}
+
+.featureCardContent {
+  text-align: center;
+  margin-bottom: 1.2rem;
+}
+
+.featureCardTitle {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.featureCardDescription {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+}
+
+.featureCardButton {
+  margin-top: auto;
+  background: hsl(230, 81%, 92%);
+  /* light blue */
+  color: #222;
+  font-weight: 600;
+  padding: 0.7rem 1.5rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  border: none;
+  text-decoration: none;
+  box-shadow: 0 1px 4px rgba(102, 126, 234, 0.08);
+  transition: box-shadow 0.2s, transform 0.2s;
+  display: inline-block;
+}
+
+.featureCardButton:hover {
+  background: hsl(230, 81%, 86%);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.16);
+  transform: translateY(-2px) scale(1.04);
+}
+
+.statisticsSection {
+  background: var(--color-background-light);
+  padding: 2.5rem 0 2rem 0;
+}
+
+.statisticsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  align-items: stretch;
+}
+
+@media (min-width: 900px) {
+  .statisticsGrid {
+    grid-template-columns: repeat(3, 1fr);
+    justify-items: center;
+  }
+}
+
+@media (max-width: 900px) {
+  .heroFeaturesRow {
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 98vw;
+    padding: 0 0.5rem;
+  }
+
+  .heroSection,
+  .featuresSection {
+    min-width: unset;
+    border-radius: 1rem;
+    padding: 1.5rem 0.5rem;
+  }
+}
+
+.worldMapBtnHero {
+  margin-left: 1.5rem;
+  padding: 0.5rem 1.3rem;
+  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+  color: #fff;
+  font-weight: 600;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.10);
+  text-decoration: none;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.worldMapBtnHero:hover {
+  background: linear-gradient(90deg, hsl(var(--primary-glow)), hsl(var(--primary)));
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.16);
+  transform: translateY(-2px) scale(1.04);
+}
+
+/* Box style for ImpressumBox on landing */
+.impressumBoxLanding {
+  border-radius: 1rem;
+  box-shadow: none;
+  border: none;
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.heroButtonsRow {
+  display: flex;
+  flex-direction: row;
+  gap: 1.2rem;
+  margin-top: 1.2rem;
+  margin-bottom: 0.5rem;
+  justify-content: center;
+}
+
+.startExploringBtnHero {
+  padding: 0.45rem 1.1rem;
+  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+  color: #fff;
+  font-weight: 600;
+  font-size: 1.05rem;
+  border: none;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s, border 0.2s, transform 0.2s;
+  display: inline-block;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.10);
+}
+
+.startExploringBtnHero:hover {
+  background: linear-gradient(90deg, hsl(var(--primary-glow)), hsl(var(--primary)));
+  color: #fff;
+  transform: translateY(-2px) scale(1.04);
+}
