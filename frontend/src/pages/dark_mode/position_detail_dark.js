@@ -70,8 +70,7 @@ export const PositionDetailDark = ({ darkMode, toggleDarkMode }) => {
       if (startDate) params.append('start_date', startDate);
       if (endDate) params.append('end_date', endDate);
 
-      const OPENALEX_API_BASE = 'https://api.openalex.org';
-      const response = await fetch(`${OPENALEX_API_BASE}/works?${params.toString()}`);
+      const response = await fetch(`/api/publications/keyword_trends?${params.toString()}`);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

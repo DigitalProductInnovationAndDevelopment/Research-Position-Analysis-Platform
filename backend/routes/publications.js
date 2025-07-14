@@ -129,32 +129,42 @@ router.get('/search', async (req, res) => {
 router.get('/keyword_trends', async (req, res) => {
     try {
         const {
-            years = 5,
-            limit = 10,
             keyword = '',
+            keyword_id = '',
             start_date,
-            end_date
+            end_date,
+            per_page = 200,
+            years,
+            limit
         } = req.query;
 
-        const validatedLimit = Math.min(Math.max(parseInt(limit), 5), 20);
-        const currentYear = new Date().getFullYear();
-
-        const startYear = start_date ? new Date(start_date).getFullYear() : currentYear - parseInt(years);
-        const endYear = end_date ? new Date(end_date).getFullYear() : currentYear;
-
-        const startDate = start_date || `${startYear}-01-01`;
-        const endDate = end_date || `${endYear}-12-31`;
-
+        let filterParts = [];
+        // If keyword_id is provided, add it
+        if (keyword_id) {
+            filterParts.push(`keywords.id:${keyword_id}`);
+        }
+        // If keyword is provided, add it
+        if (keyword) {
+            filterParts.push(`title_and_abstract.search:${keyword}`);
+        }
+        // Only add date filters if start_date or end_date is provided
+        if (start_date) {
+            filterParts.push(`from_publication_date:${start_date}`);
+        }
+        if (end_date) {
+            filterParts.push(`to_publication_date:${end_date}`);
+        }
+        const filterString = filterParts.join(',');
+        console.log(`Using filter: ${filterString}`);
+        // Only send valid OpenAlex params
+        const params = {
+            filter: filterString,
+            group_by: 'publication_year',
+            per_page: per_page
+        };
         let worksRes;
         try {
-            console.log(`Using title and abstract search for "${keyword}"`);
-            worksRes = await axios.get(`${OPENALEX_API_BASE}/works`, {
-                params: {
-                    filter: `title_and_abstract.search:"${keyword}",from_publication_date:${startDate},to_publication_date:${endDate}`,
-                    group_by: 'publication_year'
-                },
-
-            });
+            worksRes = await axios.get(`${OPENALEX_API_BASE}/works`, { params });
         } catch (e) {
             console.error('Error fetching works:', e.message);
             if (e.response?.status === 403) {
@@ -179,6 +189,27 @@ router.get('/keyword_trends', async (req, res) => {
                 details: 'Unexpected API response structure'
             });
         }
+
+        // Determine year range
+        let startYear, endYear;
+        const currentYear = new Date().getFullYear();
+        if (start_date && end_date) {
+            startYear = new Date(start_date).getFullYear();
+            endYear = new Date(end_date).getFullYear();
+        } else {
+            const years = groupResults.map(entry => parseInt(entry.key)).filter(y => !isNaN(y));
+            if (years.length > 0) {
+                endYear = Math.max(...years);
+                // Default to last 10 years
+                startYear = endYear - 9;
+            } else {
+                // If no years found, default to last 10 years
+                endYear = currentYear;
+                startYear = currentYear - 9;
+            }
+        }
+        const startDate = start_date || `${startYear}-01-01`;
+        const endDate = end_date || `${endYear}-12-31`;
 
         const yearly_distribution = {};
         for (let y = startYear; y <= endYear; y++) {
