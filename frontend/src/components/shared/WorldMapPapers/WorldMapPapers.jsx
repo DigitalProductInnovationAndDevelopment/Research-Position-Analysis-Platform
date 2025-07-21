@@ -218,7 +218,7 @@ const getCountryCentroid = (countryCode) => countryCentroids[countryCode] || [0,
 
 const OPENALEX_API_BASE = 'https://api.openalex.org';
 
-const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
+const WorldMapPapers = ({ searchQuery, onPaperSelect, maxPapers = 20 }) => {
   const [papers, setPapers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(null);
@@ -335,17 +335,17 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
     if (trimmedQuery.length > 0) {
       fetchPapersByQuery(trimmedQuery);
     } else {
-      setPapers(samplePapers);
+      setPapers(samplePapers.slice(0, maxPapers));
       setFetchError(null);
       setLoading(false);
     }
     // eslint-disable-next-line
-  }, [searchQuery]);
+  }, [searchQuery, maxPapers]);
 
   const fetchPapersByQuery = async (query) => {
     const trimmed = (query || '').trim();
     if (!trimmed) {
-      setPapers(samplePapers);
+      setPapers(samplePapers.slice(0, maxPapers));
       setFetchError(null);
       setLoading(false);
       return;
@@ -353,10 +353,10 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
     setLoading(true);
     setFetchError(null);
     try {
-      const filter = `title_and_abstract.search:"${trimmed.replace(/"/g, '\\"')}"`;
+      const filter = `title_and_abstract.search:"${trimmed.replace(/"/g, '\"')}"`;
       const params = new URLSearchParams({
         filter,
-        per_page: 20
+        per_page: maxPapers
       });
       const response = await fetch(`${OPENALEX_API_BASE}/works?${params.toString()}`);
       if (!response.ok) throw new Error('API error');
@@ -404,7 +404,7 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
           institution: institution || null
         };
       }).filter(Boolean);
-      setPapers(mapped);
+      setPapers(mapped.slice(0, maxPapers));
     } catch (error) {
       console.error('OpenAlex API Error:', error.response?.data || error.message);
       setFetchError('Failed to fetch papers.');
@@ -557,7 +557,7 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
                   ));
                 }}
               </Geographies>
-              {offsetMarkers(papers.slice(0, 20)).map((paper) => (
+              {offsetMarkers(papers.slice(0, maxPapers)).map((paper) => (
                 <Marker
                   key={paper.id}
                   coordinates={paper.coordinates}
@@ -578,32 +578,8 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
           </ComposableMap>
         </div>
       )}
-      
-      {/* Research Leadership Analysis */}
-      {papers.length > 0 && !loading && (
-        <ResearchLeadershipAnalysis 
-          papers={papers} 
-          searchQuery={searchQuery || 'research'} 
-        />
-      )}
-      
-      {tooltipContent && (
-        <div
-          className={styles.tooltip}
-          style={{
-            left: tooltipContent.x ? tooltipContent.x + 20 : '50%',
-            top: tooltipContent.y ? tooltipContent.y - 20 : '50%',
-            position: 'fixed',
-            zIndex: 2000
-          }}
-        >
-          <h4>{tooltipContent.title}</h4>
-          <p><strong>Authors:</strong> {tooltipContent.authors}</p>
-          <p><strong>Citations:</strong> {tooltipContent.citations}</p>
-          {tooltipContent.year && <p><strong>Year:</strong> {tooltipContent.year}</p>}
-          {tooltipContent.institution && <p><strong>Institution:</strong> {tooltipContent.institution}</p>}
-        </div>
-      )}
+
+      {/* Move the legend here */}
       <div className={styles.legend}>
         <h4>Citation Impact Legend</h4>
         <div className={styles.legendItems}>
@@ -629,6 +605,32 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
           </div>
         </div>
       </div>
+
+      {/* Research Leadership Analysis */}
+      {papers.length > 0 && !loading && (
+        <ResearchLeadershipAnalysis 
+          papers={papers} 
+          searchQuery={searchQuery || 'research'} 
+        />
+      )}
+      
+      {tooltipContent && (
+        <div
+          className={styles.tooltip}
+          style={{
+            left: tooltipContent.x ? tooltipContent.x + 20 : '50%',
+            top: tooltipContent.y ? tooltipContent.y - 20 : '50%',
+            position: 'fixed',
+            zIndex: 2000
+          }}
+        >
+          <h4>{tooltipContent.title}</h4>
+          <p><strong>Authors:</strong> {tooltipContent.authors}</p>
+          <p><strong>Citations:</strong> {tooltipContent.citations}</p>
+          {tooltipContent.year && <p><strong>Year:</strong> {tooltipContent.year}</p>}
+          {tooltipContent.institution && <p><strong>Institution:</strong> {tooltipContent.institution}</p>}
+        </div>
+      )}
     </div>
   );
 };
