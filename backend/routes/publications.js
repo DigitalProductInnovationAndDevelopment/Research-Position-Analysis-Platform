@@ -46,6 +46,18 @@ router.get('/search', async (req, res) => {
             per_page = 25
         } = req.query;
 
+        // --- Start of new validation logic ---
+        const pageNum = parseInt(page);
+        const perPageNum = parseInt(per_page);
+
+        if (isNaN(pageNum) || pageNum < 1) {
+            return res.status(400).json({ error: 'Invalid page number provided.' });
+        }
+        if (isNaN(perPageNum) || perPageNum < 1 || perPageNum > 200) {
+            return res.status(400).json({ error: 'Invalid per_page value provided. Must be between 1 and 200.' });
+        }
+        // --- End of new validation logic ---
+
         // Decode the filter parameter to handle encoded characters from frontend
         filter = decodeURIComponent(filter);
         console.log('Decoded filter:', filter);
@@ -76,8 +88,8 @@ router.get('/search', async (req, res) => {
 
         // Initialize params for OpenAlex API
         const params = {
-            page: parseInt(page),
-            per_page: parseInt(per_page),
+            page: pageNum, // Use validated number
+            per_page: perPageNum, // Use validated number
             sort: effectiveSort,
             filter
         };
