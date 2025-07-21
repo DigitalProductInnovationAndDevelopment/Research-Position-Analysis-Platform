@@ -60,7 +60,7 @@ export const LandingPageLight = () => {
       {/* Features Grid */}
       <section className={styles.featuresSection}>
         <div className={styles.featuresHeader}>
-          <h2 className={styles.featuresTitle}>Research Analysis Tools</h2>
+          <h2 className={styles.featuresTitle}>Research Analysis Tools TEST AUTO DEPLOY</h2>
           <p className={styles.featuresSubtitle}>
             Powerful features to analyze research publications, track trends, and discover collaborations
           </p>
