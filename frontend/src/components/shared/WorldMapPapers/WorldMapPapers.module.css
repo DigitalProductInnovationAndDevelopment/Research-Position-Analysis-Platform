@@ -223,8 +223,8 @@
 .slider {
   -webkit-appearance: none;
   appearance: none;
-  width: 80%;
-  max-width: 500px;
+  width: 160%;
+  max-width: 1000px;
   height: 8px;
   background: #e0e0e0;
   border-radius: 5px;
@@ -257,6 +257,15 @@
   cursor: pointer;
   border: 2px solid white;
   box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+}
+
+.sliderRow {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 120px;
+  margin: 24px 0;
 }
 
 /* Responsive Design */

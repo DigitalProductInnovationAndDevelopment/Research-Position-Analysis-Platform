@@ -226,9 +226,10 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
   const [tooltipContent, setTooltipContent] = useState('');
   const [mapError, setMapError] = useState(false);
   const [fetchError, setFetchError] = useState(null);
-  const [maxPapers, setMaxPapers] = useState(75);
+  const [maxPapers, setMaxPapers] = useState(150); // New default
+  const [maxPerCountry, setMaxPerCountry] = useState(75);
 
-  // Sample data structure for fallback
+  // Sort sample data by citations to ensure consistency
   const samplePapers = [
     {
       id: 1,
@@ -330,7 +331,7 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
       year: 2018,
       institution: "OpenAI"
     }
-  ];
+  ].sort((a, b) => b.citations - a.citations);
 
   useEffect(() => {
     const trimmedQuery = (searchQuery || '').trim();
@@ -358,7 +359,8 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
       const filter = `title_and_abstract.search:"${trimmed.replace(/"/g, '\"')}"`;
       const params = new URLSearchParams({
         filter,
-        per_page: Math.min(maxPapers, MAX_PAPERS_LIMIT)
+        per_page: Math.min(maxPapers, MAX_PAPERS_LIMIT),
+        sort: 'cited_by_count:desc' // Sort by most cited
       });
       const response = await fetch(`${OPENALEX_API_BASE}/works?${params.toString()}`);
       if (!response.ok) throw new Error('API error');
@@ -418,12 +420,17 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
 
   // Helper to offset markers with the same coordinates
   function offsetMarkers(papers) {
+    // If the user wants the "true" view, skip offsetting and grouping
+    if (maxPerCountry >= maxPapers) {
+      return papers;
+    }
+
     // Group by coordinates as string
     const groups = {};
     papers.forEach((paper) => {
       const key = paper.coordinates.join(',');
       if (!groups[key]) groups[key] = [];
-      if (groups[key].length < 5) { // Only allow up to 5 papers per country
+      if (groups[key].length < maxPerCountry) { // Only allow up to maxPerCountry papers per country
         groups[key].push(paper);
       }
     });
@@ -582,18 +589,37 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
       )}
 
       {/* Max papers slider, just below the map and above the legend */}
-      <div className={styles.sliderContainer}>
-        <label className={styles.sliderLabel}>
-          No. of papers to show: {maxPapers}
-        </label>
-        <input
-          type="range"
-          min={1}
-          max={MAX_PAPERS_LIMIT}
-          value={maxPapers}
-          onChange={e => setMaxPapers(Number(e.target.value))}
-          className={styles.slider}
-        />
+      <div className={styles.sliderRow}>
+        <div className={styles.sliderContainer}>
+          <label className={styles.sliderLabel}>
+            No. of papers to show: {maxPapers}
+          </label>
+          <input
+            type="range"
+            min={1}
+            max={MAX_PAPERS_LIMIT}
+            value={maxPapers}
+            onChange={e => {
+              const val = Number(e.target.value);
+              setMaxPapers(val);
+              if (maxPerCountry > val) setMaxPerCountry(val);
+            }}
+            className={styles.slider}
+          />
+        </div>
+        <div className={styles.sliderContainer}>
+          <label className={styles.sliderLabel}>
+            Max per country: {maxPerCountry}
+          </label>
+          <input
+            type="range"
+            min={5}
+            max={maxPapers}
+            value={maxPerCountry}
+            onChange={e => setMaxPerCountry(Number(e.target.value))}
+            className={styles.slider}
+          />
+        </div>
       </div>
 
       {/* Legend */}
