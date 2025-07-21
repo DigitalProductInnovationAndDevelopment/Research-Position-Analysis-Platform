@@ -202,6 +202,63 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
+/* New Slider Styles */
+.sliderContainer {
+  margin: 24px 0;
+  text-align: center;
+}
+
+.sliderLabel {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #2c3e50;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 80%;
+  max-width: 500px;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 5px;
+  outline: none;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  background: #667eea;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+}
+
+.slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  background: #667eea;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .worldMapContainer {

@@ -4,7 +4,6 @@ import WorldMapPapers from "../../components/shared/WorldMapPapers/WorldMapPaper
 
 const WorldMapPapersPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [maxPapers, setMaxPapers] = useState(20); // Default value
 
   const handleInputChange = (e) => {
     setSearchQuery(e.target.value);
@@ -33,20 +32,7 @@ const WorldMapPapersPage = () => {
             }}
           />
         </div>
-        <div style={{ marginBottom: 24, textAlign: 'center' }}>
-          <label>
-            Max papers to show:&nbsp;
-            <input
-              type="number"
-              min={1}
-              max={100}
-              value={maxPapers}
-              onChange={e => setMaxPapers(Number(e.target.value))}
-              style={{ width: 80, padding: 6, borderRadius: 4, border: '1px solid #ccc', fontSize: 16 }}
-            />
-          </label>
-        </div>
-        <WorldMapPapers searchQuery={searchQuery} maxPapers={maxPapers} />
+        <WorldMapPapers searchQuery={searchQuery} />
       </div>
     </div>
   );

@@ -218,13 +218,15 @@ const getCountryCentroid = (countryCode) => countryCentroids[countryCode] || [0,
 
 const OPENALEX_API_BASE = 'https://api.openalex.org';
 
-const WorldMapPapers = ({ searchQuery, onPaperSelect, maxPapers = 20 }) => {
+const MAX_PAPERS_LIMIT = 150;
+const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
   const [papers, setPapers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [tooltipContent, setTooltipContent] = useState('');
   const [mapError, setMapError] = useState(false);
   const [fetchError, setFetchError] = useState(null);
+  const [maxPapers, setMaxPapers] = useState(75);
 
   // Sample data structure for fallback
   const samplePapers = [
@@ -356,7 +358,7 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, maxPapers = 20 }) => {
       const filter = `title_and_abstract.search:"${trimmed.replace(/"/g, '\"')}"`;
       const params = new URLSearchParams({
         filter,
-        per_page: maxPapers
+        per_page: Math.min(maxPapers, MAX_PAPERS_LIMIT)
       });
       const response = await fetch(`${OPENALEX_API_BASE}/works?${params.toString()}`);
       if (!response.ok) throw new Error('API error');
@@ -404,7 +406,7 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, maxPapers = 20 }) => {
           institution: institution || null
         };
       }).filter(Boolean);
-      setPapers(mapped.slice(0, maxPapers));
+      setPapers(mapped.slice(0, Math.min(maxPapers, MAX_PAPERS_LIMIT)));
     } catch (error) {
       console.error('OpenAlex API Error:', error.response?.data || error.message);
       setFetchError('Failed to fetch papers.');
@@ -579,7 +581,22 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, maxPapers = 20 }) => {
         </div>
       )}
 
-      {/* Move the legend here */}
+      {/* Max papers slider, just below the map and above the legend */}
+      <div className={styles.sliderContainer}>
+        <label className={styles.sliderLabel}>
+          No. of papers to show: {maxPapers}
+        </label>
+        <input
+          type="range"
+          min={1}
+          max={MAX_PAPERS_LIMIT}
+          value={maxPapers}
+          onChange={e => setMaxPapers(Number(e.target.value))}
+          className={styles.slider}
+        />
+      </div>
+
+      {/* Legend */}
       <div className={styles.legend}>
         <h4>Citation Impact Legend</h4>
         <div className={styles.legendItems}>
