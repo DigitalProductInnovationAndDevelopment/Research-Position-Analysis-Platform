@@ -8,7 +8,7 @@ const Autocomplete = ({ value, onValueChange, placeholder, type, onEnterPress })
   const [activeIndex, setActiveIndex] = useState(0);
   const [searchOnEnter, setSearchOnEnter] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const debouncedSearchTerm = useDebounce(value, 300);
+  const debouncedSearchTerm = useDebounce(value, 100);
   const inputRef = useRef(null);
 
   useEffect(() => {
