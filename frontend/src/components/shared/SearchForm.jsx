@@ -1,5 +1,8 @@
 import React from "react";
 import Autocomplete from "./Autocomplete/Autocomplete";
+import searchPublicationsIcon from "../../assets/icons/search-publications.svg";
+import authorIcon from "../../assets/icons/author.svg";
+import institutionIcon from "../../assets/icons/institution.svg";
 
 const labelStyle = { fontWeight: 700, fontSize: 16, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 2 };
 const subLabelStyle = { fontWeight: 600, fontSize: 14, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 };
@@ -18,7 +21,12 @@ const SearchForm = ({
 }) => (
   <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 4px 24px rgba(0,0,0,0.07)', padding: 32, maxWidth: 900, margin: '0 auto 2rem auto' }}>
     <form onSubmit={e => { e.preventDefault(); onSearch(); }} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <div style={labelStyle}><span style={{ fontSize: 18 }}>🔍</span> Search Publications</div>
+      <div style={labelStyle}>
+        <span style={{ display: 'flex', alignItems: 'center' }}>
+          <img src={searchPublicationsIcon} alt="Search Publications" style={{ marginRight: 4, width: 20, height: 20 }} />
+        </span>
+        Search Publications
+      </div>
       <div style={{ color: '#888', fontSize: 14, marginBottom: 12, paddingLeft: 2 }}>Enter keywords and apply filters to find relevant research</div>
       <input
         type="text"
@@ -29,7 +37,12 @@ const SearchForm = ({
       />
       <div style={{ display: 'flex', gap: 16 }}>
         <div style={{ flex: 1 }}>
-          <div style={subLabelStyle}><span style={{ fontSize: 16 }}>👤</span> Author</div>
+          <div style={subLabelStyle}>
+            <span style={{ display: 'flex', alignItems: 'center' }}>
+              <img src={authorIcon} alt="Author" style={{ marginRight: 3, width: 18, height: 18 }} />
+            </span>
+            Author
+          </div>
           <div style={{ width: '100%' }}>
             <Autocomplete
               value={author}
@@ -41,7 +54,12 @@ const SearchForm = ({
           </div>
         </div>
         <div style={{ flex: 1 }}>
-          <div style={subLabelStyle}><span style={{ fontSize: 16 }}>🏛️</span> Institution</div>
+          <div style={subLabelStyle}>
+            <span style={{ display: 'flex', alignItems: 'center' }}>
+              <img src={institutionIcon} alt="Institution" style={{ marginRight: 3, width: 18, height: 18 }} />
+            </span>
+            Institution
+          </div>
           <div style={{ width: '100%' }}>
             <Autocomplete
               value={institution}
