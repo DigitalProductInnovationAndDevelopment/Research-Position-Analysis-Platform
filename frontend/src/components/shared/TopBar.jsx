@@ -5,6 +5,7 @@ const navLinks = [
   { to: "/search", label: "Search" },
   { to: "/trends", label: "Topic Trends" },
   { to: "/graph-view", label: "Collaboration" },
+  { to: "/world-map", label: "World Map" },
   { to: "/about", label: "Learn More" },
 ];
 
@@ -53,21 +54,6 @@ const TopBar = () => {
           ))}
         </div>
       )}
-      <Link to="/world-map" style={{ textDecoration: 'none' }}>
-        <button style={{
-          background: '#7B61FF',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 8,
-          padding: '8px 24px',
-          fontWeight: 600,
-          fontSize: 16,
-          cursor: 'pointer',
-          boxShadow: '0 2px 8px rgba(123,97,255,0.08)'
-        }}>
-          World Map
-        </button>
-      </Link>
     </div>
   );
 };
