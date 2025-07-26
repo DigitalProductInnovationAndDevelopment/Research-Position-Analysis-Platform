@@ -19,18 +19,15 @@ const TopBar = () => {
       borderBottom: '1px solid #f0f0f0',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'space-between',
+      justifyContent: 'center',
       padding: '0 2rem',
       height: 60,
       position: 'sticky',
       top: 0,
       zIndex: 100
     }}>
-      <Link to="/" style={{ textDecoration: 'none' }}>
-        <div style={{ fontWeight: 900, fontSize: 24, color: '#7B61FF', letterSpacing: 1, cursor: 'pointer' }}>SPARK</div>
-      </Link>
       {!isIndex && (
-        <div style={{ display: 'flex', gap: 12, marginLeft: 32 }}>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
           {navLinks.map(link => (
             <Link key={link.to} to={link.to} style={{ textDecoration: 'none' }}>
               <button
