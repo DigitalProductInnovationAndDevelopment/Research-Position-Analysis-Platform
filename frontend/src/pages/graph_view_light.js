@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import PageLayout from '../../components/shared/PageLayout/PageLayout';
-import InstitutionDropdown from '../../components/shared/InstitutionDropdown/InstitutionDropdown';
+import PageLayout from '../components/shared/PageLayout/PageLayout';
+import InstitutionDropdown from '../components/shared/InstitutionDropdown/InstitutionDropdown';
 import ForceGraph2D from 'react-force-graph-2d';
-import TopBar from '../../components/shared/TopBar';
+import TopBar from '../components/shared/TopBar';
 
 const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
   const [selectedInstitution, setSelectedInstitution] = useState(null);

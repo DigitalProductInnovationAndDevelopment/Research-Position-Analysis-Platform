@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import TopBar from '../../components/shared/TopBar';
-import SearchHeader from '../../components/shared/SearchHeader';
-import SearchForm from '../../components/shared/SearchForm';
-import AdvancedFiltersDrawer from '../../components/shared/AdvancedFiltersDrawer';
-import SearchResultsList from '../../components/shared/SearchResultsList';
+import TopBar from '../components/shared/TopBar';
+import SearchHeader from '../components/shared/SearchHeader';
+import SearchForm from '../components/shared/SearchForm';
+import AdvancedFiltersDrawer from '../components/shared/AdvancedFiltersDrawer';
+import SearchResultsList from '../components/shared/SearchResultsList';
 
 const OPENALEX_API_BASE = 'https://api.openalex.org';
 

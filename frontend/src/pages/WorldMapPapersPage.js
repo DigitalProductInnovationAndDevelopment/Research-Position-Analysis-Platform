@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import TopBar from "../../components/shared/TopBar";
-import WorldMapPapers from "../../components/shared/WorldMapPapers/WorldMapPapers";
+import TopBar from "../components/shared/TopBar";
+import WorldMapPapers from "../components/shared/WorldMapPapers/WorldMapPapers";
 
 const WorldMapPapersPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
