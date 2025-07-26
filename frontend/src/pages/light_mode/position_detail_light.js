@@ -1,27 +1,26 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "../../assets/styles/position.module.css";
 import TopBar from "../../components/shared/TopBar";
+import InstitutionDropdown from "../../components/shared/InstitutionDropdown/InstitutionDropdown";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { OPENALEX_API_BASE } from '../../config/api';
 
 export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
-  const [keyword, setKeyword] = useState("Siemens");
+  const navigate = useNavigate();
+  const [keyword, setKeyword] = useState("");
   const [trendData, setTrendData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [chartData, setChartData] = useState([]);
   const [growthData, setGrowthData] = useState([]);
   
-  // Additional parameters for the API
-  const [years, setYears] = useState(5);
-  const [limit, setLimit] = useState(10);
+  // New parameters for institution
+  const [selectedInstitution, setSelectedInstitution] = useState(null);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // Load initial Siemens data on component mount
-  useEffect(() => {
-    handleGetTrend();
-  }, []); // Empty dependency array means this runs once on mount
+
 
   useEffect(() => {
     if (trendData && trendData.yearly_distribution) {
@@ -63,13 +62,15 @@ export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
 
     try {
       const params = new URLSearchParams({
-        keyword: keyword.trim(),
-        years: years.toString(),
-        limit: Math.min(Math.max(parseInt(limit), 5), 20).toString()
+        keyword: keyword.trim()
       });
 
       if (startDate) params.append('start_date', startDate);
       if (endDate) params.append('end_date', endDate);
+      if (selectedInstitution && selectedInstitution.id) {
+        const institutionId = selectedInstitution.id.split('/').pop();
+        params.append('institution_id', institutionId);
+      }
 
       const response = await fetch(`/api/publications/keyword_trends?${params.toString()}`);
       
@@ -100,15 +101,40 @@ export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
       const data = payload[0].payload;
       return (
         <div className={styles.customTooltip}>
-          <p className={styles.tooltipYear}>Year: {label}</p>
-          <p className={styles.tooltipPublications}>
-            Publications: {payload[0].value}
-            {data.isCurrentYear && <span className={styles.incompleteData}> (incomplete)</span>}
-          </p>
+          <div className={styles.tooltipYear}>{label}</div>
+          <div className={styles.tooltipPublications}>
+            <strong>{payload[0].value.toLocaleString()}</strong> Publications
+            {data.isCurrentYear && <span className={styles.incompleteData}>⚠ Data incomplete for current year</span>}
+          </div>
+          <div className={styles.tooltipHint}>
+            🔍 Click to view publications
+          </div>
         </div>
       );
     }
     return null;
+  };
+
+  const handleBarClick = (data) => {
+    if (!data || !data.year || !keyword.trim()) return;
+    
+    // Construct search parameters
+    const searchParams = new URLSearchParams();
+    
+    // Add keyword search
+    searchParams.append('search', keyword.trim());
+    
+    // Add year filter
+    searchParams.append('publication_year', data.year);
+    
+    // Add institution filter if selected
+    if (selectedInstitution && selectedInstitution.id) {
+      const institutionId = selectedInstitution.id.split('/').pop();
+      searchParams.append('institution_id', institutionId);
+    }
+    
+    // Navigate to search page with filters
+    navigate(`/search?${searchParams.toString()}`);
   };
 
   const renderTrendIndicators = () => {
@@ -134,12 +160,16 @@ export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
             <span className={styles.indicatorLabel}>Total Publications:</span>
             <span className={styles.indicatorValue}>{trendData.publication_count}</span>
           </div>
-          <div className={styles.indicator}>
-            <span className={styles.indicatorLabel}>Search Method:</span>
-            <span className={styles.indicatorValue}>
-              Title & Abstract Search
-            </span>
-          </div>
+
+          {selectedInstitution && (
+            <div className={styles.indicator}>
+              <span className={styles.indicatorLabel}>Institution:</span>
+              <span className={styles.indicatorValue}>
+                {selectedInstitution.display_name}
+              </span>
+            </div>
+          )}
+
         </div>
       </div>
     );
@@ -199,27 +229,31 @@ export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
                   
                   <div className={styles.parameterRow}>
                     <div className={styles.parameterGroup}>
-                      <label>Years:</label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="20"
-                        value={years}
-                        onChange={(e) => setYears(parseInt(e.target.value) || 5)}
-                        className={styles.parameterInput}
+                      <label>Institution:</label>
+                      <InstitutionDropdown
+                        value={selectedInstitution}
+                        onChange={setSelectedInstitution}
+                        placeholder="Search for institution..."
+                        className={styles.institutionDropdown}
+                        label=""
                       />
+                      {selectedInstitution && (
+                        <div className={styles.selectedInstitutionRow}>
+                          <span className={styles.selectedInstitutionText}>
+                            Selected: {selectedInstitution.display_name}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedInstitution(null)}
+                            className={styles.clearButton}
+                            title="Clear institution"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <div className={styles.parameterGroup}>
-                      <label>Limit:</label>
-                      <input
-                        type="number"
-                        min="5"
-                        max="20"
-                        value={limit}
-                        onChange={(e) => setLimit(parseInt(e.target.value) || 10)}
-                        className={styles.parameterInput}
-                      />
-                    </div>
+
                     <div className={styles.parameterGroup}>
                       <label>Start Date:</label>
                       <input
@@ -256,13 +290,17 @@ export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
                 {/* Main Chart */}
                 {chartData.length > 0 && (
                   <div className={styles.chartContainer}>
-                    <h3>Publication Count by Year</h3>
+                    <h3>
+                      Publication Count by Year
+                      {selectedInstitution && ` - ${selectedInstitution.display_name}`}
+                    </h3>
                     <ResponsiveContainer width="100%" height={400}>
                       <BarChart
                         data={chartData}
                         margin={{
                           top: 20, right: 30, left: 50, bottom: 40,
                         }}
+                        onClick={handleBarClick}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis 
@@ -286,6 +324,8 @@ export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
                           fill="var(--color-primary)"
                           stroke="var(--color-primary-dark)"
                           strokeWidth={1}
+                          style={{ cursor: 'pointer' }}
+                          onClick={handleBarClick}
                         />
                       </BarChart>
                     </ResponsiveContainer>

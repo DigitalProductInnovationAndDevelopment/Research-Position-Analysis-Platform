@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import TopBar from '../../components/shared/TopBar';
 import SearchHeader from '../../components/shared/SearchHeader';
 import SearchForm from '../../components/shared/SearchForm';
@@ -8,10 +9,13 @@ import SearchResultsList from '../../components/shared/SearchResultsList';
 const OPENALEX_API_BASE = 'https://api.openalex.org';
 
 const SearchPageLight = () => {
+  const location = useLocation();
+  
   // Main search/filter state
   const [searchKeyword, setSearchKeyword] = useState("");
   const [author, setAuthor] = useState("");
   const [institution, setInstitution] = useState("");
+  const [institutionObject, setInstitutionObject] = useState(null);
   // Advanced filters
   const [funding, setFunding] = useState("");
   const [topic, setTopic] = useState("");
@@ -25,31 +29,176 @@ const SearchPageLight = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [results, setResults] = useState([]);
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const resultsPerPage = 15;
 
-  // Search handler
-  const handleSearch = async () => {
+  // Handle URL parameters and auto-search
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const searchParam = urlParams.get('search');
+    const yearParam = urlParams.get('publication_year');
+    const institutionIdParam = urlParams.get('institution_id');
+    
+    // Check if we have any chart-related parameters (coming from graph click)
+    const hasChartParams = searchParam || yearParam || institutionIdParam;
+    
+    if (hasChartParams) {
+      // Has URL parameters - came from graph click, auto-search
+      console.log('Graph navigation detected - auto-searching with params:', { searchParam, yearParam, institutionIdParam });
+      
+      // Set search keyword if provided
+      if (searchParam) {
+        setSearchKeyword(searchParam);
+      }
+      
+      // Set publication year if provided
+      if (yearParam) {
+        setPublicationYear(yearParam);
+      }
+      
+      // Handle institution if provided
+      if (institutionIdParam) {
+        fetchInstitutionById(institutionIdParam);
+      }
+      
+      // Auto-search with URL parameters
+      setTimeout(() => {
+        performAutoSearchWithParams(searchParam, yearParam, institutionIdParam);
+      }, 200);
+    } else {
+      // No URL parameters - any other navigation, just clear fields
+      console.log('Direct navigation - clearing fields, no auto-search');
+      clearAllFields();
+    }
+  }, [location.search]);
+
+  // Function to clear all search fields
+  const clearAllFields = () => {
+    setSearchKeyword("");
+    setAuthor("");
+    setInstitution("");
+    setInstitutionObject(null);
+    setFunding("");
+    setTopic("");
+    setPublicationYear("");
+    setStartYear("");
+    setEndYear("");
+    setIsOpenAccess(false);
+    setPublicationType("");
+    setResults([]);
+    setError(null);
+  };
+
+  // Separate function for auto-search with URL parameters
+  const performAutoSearchWithParams = async (searchParam, yearParam, institutionIdParam, page = 1) => {
+    console.log('performAutoSearchWithParams called with:', { searchParam, yearParam, institutionIdParam, page });
+    
     setLoading(true);
     setError(null);
-    setResults([]);
+    if (page === 1) {
+      setResults([]);
+      setCurrentPage(1);
+    }
+    
+    try {
+      const filters = [];
+      
+      // Use search parameter directly from URL
+      if (searchParam && searchParam.trim()) {
+        const keyword = searchParam.trim();
+        // Format: title_and_abstract.search:keyword (spaces become + in URL)
+        filters.push(`title_and_abstract.search:${keyword}`);
+      }
+      
+      // Use year parameter directly from URL
+      if (yearParam && yearParam.trim()) {
+        filters.push(`publication_year:${yearParam.trim()}`);
+      }
+      
+      // Use institution parameter directly from URL
+      if (institutionIdParam && institutionIdParam.trim()) {
+        filters.push(`authorships.institutions.id:I${institutionIdParam.trim()}`);
+      }
+      
+      const filterString = filters.join(',');
+      const params = new URLSearchParams();
+      if (filterString) params.append('filter', filterString);
+      params.append('per_page', resultsPerPage.toString());
+      params.append('page', page.toString());
+      params.append('sort', 'cited_by_count:desc');
+      
+      const finalUrl = `${OPENALEX_API_BASE}/works?${params.toString()}`;
+      console.log('Auto-search URL:', finalUrl);
+      console.log('Search filters:', filters);
+      console.log('URL matches format: https://openalex.org/works?page=X&filter=...&sort=cited_by_count:desc');
+      
+      const url = `${OPENALEX_API_BASE}/works?${params.toString()}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch search results');
+      const data = await response.json();
+      
+      setResults(data.results || []);
+      setTotalResults(data.meta?.count || 0);
+      setTotalPages(Math.ceil((data.meta?.count || 0) / resultsPerPage));
+      setCurrentPage(page);
+    } catch (e) {
+      setError(e.message || 'Failed to fetch search results');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch institution details by ID
+  const fetchInstitutionById = async (institutionId) => {
+    try {
+      const response = await fetch(`${OPENALEX_API_BASE}/institutions/I${institutionId}`);
+      if (response.ok) {
+        const institutionData = await response.json();
+        setInstitution(institutionData.display_name);
+        setInstitutionObject({
+          id: institutionData.id,
+          display_name: institutionData.display_name
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch institution details:', error);
+    }
+  };
+
+  // Search handler
+  const handleSearch = async (page = 1) => {
+    setLoading(true);
+    setError(null);
+    if (page === 1) {
+      setResults([]);
+      setCurrentPage(1);
+    }
+    
     try {
       const filters = [];
       if (searchKeyword.trim()) {
         const keyword = searchKeyword.trim();
-        // Quote if multi-word
-        const encodedKeyword = keyword.includes(' ') ? `"${keyword}"` : keyword;
-        filters.push(`title_and_abstract.search:${encodedKeyword}`);
+        // Format: title_and_abstract.search:keyword (OpenAlex handles multi-word automatically)
+        filters.push(`title_and_abstract.search:${keyword}`);
       }
       if (author.trim()) {
         filters.push(`raw_author_name.search:${author.trim()}`);
       }
-      if (institution.trim()) {
-        // Fetch institution ID from OpenAlex
+      if (institutionObject && institutionObject.id) {
+        // Use the institution object if available (from URL params)
+        const instId = institutionObject.id.split('/').pop();
+        filters.push(`authorships.institutions.id:I${instId}`);
+      } else if (institution.trim()) {
+        // Fetch institution ID from OpenAlex for manual searches
         try {
           const instRes = await fetch(`${OPENALEX_API_BASE}/institutions?search=${encodeURIComponent(institution.trim())}`);
           const instData = await instRes.json();
           if (instData.results && instData.results.length > 0) {
             const instId = instData.results[0].id.split('/').pop();
-            filters.push(`institutions.id:${instId}`);
+            filters.push(`authorships.institutions.id:I${instId}`);
           }
         } catch (err) {
           // If lookup fails, skip institution filter
@@ -76,12 +225,19 @@ const SearchPageLight = () => {
       const filterString = filters.join(',');
       const params = new URLSearchParams();
       if (filterString) params.append('filter', filterString);
-      // Add pagination/sort if needed
+      params.append('per_page', resultsPerPage.toString());
+      params.append('page', page.toString());
+      params.append('sort', 'cited_by_count:desc');
+      
       const url = `${OPENALEX_API_BASE}/works?${params.toString()}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch search results');
       const data = await response.json();
+      
       setResults(data.results || []);
+      setTotalResults(data.meta?.count || 0);
+      setTotalPages(Math.ceil((data.meta?.count || 0) / resultsPerPage));
+      setCurrentPage(page);
     } catch (e) {
       setError(e.message || 'Failed to fetch search results');
     } finally {
@@ -93,6 +249,33 @@ const SearchPageLight = () => {
   const handleApplyAdvanced = () => {
     setShowAdvanced(false);
     handleSearch();
+  };
+
+  // Pagination handlers
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      // Check if we came from chart (have URL parameters)
+      const urlParams = new URLSearchParams(location.search);
+      const searchParam = urlParams.get('search');
+      const yearParam = urlParams.get('publication_year');
+      const institutionIdParam = urlParams.get('institution_id');
+      
+      if (searchParam || yearParam || institutionIdParam) {
+        // Use auto-search with parameters
+        performAutoSearchWithParams(searchParam, yearParam, institutionIdParam, newPage);
+      } else {
+        // Use regular search
+        handleSearch(newPage);
+      }
+    }
+  };
+
+  const handlePreviousPage = () => {
+    handlePageChange(currentPage - 1);
+  };
+
+  const handleNextPage = () => {
+    handlePageChange(currentPage + 1);
   };
 
   return (
@@ -132,6 +315,97 @@ const SearchPageLight = () => {
             onApply={handleApplyAdvanced}
           />
           <SearchResultsList results={results} loading={loading} error={error} />
+          
+          {/* Pagination */}
+          {!loading && !error && totalPages > 1 && (
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center', 
+              gap: '1rem', 
+              marginTop: '2rem',
+              padding: '1rem',
+              background: 'white',
+              borderRadius: '8px',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+            }}>
+              <button
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: currentPage === 1 ? '#f5f5f5' : '#4F6AF6',
+                  color: currentPage === 1 ? '#999' : 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                  fontWeight: '600'
+                }}
+              >
+                Previous
+              </button>
+              
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                {/* Page numbers */}
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        background: currentPage === pageNum ? '#4F6AF6' : 'white',
+                        color: currentPage === pageNum ? 'white' : '#4F6AF6',
+                        border: '1px solid #4F6AF6',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontWeight: '600',
+                        minWidth: '40px'
+                      }}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+              
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: currentPage === totalPages ? '#f5f5f5' : '#4F6AF6',
+                  color: currentPage === totalPages ? '#999' : 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                  fontWeight: '600'
+                }}
+              >
+                Next
+              </button>
+              
+              <div style={{ 
+                marginLeft: '1rem', 
+                color: '#666', 
+                fontSize: '0.9rem',
+                fontWeight: '500'
+              }}>
+                Page {currentPage} of {totalPages} ({totalResults.toLocaleString()} results)
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>

@@ -47,15 +47,16 @@
 /* Trend Visualization Styles */
 .trendVisualizationBox {
   background-color: var(--color-card-background);
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow-sm);
-  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: var(--spacing-xl);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
-  max-width: 900px;
+  gap: var(--spacing-lg);
+  max-width: 1000px;
   margin: 0 auto;
   width: 100%;
+  border: 1px solid var(--color-border-light);
 }
 
 .trendTitle {
@@ -76,30 +77,40 @@
 
 .mainInputRow {
   display: flex;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
   align-items: center;
+  margin-bottom: var(--spacing-md);
 }
 
 .trendInput {
   flex-grow: 1;
-  padding: var(--spacing-sm);
+  padding: var(--spacing-md);
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius-sm);
   font-size: var(--font-size-base);
   color: var(--color-text-light);
   background-color: var(--color-background-light);
+  transition: border-color 0.2s ease;
+}
+
+.trendInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(79, 106, 246, 0.1);
 }
 
 .trendButton {
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
   background-color: var(--color-primary);
   color: #fff;
   border: none;
   border-radius: var(--border-radius-sm);
   cursor: pointer;
   font-size: var(--font-size-base);
-  transition: background-color 0.3s ease;
+  font-weight: 600;
+  transition: background-color 0.2s ease, transform 0.1s ease;
   white-space: nowrap;
+  min-width: 120px;
 }
 
 .trendButton:hover {
@@ -114,9 +125,9 @@
 /* Parameter Controls */
 .parameterRow {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: var(--spacing-sm);
-  align-items: end;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  align-items: start;
 }
 
 .parameterGroup {
@@ -132,21 +143,87 @@
 }
 
 .parameterInput {
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius-sm);
   font-size: var(--font-size-sm);
   color: var(--color-text-light);
   background-color: var(--color-background-light);
+  transition: border-color 0.2s ease;
+  height: 48px;
+  box-sizing: border-box;
+  line-height: 1.5;
+}
+
+.parameterInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(79, 106, 246, 0.1);
+}
+
+.clearButton {
+  margin-top: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--color-error, #dc3545);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.clearButton:hover {
+  background-color: var(--color-error-dark, #c82333);
+}
+
+.selectedInstitutionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: #f8f9ff;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--color-border-light);
+}
+
+.selectedInstitutionText {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.clearButton {
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.clearButton:hover {
+  background-color: #dc2626;
 }
 
 /* Trend Indicators */
 .trendIndicators {
-  background-color: var(--color-background-light);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-sm);
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
+  background: linear-gradient(135deg, var(--color-background-light) 0%, #f8f9ff 100%);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .trendIndicators h3 {
@@ -197,6 +274,21 @@
 /* Chart Containers */
 .chartContainer {
   margin-bottom: var(--spacing-lg);
+  background-color: white;
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--color-border-light);
+}
+
+/* Chart hover effects */
+.chartContainer .recharts-bar-rectangle {
+  transition: opacity 0.2s ease;
+}
+
+.chartContainer .recharts-bar-rectangle:hover {
+  opacity: 0.8;
+  filter: brightness(1.1);
 }
 
 .chartContainer h3 {
@@ -204,6 +296,55 @@
   font-size: var(--font-size-lg);
   color: var(--color-primary);
   text-align: center;
+}
+
+/* Custom Tooltip Styles */
+.customTooltip {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  font-family: var(--font-family-base);
+}
+
+.tooltipYear {
+  margin: 0 0 var(--spacing-sm) 0;
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+  color: var(--color-primary);
+  text-align: center;
+  border-bottom: 1px solid var(--color-border-light);
+  padding-bottom: var(--spacing-xs);
+}
+
+.tooltipPublications {
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-light);
+  text-align: center;
+}
+
+.tooltipHint {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  font-weight: 500;
+  text-align: center;
+  padding: var(--spacing-xs);
+  background-color: rgba(79, 106, 246, 0.1);
+  border-radius: var(--border-radius-sm);
+  border: 1px dashed var(--color-primary);
+}
+
+.incompleteData {
+  color: var(--color-warning, #f59e0b);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  display: block;
+  margin-top: var(--spacing-xs);
 }
 
 .growthChartContainer {
@@ -378,6 +519,7 @@
 @media (max-width: 768px) {
   .parameterRow {
     grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
   }
   
   .indicatorGrid {
@@ -387,10 +529,17 @@
   .mainInputRow {
     flex-direction: column;
     align-items: stretch;
+    gap: var(--spacing-sm);
   }
   
   .trendButton {
     margin-top: var(--spacing-sm);
+    width: 100%;
+  }
+  
+  .trendVisualizationBox {
+    padding: var(--spacing-md);
+    margin: 0 var(--spacing-sm);
   }
 }
 
