@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import styles from '../../../assets/styles/institutionDropdown.module.css';
 
-const InstitutionDropdown = ({ value, onChange, label = 'Select Institution', placeholder = 'Type to search institutions...', style = {}, className = '' }) => {
+const InstitutionDropdown = ({ value, onChange, label = 'Select Institution', placeholder = 'Type to search institutions...', style = {}, className = '', onClearSearch, darkMode = false }) => {
   const [search, setSearch] = useState('');
   const [institutions, setInstitutions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -9,12 +9,19 @@ const InstitutionDropdown = ({ value, onChange, label = 'Select Institution', pl
   const debounceTimeout = useRef(null);
 
   useEffect(() => {
+    // Clear search when value is cleared
+    if (!value) {
+      setSearch('');
+    }
+  }, [value]);
+
+  useEffect(() => {
     // Debounce search
     if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-    if (search.length >= 2) {
+    if (search.length >= 1) {
       debounceTimeout.current = setTimeout(() => {
         fetchInstitutions(search);
-      }, 300);
+      }, 250);
     } else {
       setInstitutions([]);
     }
@@ -50,7 +57,7 @@ const InstitutionDropdown = ({ value, onChange, label = 'Select Institution', pl
   const handleDropdownToggle = () => {
     setDropdownOpen((open) => {
       const willOpen = !open;
-      if (willOpen && search.length >= 2 && institutions.length === 0 && !loading) {
+      if (willOpen && search.length >= 1 && institutions.length === 0 && !loading) {
         fetchInstitutions(search);
       }
       return willOpen;
@@ -62,7 +69,7 @@ const InstitutionDropdown = ({ value, onChange, label = 'Select Institution', pl
   };
 
   return (
-    <div className={`${styles.dropdownContainer} ${className}`} style={style}>
+    <div className={`${styles.dropdownContainer} ${className} ${darkMode ? 'dark' : ''}`} style={style}>
       {label && <label className={styles.label}>{label}</label>}
       <div className={styles.inputWrapper}>
         <input
@@ -79,7 +86,7 @@ const InstitutionDropdown = ({ value, onChange, label = 'Select Institution', pl
           ▼
         </button>
       </div>
-      {dropdownOpen && search.length >= 2 && (
+      {dropdownOpen && search.length >= 1 && (
         <div className={styles.dropdownList}>
           {loading && <div className={styles.loading}>Loading...</div>}
           {institutions.map(inst => (
@@ -92,11 +99,6 @@ const InstitutionDropdown = ({ value, onChange, label = 'Select Institution', pl
             </div>
           ))}
           {!loading && institutions.length === 0 && <div className={styles.noResults}>No institutions found.</div>}
-        </div>
-      )}
-      {value && value.display_name && (
-        <div className={styles.selectedValue}>
-          Selected: {value.display_name}
         </div>
       )}
     </div>

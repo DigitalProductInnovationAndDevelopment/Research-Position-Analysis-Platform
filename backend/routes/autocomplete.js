@@ -80,19 +80,29 @@ router.get('/', async (req, res) => {
     }
   }
 
-  if (type === 'institution' && query.length >= 2) {
+  if (type === 'institution' && query.length >= 1) {
     try {
-      const url = `${OPENALEX_API_BASE}/institutions`;
-      const params = { search: query, per_page: 10 };
+      // Use OpenAlex autocomplete endpoint for better partial matching
+      const url = `${OPENALEX_API_BASE}/autocomplete`;
+      const params = { 
+        q: query,
+        mailto: 'team@ourresearch.org'
+      };
       const response = await axios.get(url, { params, headers: OPENALEX_HEADERS });
       const data = response.data;
-      const results = (data.results || []).map(inst => ({
-        id: inst.id,
-        display_name: inst.display_name
-      }));
-      return res.json({ results });
+      
+      // Filter results to only include institutions
+      const institutionResults = (data.results || [])
+        .filter(item => item.entity_type === 'institution')
+        .map(inst => ({
+          id: inst.id,
+          display_name: inst.display_name
+        }));
+      
+      return res.json({ results: institutionResults });
     } catch (err) {
-      return res.status(500).json({ results: [], error: 'Failed to fetch from OpenAlex' });
+      console.error('OpenAlex autocomplete error:', err.message);
+      return res.status(500).json({ results: [], error: 'Failed to fetch from OpenAlex autocomplete' });
     }
   }
 

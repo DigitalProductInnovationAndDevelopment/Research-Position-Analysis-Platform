@@ -2,13 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import styles from './Autocomplete.module.css';
 import useDebounce from '../../../hooks/useDebounce';
 
-const Autocomplete = ({ value, onValueChange, placeholder, type, onEnterPress }) => {
+const Autocomplete = ({ value, onValueChange, placeholder, type, onEnterPress, darkMode = false, inputStyle = {} }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [searchOnEnter, setSearchOnEnter] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const debouncedSearchTerm = useDebounce(value, 300);
+  const debouncedSearchTerm = useDebounce(value, 100);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -84,7 +84,7 @@ const Autocomplete = ({ value, onValueChange, placeholder, type, onEnterPress })
   };
 
   return (
-    <div className={styles.autocomplete}>
+    <div className={`${styles.autocomplete} ${darkMode ? 'dark' : ''}`}>
       <input
         ref={inputRef}
         type="text"
@@ -95,6 +95,7 @@ const Autocomplete = ({ value, onValueChange, placeholder, type, onEnterPress })
         onBlur={handleBlur}
         placeholder={placeholder}
         autoComplete="off"
+        style={inputStyle}
       />
       {dropdownOpen && value.length >= 2 && suggestions.length > 0 && (
         <ul className={styles.suggestions}>
