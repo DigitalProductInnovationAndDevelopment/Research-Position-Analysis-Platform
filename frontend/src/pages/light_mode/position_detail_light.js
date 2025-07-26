@@ -195,8 +195,8 @@ export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
   };
 
   return (
-    <div style={{ background: '#f5f6fa', minHeight: '100vh' }}>
-      <TopBar />
+    <div style={{ background: darkMode ? '#1a1a1a' : '#f5f6fa', minHeight: '100vh' }}>
+      <TopBar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem 1rem' }}>
         <h1 style={{ color: '#4F6AF6', fontWeight: 700, fontSize: '2.5rem', marginBottom: '1.5rem', lineHeight: 1.1 }}>Publication Trend by Keyword</h1>
         <div className={styles.mainContent}>
@@ -236,6 +236,7 @@ export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
                         placeholder="Search for institution..."
                         className={styles.institutionDropdown}
                         label=""
+                        darkMode={darkMode}
                       />
                       {selectedInstitution && (
                         <div className={styles.selectedInstitutionRow}>

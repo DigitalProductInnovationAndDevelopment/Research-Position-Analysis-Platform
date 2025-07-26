@@ -8,7 +8,7 @@ import SearchResultsList from '../../components/shared/SearchResultsList';
 
 const OPENALEX_API_BASE = 'https://api.openalex.org';
 
-const SearchPageLight = () => {
+const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
   const location = useLocation();
   
   // Main search/filter state
@@ -280,10 +280,10 @@ const SearchPageLight = () => {
 
   return (
     <>
-      <TopBar />
-      <div style={{ background: '#f5f6fa', minHeight: '100vh', paddingBottom: 40 }}>
+      <TopBar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+      <div style={{ background: darkMode ? '#1a1a1a' : '#f5f6fa', minHeight: '100vh', paddingBottom: 40 }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem 1rem' }}>
-          <SearchHeader />
+          <SearchHeader darkMode={darkMode} />
           <SearchForm
             searchKeyword={searchKeyword}
             setSearchKeyword={setSearchKeyword}
@@ -294,6 +294,7 @@ const SearchPageLight = () => {
             onSearch={handleSearch}
             onOpenAdvancedFilters={() => setShowAdvanced(true)}
             loading={loading}
+            darkMode={darkMode}
           />
           <AdvancedFiltersDrawer
             open={showAdvanced}
@@ -313,8 +314,9 @@ const SearchPageLight = () => {
             publicationType={publicationType}
             setPublicationType={setPublicationType}
             onApply={handleApplyAdvanced}
+            darkMode={darkMode}
           />
-          <SearchResultsList results={results} loading={loading} error={error} />
+          <SearchResultsList results={results} loading={loading} error={error} darkMode={darkMode} />
           
           {/* Pagination */}
           {!loading && !error && totalPages > 1 && (
@@ -325,17 +327,18 @@ const SearchPageLight = () => {
               gap: '1rem', 
               marginTop: '2rem',
               padding: '1rem',
-              background: 'white',
+              background: darkMode ? '#2a2a2a' : 'white',
               borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+              boxShadow: darkMode ? '0 2px 8px rgba(0, 0, 0, 0.3)' : '0 2px 8px rgba(0, 0, 0, 0.1)',
+              border: darkMode ? '1px solid #404040' : 'none'
             }}>
               <button
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
                 style={{
                   padding: '0.5rem 1rem',
-                  background: currentPage === 1 ? '#f5f5f5' : '#4F6AF6',
-                  color: currentPage === 1 ? '#999' : 'white',
+                  background: currentPage === 1 ? (darkMode ? '#3a3a3a' : '#f5f5f5') : '#4F6AF6',
+                  color: currentPage === 1 ? (darkMode ? '#888' : '#999') : 'white',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
@@ -365,7 +368,7 @@ const SearchPageLight = () => {
                       onClick={() => handlePageChange(pageNum)}
                       style={{
                         padding: '0.5rem 0.75rem',
-                        background: currentPage === pageNum ? '#4F6AF6' : 'white',
+                        background: currentPage === pageNum ? '#4F6AF6' : (darkMode ? '#2a2a2a' : 'white'),
                         color: currentPage === pageNum ? 'white' : '#4F6AF6',
                         border: '1px solid #4F6AF6',
                         borderRadius: '4px',
@@ -385,8 +388,8 @@ const SearchPageLight = () => {
                 disabled={currentPage === totalPages}
                 style={{
                   padding: '0.5rem 1rem',
-                  background: currentPage === totalPages ? '#f5f5f5' : '#4F6AF6',
-                  color: currentPage === totalPages ? '#999' : 'white',
+                  background: currentPage === totalPages ? (darkMode ? '#3a3a3a' : '#f5f5f5') : '#4F6AF6',
+                  color: currentPage === totalPages ? (darkMode ? '#888' : '#999') : 'white',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
@@ -398,7 +401,7 @@ const SearchPageLight = () => {
               
               <div style={{ 
                 marginLeft: '1rem', 
-                color: '#666', 
+                color: darkMode ? '#ccc' : '#666', 
                 fontSize: '0.9rem',
                 fontWeight: '500'
               }}>

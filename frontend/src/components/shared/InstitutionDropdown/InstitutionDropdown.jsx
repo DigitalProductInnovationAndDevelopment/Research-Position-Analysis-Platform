@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import styles from '../../../assets/styles/institutionDropdown.module.css';
 
-const InstitutionDropdown = ({ value, onChange, label = 'Select Institution', placeholder = 'Type to search institutions...', style = {}, className = '', onClearSearch }) => {
+const InstitutionDropdown = ({ value, onChange, label = 'Select Institution', placeholder = 'Type to search institutions...', style = {}, className = '', onClearSearch, darkMode = false }) => {
   const [search, setSearch] = useState('');
   const [institutions, setInstitutions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -69,7 +69,7 @@ const InstitutionDropdown = ({ value, onChange, label = 'Select Institution', pl
   };
 
   return (
-    <div className={`${styles.dropdownContainer} ${className}`} style={style}>
+    <div className={`${styles.dropdownContainer} ${className} ${darkMode ? 'dark' : ''}`} style={style}>
       {label && <label className={styles.label}>{label}</label>}
       <div className={styles.inputWrapper}>
         <input
@@ -101,7 +101,6 @@ const InstitutionDropdown = ({ value, onChange, label = 'Select Institution', pl
           {!loading && institutions.length === 0 && <div className={styles.noResults}>No institutions found.</div>}
         </div>
       )}
-
     </div>
   );
 };

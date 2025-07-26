@@ -89,3 +89,51 @@
   color: #4F6AF6;
   font-weight: 500;
 }
+
+/* Dark mode styles */
+:global(.dark) .label {
+  color: #ccc;
+}
+
+:global(.dark) .input {
+  background-color: #1a1a1a;
+  border: 1px solid #404040;
+  color: #fff;
+}
+
+:global(.dark) .input:focus {
+  border-color: #4F6AF6;
+  box-shadow: 0 0 0 2px rgba(79, 106, 246, 0.2);
+}
+
+:global(.dark) .toggleBtn {
+  color: #ccc;
+}
+
+:global(.dark) .toggleBtn:hover {
+  color: #4F6AF6;
+}
+
+:global(.dark) .dropdownList {
+  background: #2a2a2a;
+  border: 1px solid #404040;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+:global(.dark) .dropdownItem {
+  border-bottom: 1px solid #404040;
+  color: #fff;
+}
+
+:global(.dark) .dropdownItem:hover {
+  background: #404040;
+}
+
+:global(.dark) .loading, 
+:global(.dark) .noResults {
+  color: #ccc;
+}
+
+:global(.dark) .selectedValue {
+  color: #4F6AF6;
+}
