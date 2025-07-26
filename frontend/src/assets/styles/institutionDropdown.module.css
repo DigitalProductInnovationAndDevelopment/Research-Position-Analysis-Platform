@@ -4,15 +4,18 @@
   max-width: 400px;
   margin-bottom: 1rem;
 }
+
 .label {
   font-weight: 600;
   margin-bottom: 0.25rem;
   display: block;
 }
+
 .inputWrapper {
   display: flex;
   align-items: center;
 }
+
 .input {
   width: 100%;
   padding: 0.5rem;
@@ -20,7 +23,10 @@
   border-radius: 4px 0 0 4px;
   outline: none;
   font-size: 1rem;
+  background: #222;
+  color: #fff;
 }
+
 .toggleBtn {
   border: 1px solid #ccc;
   border-left: none;
@@ -30,6 +36,7 @@
   cursor: pointer;
   font-size: 1rem;
 }
+
 .dropdownList {
   position: absolute;
   top: 100%;
@@ -37,25 +44,34 @@
   right: 0;
   max-height: 220px;
   overflow-y: auto;
-  background: #fff;
+  background: #222;
+  color: #fff;
   border: 1px solid #ccc;
   border-top: none;
   z-index: 10;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
+
 .dropdownItem {
   padding: 0.5rem 1rem;
   cursor: pointer;
   transition: background 0.15s;
+  background: #222;
+  color: #fff;
 }
+
 .dropdownItem:hover {
-  background: #f0f0f0;
+  background: #333;
+  color: #fff;
 }
-.loading, .noResults {
+
+.loading,
+.noResults {
   padding: 0.75rem 1rem;
   color: #888;
   text-align: center;
 }
+
 .selectedValue {
   margin-top: 0.5rem;
   font-size: 0.95rem;
