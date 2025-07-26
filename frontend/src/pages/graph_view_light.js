@@ -32,6 +32,7 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
   const [modalInstitutionInput, setModalInstitutionInput] = useState('');
   const [modalInstitutionSuggestions, setModalInstitutionSuggestions] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [showJournalsInGraph, setShowJournalsInGraph] = useState(true);
 
   // Set longer link distance when graphData changes
   useEffect(() => {
@@ -159,18 +160,7 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
         const topCollaborators = await fetchTopCollaborators(institutionId);
         const collaboratorIds = topCollaborators.map(c => c.key.split('/').pop());
         const collaboratorDetails = await fetchInstitutionDetails(collaboratorIds);
-        // If a journal is selected, only show filtered collaborations
-        if (selectedJournal && selectedJournal.id) {
-          // Build nodes and links as before, but filtered by journal
-          const nodes = [
-            { id: institutionId, label: selectedInstitution.display_name, type: 'institution', main: true },
-            ...collaboratorDetails
-              .filter(inst => inst.id.split('/').pop() !== institutionId)
-              .map(inst => ({ id: inst.id.split('/').pop(), label: inst.display_name, type: 'institution' }))
-          ];
-          const links = topCollaborators.map(c => ({ source: institutionId, target: c.key.split('/').pop(), value: c.count }));
-          setGraphData({ nodes, links });
-        } else {
+        if (showJournalsInGraph) {
           // No journal selected: show top 10 collaborators and all unique sources as nodes
           const works = await fetchWorks(institutionId, collaboratorIds);
           // Collect all unique sources from works
@@ -208,6 +198,17 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
             });
           });
           setGraphData({ nodes, links });
+        } else {
+          // Only add institution nodes and institution-to-institution links
+          const nodes = [
+            { id: institutionId, label: selectedInstitution.display_name, type: 'institution', main: true },
+            ...collaboratorDetails
+              .filter(inst => inst.id.split('/').pop() !== institutionId)
+              .map(inst => ({ id: inst.id.split('/').pop(), label: inst.display_name, type: 'institution' }))
+          ];
+          const links = topCollaborators.map(c => ({ source: institutionId, target: c.key.split('/').pop(), value: c.count }));
+          setGraphData({ nodes, links });
+          return;
         }
       } catch (e) {
         setError('Failed to fetch collaborators or build graph.');
@@ -428,11 +429,63 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
             zIndex: 2,
             position: 'relative',
           }}>
+            {/* Selected Institution in top left */}
             {selectedInstitution && (
-              <div style={{ marginTop: '2rem' }}>
+              <div style={{
+                position: 'absolute',
+                top: 16,
+                left: 24,
+                color: '#fff',
+                fontWeight: 600,
+              }}>
                 <strong>Selected Institution:</strong> {selectedInstitution.display_name}
               </div>
             )}
+
+            {/* Toggle in top right */}
+            <div style={{
+              position: 'absolute',
+              top: 16,
+              right: 24,
+              display: 'flex',
+              alignItems: 'center',
+            }}>
+              <div
+                onClick={() => {
+                  setShowJournalsInGraph(!showJournalsInGraph);
+                  setTriggerSearch(s => !s);
+                }}
+                style={{
+                  width: 50,
+                  height: 24,
+                  backgroundColor: showJournalsInGraph ? '#4F6AF6' : '#666',
+                  borderRadius: 12,
+                  position: 'relative',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.3s ease',
+                  marginRight: 8,
+                }}
+              >
+                <div
+                  style={{
+                    width: 18,
+                    height: 18,
+                    backgroundColor: '#fff',
+                    borderRadius: '50%',
+                    position: 'absolute',
+                    top: 3,
+                    left: showJournalsInGraph ? 29 : 3,
+                    transition: 'left 0.3s ease',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                  }}
+                />
+              </div>
+              <label htmlFor="showJournals" style={{ color: '#fff', fontWeight: 600, cursor: 'pointer' }}>
+                Show Journals in Graph
+              </label>
+            </div>
+
+            {/* Remove the old selected institution text that was below */}
             {loading && <div style={{ marginTop: '2rem' }}>Loading...</div>}
             {error && <div style={{ marginTop: '2rem', color: 'red' }}>{error}</div>}
             {!loading && !error && graphData.nodes.length > 1 && (
@@ -553,36 +606,63 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
               <div style={{ marginTop: '2rem' }}>No collaborators found for this institution.</div>
             )}
             {selectedEdge && (
-              <div style={{ marginTop: 32, background: '#fff', borderRadius: 8, padding: 24, boxShadow: '0 2px 8px #ccc' }}>
-                <h3>
+              <div style={{
+                marginTop: 32,
+                background: '#23272f',
+                borderRadius: 12,
+                border: '1px solid #333',
+                padding: 24,
+                boxShadow: '0 2px 16px rgba(0,0,0,0.15)',
+                color: '#fff',
+              }}>
+                <h3 style={{ color: '#fff', marginTop: 0 }}>
                   Papers co-authored by
                   {' '}
-                  <span style={{ color: '#1976d2' }}>
+                  <span style={{ color: '#4F6AF6' }}>
                     {getNodeLabel(selectedEdge.source)}
                   </span>
                   {' '}
                   and
                   {' '}
-                  <span style={{ color: '#1976d2' }}>
+                  <span style={{ color: '#4F6AF6' }}>
                     {getNodeLabel(selectedEdge.target)}
                   </span>
                 </h3>
-                {papersLoading && <div>Loading papers...</div>}
-                {papersError && <div style={{ color: 'red' }}>{papersError}</div>}
+                {papersLoading && <div style={{ color: '#fff' }}>Loading papers...</div>}
+                {papersError && <div style={{ color: '#ff6b6b' }}>{papersError}</div>}
                 {!papersLoading && !papersError && (
-                  <ul style={{ marginTop: 16 }}>
+                  <ul style={{ marginTop: 16, color: '#fff' }}>
                     {collabPapers.map(paper => (
                       <li key={paper.id} style={{ marginBottom: 12 }}>
-                        <a href={paper.id} target="_blank" rel="noopener noreferrer">
+                        <a
+                          href={paper.id}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: '#4F6AF6', textDecoration: 'none' }}
+                        >
                           {paper.display_name}
                         </a>
-                        {paper.publication_year && <> ({paper.publication_year})</>}
+                        {paper.publication_year && <span style={{ color: '#ccc' }}> ({paper.publication_year})</span>}
                       </li>
                     ))}
-                    {collabPapers.length === 0 && <li>No papers found.</li>}
+                    {collabPapers.length === 0 && <li style={{ color: '#ccc' }}>No papers found.</li>}
                   </ul>
                 )}
-                <button onClick={() => setSelectedEdge(null)} style={{ marginTop: 16 }}>Close</button>
+                <button
+                  onClick={() => setSelectedEdge(null)}
+                  style={{
+                    marginTop: 16,
+                    padding: '8px 16px',
+                    background: '#4F6AF6',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 6,
+                    cursor: 'pointer',
+                    fontSize: 14,
+                  }}
+                >
+                  Close
+                </button>
               </div>
             )}
           </div>
