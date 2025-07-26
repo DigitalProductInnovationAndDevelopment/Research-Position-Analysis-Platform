@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import WhatSparkDoesBox from "../../components/about/WhatSparkDoesBox";
 import HowToUseSparkBox from "../../components/about/HowToUseSparkBox";
 import DisclaimerBox from "../../components/about/DisclaimerBox";
@@ -7,6 +6,7 @@ import PrivacyPolicyBox from "../../components/about/PrivacyPolicyBox";
 import ImpressumBox from "../../components/about/ImpressumBox";
 import TopBar from "../../components/shared/TopBar";
 import styles from "../../assets/styles/landing.module.css";
+
 
 export const AboutPage = () => {
   const [tab, setTab] = useState("what");

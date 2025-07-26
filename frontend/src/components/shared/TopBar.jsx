@@ -1,11 +1,15 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import searchIcon from "../../assets/icons/search.svg";
+import trendIcon from "../../assets/icons/trend.svg";
+import graphIcon from "../../assets/icons/graph.svg";
+import worldMapIcon from "../../assets/icons/world-map.svg";
 
 const navLinks = [
-  { to: "/search", label: "Search" },
-  { to: "/trends", label: "Topic Trends" },
-  { to: "/graph-view", label: "Collaboration" },
-  { to: "/world-map", label: "World Map" },
+  { to: "/search", label: "Search", icon: searchIcon },
+  { to: "/trends", label: "Topic Trends", icon: trendIcon },
+  { to: "/graph-view", label: "Collaboration", icon: graphIcon },
+  { to: "/world-map", label: "World Map", icon: worldMapIcon },
   { to: "/about", label: "Learn More" },
 ];
 
@@ -26,8 +30,13 @@ const TopBar = () => {
       top: 0,
       zIndex: 100
     }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '10%' }}>
+        <Link to="/" style={{ textDecoration: 'none' }}>
+          <div style={{ fontWeight: 900, fontSize: 24, color: '#7B61FF', letterSpacing: 1, cursor: 'pointer' }}>SPARK</div>
+        </Link>
+      </div>
       {!isIndex && (
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: 15, justifyContent: 'center' }}>
           {navLinks.map(link => (
             <Link key={link.to} to={link.to} style={{ textDecoration: 'none' }}>
               <button

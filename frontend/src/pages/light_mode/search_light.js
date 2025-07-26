@@ -13,12 +13,9 @@ const SearchPageLight = () => {
   const [author, setAuthor] = useState("");
   const [institution, setInstitution] = useState("");
   // Advanced filters
-  const [funding, setFunding] = useState("");
-  const [topic, setTopic] = useState("");
   const [publicationYear, setPublicationYear] = useState("");
   const [startYear, setStartYear] = useState("");
   const [endYear, setEndYear] = useState("");
-  const [isOpenAccess, setIsOpenAccess] = useState(false);
   const [publicationType, setPublicationType] = useState("");
   // UI state
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -55,12 +52,6 @@ const SearchPageLight = () => {
           // If lookup fails, skip institution filter
         }
       }
-      if (funding.trim()) {
-        filters.push(`grants.funder_search:${funding.trim()}`);
-      }
-      if (topic.trim()) {
-        filters.push(`concepts.display_name.search:${topic.trim()}`);
-      }
       if (publicationType.trim()) {
         filters.push(`type:${publicationType.trim()}`);
       }
@@ -69,9 +60,6 @@ const SearchPageLight = () => {
       }
       if (startYear.trim() && endYear.trim()) {
         filters.push(`publication_year:${startYear.trim()}-${endYear.trim()}`);
-      }
-      if (isOpenAccess) {
-        filters.push('is_oa:true');
       }
       const filterString = filters.join(',');
       const params = new URLSearchParams();
@@ -115,18 +103,12 @@ const SearchPageLight = () => {
           <AdvancedFiltersDrawer
             open={showAdvanced}
             onClose={() => setShowAdvanced(false)}
-            funding={funding}
-            setFunding={setFunding}
-            topic={topic}
-            setTopic={setTopic}
             publicationYear={publicationYear}
             setPublicationYear={setPublicationYear}
             startYear={startYear}
             setStartYear={setStartYear}
             endYear={endYear}
             setEndYear={setEndYear}
-            isOpenAccess={isOpenAccess}
-            setIsOpenAccess={setIsOpenAccess}
             publicationType={publicationType}
             setPublicationType={setPublicationType}
             onApply={handleApplyAdvanced}

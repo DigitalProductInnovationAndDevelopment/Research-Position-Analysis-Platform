@@ -16,18 +16,12 @@ const customInputStyle = {
 const AdvancedFiltersDrawer = ({
   open,
   onClose,
-  funding,
-  setFunding,
-  topic,
-  setTopic,
   publicationYear,
   setPublicationYear,
   startYear,
   setStartYear,
   endYear,
   setEndYear,
-  isOpenAccess,
-  setIsOpenAccess,
   publicationType,
   setPublicationType,
   onApply
@@ -40,8 +34,6 @@ const AdvancedFiltersDrawer = ({
         <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}>Close</button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-        <input type="text" placeholder="Funding" value={funding} onChange={e => setFunding(e.target.value)} style={{ padding: 10, borderRadius: 6, border: '1px solid #ddd' }} />
-        <input type="text" placeholder="Topic" value={topic} onChange={e => setTopic(e.target.value)} style={{ padding: 10, borderRadius: 6, border: '1px solid #ddd' }} />
         <input type="text" placeholder="Type (e.g., journal-article)" value={publicationType} onChange={e => setPublicationType(e.target.value)} style={{ padding: 10, borderRadius: 6, border: '1px solid #ddd' }} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 0 }}>
           <label style={{ fontWeight: 500, marginBottom: 2 }}>Publication Year</label>
@@ -57,10 +49,6 @@ const AdvancedFiltersDrawer = ({
           <input type="number" placeholder="Year From" value={startYear} onChange={e => setStartYear(e.target.value)} style={{ flex: 1, padding: 10, borderRadius: 6, border: '1px solid #ddd' }} />
           <input type="number" placeholder="Year To" value={endYear} onChange={e => setEndYear(e.target.value)} style={{ flex: 1, padding: 10, borderRadius: 6, border: '1px solid #ddd' }} />
         </div>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <input type="checkbox" checked={isOpenAccess} onChange={e => setIsOpenAccess(e.target.checked)} />
-          Open Access
-        </label>
         <button onClick={onApply} style={{ background: '#4F6AF6', color: '#fff', border: 'none', borderRadius: 6, padding: '10px 24px', fontWeight: 600, cursor: 'pointer', marginTop: 12 }}>Apply Filters</button>
       </div>
     </div>
