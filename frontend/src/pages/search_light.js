@@ -8,6 +8,7 @@ import SearchResultsList from '../components/shared/SearchResultsList';
 import DropdownTrigger from '../components/shared/DropdownTrigger';
 import ModalDropdown from '../components/shared/ModalDropdown';
 import useDropdownSearch from '../hooks/useDropdownSearch';
+import ApiCallInfoBox from '../components/shared/ApiCallInfoBox';
 
 const OPENALEX_API_BASE = 'https://api.openalex.org';
 
@@ -33,6 +34,10 @@ const SearchPageLight = ({ darkMode = true }) => {
   const [totalResults, setTotalResults] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const resultsPerPage = 15;
+
+  // Disclaimer state
+  const [userInputs, setUserInputs] = useState([]);
+  const [apiCalls, setApiCalls] = useState([]);
 
   // Dropdown state
   const [showInstitutionModal, setShowInstitutionModal] = useState(false);
@@ -153,6 +158,9 @@ const SearchPageLight = ({ darkMode = true }) => {
       console.log('Search filters:', filters);
       console.log('URL matches format: https://openalex.org/works?page=X&filter=...&sort=cited_by_count:desc');
       
+      // Track API call for disclaimer
+      setApiCalls([finalUrl]);
+      
       const url = `${OPENALEX_API_BASE}/works?${params.toString()}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch search results');
@@ -194,6 +202,17 @@ const SearchPageLight = ({ darkMode = true }) => {
       setResults([]);
       setCurrentPage(1);
     }
+    
+    // Track user inputs for disclaimer
+    const inputs = [];
+    if (searchKeyword.trim()) inputs.push({ category: 'Keywords', value: searchKeyword.trim() });
+    if (author.trim()) inputs.push({ category: 'Author', value: author.trim() });
+    if (institutionObject && institutionObject.display_name) inputs.push({ category: 'Institution', value: institutionObject.display_name });
+    if (publicationType.trim()) inputs.push({ category: 'Publication Type', value: publicationType.trim() });
+    if (publicationYear.trim()) inputs.push({ category: 'Publication Year', value: publicationYear.trim() });
+    if (startYear.trim() && endYear.trim()) inputs.push({ category: 'Year Range', value: `${startYear.trim()}-${endYear.trim()}` });
+    if (selectedJournal && selectedJournal.display_name) inputs.push({ category: 'Journal', value: selectedJournal.display_name });
+    setUserInputs(inputs);
     
     try {
       const filters = [];
@@ -243,6 +262,10 @@ const SearchPageLight = ({ darkMode = true }) => {
       params.append('sort', 'cited_by_count:desc');
       
       const url = `${OPENALEX_API_BASE}/works?${params.toString()}`;
+      
+      // Track API call for disclaimer
+      setApiCalls([url]);
+      
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch search results');
       const data = await response.json();
@@ -383,6 +406,13 @@ const SearchPageLight = ({ darkMode = true }) => {
             onApply={handleApplyAdvanced}
             darkMode={darkMode}
           />
+          {/* Disclaimer Box */}
+          <ApiCallInfoBox 
+            userInputs={userInputs} 
+            apiCalls={apiCalls} 
+            darkMode={darkMode} 
+          />
+          
           <SearchResultsList results={results} loading={loading} error={error} darkMode={darkMode} />
           
           {/* Pagination */}

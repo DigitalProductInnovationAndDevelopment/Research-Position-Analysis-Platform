@@ -6,7 +6,6 @@ import {
   ZoomableGroup,
   Marker
 } from 'react-simple-maps';
-import { Tooltip } from 'recharts';
 import ResearchLeadershipAnalysis from '../ResearchLeadershipAnalysis/ResearchLeadershipAnalysis';
 import styles from './WorldMapPapers.module.css';
 
@@ -218,10 +217,9 @@ const getCountryCentroid = (countryCode) => countryCentroids[countryCode] || [0,
 
 const OPENALEX_API_BASE = 'https://api.openalex.org';
 
-const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
+const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate }) => {
   const [papers, setPapers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState(null);
   const [tooltipContent, setTooltipContent] = useState('');
   const [mapError, setMapError] = useState(false);
   const [fetchError, setFetchError] = useState(null);
@@ -348,6 +346,10 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
       setPapers(samplePapers);
       setFetchError(null);
       setLoading(false);
+      // Update API calls for disclaimer
+      if (onApiCallsUpdate) {
+        onApiCallsUpdate([]);
+      }
       return;
     }
     setLoading(true);
@@ -358,7 +360,14 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
         filter,
         per_page: 20
       });
-      const response = await fetch(`${OPENALEX_API_BASE}/works?${params.toString()}`);
+      const apiUrl = `${OPENALEX_API_BASE}/works?${params.toString()}`;
+      
+      // Update API calls for disclaimer
+      if (onApiCallsUpdate) {
+        onApiCallsUpdate([apiUrl]);
+      }
+      
+      const response = await fetch(apiUrl);
       if (!response.ok) throw new Error('API error');
       const data = await response.json();
       if (!data.results || !Array.isArray(data.results) || data.results.length === 0) {
@@ -409,6 +418,10 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
       console.error('OpenAlex API Error:', error.response?.data || error.message);
       setFetchError('Failed to fetch papers.');
       setPapers([]);
+      // Update API calls for disclaimer even on error
+      if (onApiCallsUpdate) {
+        onApiCallsUpdate([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -579,31 +592,6 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
         </div>
       )}
       
-      {/* Research Leadership Analysis */}
-      {papers.length > 0 && !loading && (
-        <ResearchLeadershipAnalysis 
-          papers={papers} 
-          searchQuery={searchQuery || 'research'} 
-        />
-      )}
-      
-      {tooltipContent && (
-        <div
-          className={styles.tooltip}
-          style={{
-            left: tooltipContent.x ? tooltipContent.x + 20 : '50%',
-            top: tooltipContent.y ? tooltipContent.y - 20 : '50%',
-            position: 'fixed',
-            zIndex: 2000
-          }}
-        >
-          <h4>{tooltipContent.title}</h4>
-          <p><strong>Authors:</strong> {tooltipContent.authors}</p>
-          <p><strong>Citations:</strong> {tooltipContent.citations}</p>
-          {tooltipContent.year && <p><strong>Year:</strong> {tooltipContent.year}</p>}
-          {tooltipContent.institution && <p><strong>Institution:</strong> {tooltipContent.institution}</p>}
-        </div>
-      )}
       <div className={styles.legend}>
         <h4>Citation Impact Legend</h4>
         <div className={styles.legendItems}>
@@ -629,6 +617,32 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect }) => {
           </div>
         </div>
       </div>
+      
+      {/* Research Leadership Analysis */}
+      {papers.length > 0 && !loading && (
+        <ResearchLeadershipAnalysis 
+          papers={papers} 
+          searchQuery={searchQuery || 'research'} 
+        />
+      )}
+      
+      {tooltipContent && (
+        <div
+          className={styles.tooltip}
+          style={{
+            left: tooltipContent.x ? tooltipContent.x + 20 : '50%',
+            top: tooltipContent.y ? tooltipContent.y - 20 : '50%',
+            position: 'fixed',
+            zIndex: 2000
+          }}
+        >
+          <h4>{tooltipContent.title}</h4>
+          <p><strong>Authors:</strong> {tooltipContent.authors}</p>
+          <p><strong>Citations:</strong> {tooltipContent.citations}</p>
+          {tooltipContent.year && <p><strong>Year:</strong> {tooltipContent.year}</p>}
+          {tooltipContent.institution && <p><strong>Institution:</strong> {tooltipContent.institution}</p>}
+        </div>
+      )}
     </div>
   );
 };

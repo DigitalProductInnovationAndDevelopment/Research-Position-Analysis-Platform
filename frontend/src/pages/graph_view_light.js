@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import TopBar from '../components/shared/TopBar';
 import Orb from '../components/shared/Orbit/Orbit';
+import ApiCallInfoBox from '../components/shared/ApiCallInfoBox';
 
 
 const GraphViewLight = ({ darkMode = true }) => {
@@ -29,6 +30,10 @@ const GraphViewLight = ({ darkMode = true }) => {
   const [modalInstitutionSuggestions, setModalInstitutionSuggestions] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [showJournalsInGraph, setShowJournalsInGraph] = useState(true);
+
+  // Disclaimer state
+  const [userInputs, setUserInputs] = useState([]);
+  const [apiCalls, setApiCalls] = useState([]);
 
   // Set longer link distance when graphData changes
   useEffect(() => {
@@ -62,6 +67,16 @@ const GraphViewLight = ({ darkMode = true }) => {
     setLoading(true);
     setError(null);
 
+    // Track user inputs for disclaimer
+    const inputs = [];
+    if (selectedInstitution && selectedInstitution.display_name) inputs.push({ category: 'Institution', value: selectedInstitution.display_name });
+    if (searchTerm.trim()) inputs.push({ category: 'Keyword', value: searchTerm.trim() });
+    if (selectedJournal && selectedJournal.display_name) inputs.push({ category: 'Journal', value: selectedJournal.display_name });
+    setUserInputs(inputs);
+
+    // Track API calls for disclaimer
+    const apiCallUrls = [];
+
     const fetchInstitutionId = async () => {
       if (!selectedInstitution) {
         throw new Error('No institution selected');
@@ -88,9 +103,9 @@ const GraphViewLight = ({ darkMode = true }) => {
         filterParts.push(`primary_location.source.id:${sourceId}`);
       }
       const filterString = filterParts.join(',');
-      const res = await fetch(
-        `https://api.openalex.org/works?filter=${filterString}&group_by=authorships.institutions.id&per_page=200`
-      );
+      const url = `https://api.openalex.org/works?filter=${filterString}&group_by=authorships.institutions.id&per_page=200`;
+      apiCallUrls.push(url);
+      const res = await fetch(url);
       const data = await res.json();
       // Each group has a key (institution id) and count
       // Filter out the selected institution itself
@@ -103,7 +118,9 @@ const GraphViewLight = ({ darkMode = true }) => {
     // Fetch institution details for collaborator IDs
     const fetchInstitutionDetails = async (ids) => {
       if (ids.length === 0) return [];
-      const res = await fetch(`https://api.openalex.org/institutions?filter=id:${ids.map(id => 'I' + id).join('|')}`);
+      const url = `https://api.openalex.org/institutions?filter=id:${ids.map(id => 'I' + id).join('|')}`;
+      apiCallUrls.push(url);
+      const res = await fetch(url);
       const data = await res.json();
       return data.results || [];
     };
@@ -128,9 +145,9 @@ const GraphViewLight = ({ darkMode = true }) => {
       let hasMore = true;
       const perPage = 50;
       while (hasMore && page <= 5) { // limit to 250 for performance
-        const res = await fetch(
-          `https://api.openalex.org/works?filter=${filterString}&per_page=${perPage}&page=${page}`
-        );
+        const url = `https://api.openalex.org/works?filter=${filterString}&per_page=${perPage}&page=${page}`;
+        apiCallUrls.push(url);
+        const res = await fetch(url);
         const data = await res.json();
         allWorks = allWorks.concat(data.results || []);
         hasMore = data.results && data.results.length === perPage;
@@ -195,6 +212,9 @@ const GraphViewLight = ({ darkMode = true }) => {
           setGraphData({ nodes, links });
           return;
         }
+        
+        // Set API calls for disclaimer
+        setApiCalls(apiCallUrls);
       } catch (e) {
         setError('Failed to fetch collaborators or build graph.');
       } finally {
@@ -653,6 +673,13 @@ const GraphViewLight = ({ darkMode = true }) => {
           </div>
         )}
       </div>
+      
+      {/* Disclaimer Box */}
+      <ApiCallInfoBox 
+        userInputs={userInputs} 
+        apiCalls={apiCalls} 
+        darkMode={darkMode} 
+      />
       {showJournalModal && (
         <div style={{
           position: 'fixed',

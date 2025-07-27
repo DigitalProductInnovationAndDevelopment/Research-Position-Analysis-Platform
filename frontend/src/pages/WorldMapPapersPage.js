@@ -4,11 +4,16 @@ import WorldMapPapers from "../components/shared/WorldMapPapers/WorldMapPapers";
 import DropdownTrigger from "../components/shared/DropdownTrigger";
 import ModalDropdown from "../components/shared/ModalDropdown";
 import useDropdownSearch from "../hooks/useDropdownSearch";
+import ApiCallInfoBox from "../components/shared/ApiCallInfoBox";
 
 const WorldMapPapersPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showInstitutionModal, setShowInstitutionModal] = useState(false);
   const [selectedInstitution, setSelectedInstitution] = useState(null);
+
+  // Disclaimer state
+  const [userInputs, setUserInputs] = useState([]);
+  const [apiCalls, setApiCalls] = useState([]);
 
   // Institution dropdown search
   const {
@@ -20,6 +25,12 @@ const WorldMapPapersPage = () => {
 
   const handleInputChange = (e) => {
     setSearchQuery(e.target.value);
+    
+    // Track user inputs for disclaimer
+    const inputs = [];
+    if (e.target.value.trim()) inputs.push({ category: 'Search Query', value: e.target.value.trim() });
+    if (selectedInstitution && selectedInstitution.display_name) inputs.push({ category: 'Institution', value: selectedInstitution.display_name });
+    setUserInputs(inputs);
   };
 
   return (
@@ -77,6 +88,13 @@ const WorldMapPapersPage = () => {
             </div>
           </div>
         </div>
+        {/* Disclaimer Box */}
+        <ApiCallInfoBox 
+          userInputs={userInputs} 
+          apiCalls={apiCalls} 
+          darkMode={true} 
+        />
+
         <WorldMapPapers searchQuery={searchQuery} />
 
         {/* Institution Modal Dropdown */}

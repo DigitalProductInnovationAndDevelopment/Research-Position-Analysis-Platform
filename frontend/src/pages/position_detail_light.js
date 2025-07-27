@@ -4,6 +4,7 @@ import TopBar from "../components/shared/TopBar";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { useNavigate } from "react-router-dom";
 import InstitutionDropdown from "../components/shared/InstitutionDropdown/InstitutionDropdown";
+import ApiCallInfoBox from "../components/shared/ApiCallInfoBox";
 
 export const PositionDetailLight = ({ darkMode = true }) => {
   const navigate = useNavigate();
@@ -18,6 +19,10 @@ export const PositionDetailLight = ({ darkMode = true }) => {
   const [selectedInstitution, setSelectedInstitution] = useState(null);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+
+  // Disclaimer state
+  const [userInputs, setUserInputs] = useState([]);
+  const [apiCalls, setApiCalls] = useState([]);
 
 
 
@@ -59,6 +64,14 @@ export const PositionDetailLight = ({ darkMode = true }) => {
     setChartData([]);
     setGrowthData([]);
 
+    // Track user inputs for disclaimer
+    const inputs = [];
+    if (keyword.trim()) inputs.push({ category: 'Keyword', value: keyword.trim() });
+    if (selectedInstitution && selectedInstitution.display_name) inputs.push({ category: 'Institution', value: selectedInstitution.display_name });
+    if (startDate) inputs.push({ category: 'Start Date', value: startDate });
+    if (endDate) inputs.push({ category: 'End Date', value: endDate });
+    setUserInputs(inputs);
+
     try {
       const params = new URLSearchParams({
         keyword: keyword.trim()
@@ -71,7 +84,12 @@ export const PositionDetailLight = ({ darkMode = true }) => {
         params.append('institution_id', institutionId);
       }
 
-      const response = await fetch(`/api/publications/keyword_trends?${params.toString()}`);
+      const apiUrl = `/api/publications/keyword_trends?${params.toString()}`;
+      
+      // Track API call for disclaimer
+      setApiCalls([apiUrl]);
+      
+      const response = await fetch(apiUrl);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -283,6 +301,13 @@ export const PositionDetailLight = ({ darkMode = true }) => {
                     <p>Fetching trend data...</p>
                   </div>
                 )}
+
+                {/* Disclaimer Box */}
+                <ApiCallInfoBox 
+                  userInputs={userInputs} 
+                  apiCalls={apiCalls} 
+                  darkMode={darkMode} 
+                />
 
                 {/* Trend Indicators */}
                 {trendData && !isLoading && !error && renderTrendIndicators()}
