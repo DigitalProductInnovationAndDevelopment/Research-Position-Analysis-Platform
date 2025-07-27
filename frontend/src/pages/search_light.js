@@ -5,8 +5,8 @@ import SearchHeader from '../components/shared/SearchHeader';
 import SearchForm from '../components/shared/SearchForm';
 import AdvancedFiltersDrawer from '../components/shared/AdvancedFiltersDrawer';
 import SearchResultsList from '../components/shared/SearchResultsList';
-import DropdownTrigger from '../components/shared/DropdownTrigger';
 import ModalDropdown from '../components/shared/ModalDropdown';
+import MultiSelectModalDropdown from '../components/shared/MultiSelectModalDropdown/MultiSelectModalDropdown';
 import useDropdownSearch from '../hooks/useDropdownSearch';
 import ApiCallInfoBox from '../components/shared/ApiCallInfoBox';
 import Particles from '../components/animated/SearchBackground/Particles';
@@ -25,7 +25,9 @@ const SearchPageLight = ({ darkMode = true }) => {
   const [publicationYear, setPublicationYear] = useState("");
   const [startYear, setStartYear] = useState("");
   const [endYear, setEndYear] = useState("");
-  const [publicationType, setPublicationType] = useState("");
+  // Multi-select filters
+  const [selectedPublicationTypes, setSelectedPublicationTypes] = useState([]);
+  const [selectedJournals, setSelectedJournals] = useState([]);
   // UI state
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -44,9 +46,27 @@ const SearchPageLight = ({ darkMode = true }) => {
   // Dropdown state
   const [showAuthorModal, setShowAuthorModal] = useState(false);
   const [showInstitutionModal, setShowInstitutionModal] = useState(false);
-  const [showJournalModal, setShowJournalModal] = useState(false);
-  const [selectedJournal, setSelectedJournal] = useState(null);
-  const [journalInput, setJournalInput] = useState('');
+  const [showPublicationTypesModal, setShowPublicationTypesModal] = useState(false);
+  const [showJournalsModal, setShowJournalsModal] = useState(false);
+
+  // Publication types data
+  const publicationTypes = [
+    { id: "article", display_name: "Article" },
+    { id: "preprint", display_name: "Preprint" },
+    { id: "posted-content", display_name: "Posted Content" },
+    { id: "book", display_name: "Book" },
+    { id: "book-chapter", display_name: "Book Chapter" },
+    { id: "edited-book", display_name: "Edited Book" },
+    { id: "journal-issue", display_name: "Journal Issue" },
+    { id: "journal-volume", display_name: "Journal Volume" },
+    { id: "proceedings-article", display_name: "Proceedings Article" },
+    { id: "reference-entry", display_name: "Reference Entry" },
+    { id: "dataset", display_name: "Dataset" },
+    { id: "dissertation", display_name: "Dissertation" },
+    { id: "monograph", display_name: "Monograph" },
+    { id: "report", display_name: "Report" },
+    { id: "standard", display_name: "Standard" }
+  ];
 
   // Author dropdown search
   const {
@@ -122,9 +142,8 @@ const SearchPageLight = ({ darkMode = true }) => {
     setPublicationYear("");
     setStartYear("");
     setEndYear("");
-    setPublicationType("");
-    setSelectedJournal(null);
-    setJournalInput("");
+    setSelectedPublicationTypes([]);
+    setSelectedJournals([]);
     setResults([]);
     setError(null);
   };
@@ -222,10 +241,10 @@ const SearchPageLight = ({ darkMode = true }) => {
     if (searchKeyword.trim()) inputs.push({ category: 'Keywords', value: searchKeyword.trim() });
     if (authorObject && authorObject.display_name) inputs.push({ category: 'Author', value: authorObject.display_name });
     if (institutionObject && institutionObject.display_name) inputs.push({ category: 'Institution', value: institutionObject.display_name });
-    if (publicationType.trim()) inputs.push({ category: 'Publication Type', value: publicationType.trim() });
+    if (selectedPublicationTypes.length > 0) inputs.push({ category: 'Publication Types', value: selectedPublicationTypes.map(pt => pt.display_name).join(', ') });
     if (publicationYear.trim()) inputs.push({ category: 'Publication Year', value: publicationYear.trim() });
     if (startYear.trim() && endYear.trim()) inputs.push({ category: 'Year Range', value: `${startYear.trim()}-${endYear.trim()}` });
-    if (selectedJournal && selectedJournal.display_name) inputs.push({ category: 'Journal', value: selectedJournal.display_name });
+    if (selectedJournals.length > 0) inputs.push({ category: 'Journals', value: selectedJournals.map(j => j.display_name).join(', ') });
     setUserInputs(inputs);
     
     try {
@@ -245,8 +264,10 @@ const SearchPageLight = ({ darkMode = true }) => {
         const instId = institutionObject.id.split('/').pop();
         filters.push(`authorships.institutions.id:I${instId}`);
       }
-      if (publicationType.trim()) {
-        filters.push(`type:${publicationType.trim()}`);
+      if (selectedPublicationTypes.length > 0) {
+        // Handle multiple publication types
+        const typeFilters = selectedPublicationTypes.map(pt => `type:${pt.id}`);
+        filters.push(typeFilters.join('|'));
       }
       if (publicationYear.trim()) {
         filters.push(`publication_year:${publicationYear.trim()}`);
@@ -254,9 +275,13 @@ const SearchPageLight = ({ darkMode = true }) => {
       if (startYear.trim() && endYear.trim()) {
         filters.push(`publication_year:${startYear.trim()}-${endYear.trim()}`);
       }
-      if (selectedJournal && selectedJournal.id) {
-        const sourceId = selectedJournal.id.split('/').pop();
-        filters.push(`primary_location.source.id:${sourceId}`);
+      if (selectedJournals.length > 0) {
+        // Handle multiple journals
+        const journalFilters = selectedJournals.map(journal => {
+          const sourceId = journal.id.split('/').pop();
+          return `primary_location.source.id:${sourceId}`;
+        });
+        filters.push(journalFilters.join('|'));
       }
       const filterString = filters.join(',');
       const params = new URLSearchParams();
@@ -344,9 +369,7 @@ const SearchPageLight = ({ darkMode = true }) => {
                 searchKeyword={searchKeyword}
                 setSearchKeyword={setSearchKeyword}
                 author={author}
-                setAuthor={setAuthor}
                 institution={institution}
-                setInstitution={setInstitution}
                 onSearch={handleSearch}
                 onOpenAdvancedFilters={() => setShowAdvanced(true)}
                 onAuthorClick={() => {
@@ -370,12 +393,13 @@ const SearchPageLight = ({ darkMode = true }) => {
                 setStartYear={setStartYear}
                 endYear={endYear}
                 setEndYear={setEndYear}
-                publicationType={publicationType}
-                setPublicationType={setPublicationType}
-                selectedJournal={selectedJournal}
-                setSelectedJournal={setSelectedJournal}
-                onJournalClick={() => {
-                  setShowJournalModal(true);
+                selectedPublicationTypes={selectedPublicationTypes}
+                setSelectedPublicationTypes={setSelectedPublicationTypes}
+                selectedJournals={selectedJournals}
+                setSelectedJournals={setSelectedJournals}
+                onPublicationTypesClick={() => setShowPublicationTypesModal(true)}
+                onJournalsClick={() => {
+                  setShowJournalsModal(true);
                   clearJournalSuggestions();
                 }}
                 onApply={handleApplyAdvanced}
@@ -519,17 +543,54 @@ const SearchPageLight = ({ darkMode = true }) => {
             loading={institutionLoading}
           />
 
-          {/* Journal Modal Dropdown */}
-          <ModalDropdown
-            isOpen={showJournalModal}
-            onClose={() => setShowJournalModal(false)}
-            title="Select Journal"
+          {/* Publication Types Multi-Select Modal */}
+          <MultiSelectModalDropdown
+            isOpen={showPublicationTypesModal}
+            onClose={() => setShowPublicationTypesModal(false)}
+            title="Select Publication Types"
+            placeholder="Type to search publication types..."
+            onSearchChange={(query) => {
+              // Filter the predefined publication types based on search query
+              const filtered = publicationTypes.filter(pt => 
+                pt.display_name.toLowerCase().includes(query.toLowerCase())
+              );
+              // Return a mock suggestions array for the multi-select component
+              return Promise.resolve(filtered);
+            }}
+            suggestions={publicationTypes.filter(pt => 
+              !selectedPublicationTypes.some(selected => selected.id === pt.id)
+            )}
+            selectedItems={selectedPublicationTypes}
+            onSelect={(publicationType) => {
+              setSelectedPublicationTypes(prev => [...prev, publicationType]);
+            }}
+            onDeselect={(publicationType) => {
+              setSelectedPublicationTypes(prev => 
+                prev.filter(pt => pt.id !== publicationType.id)
+              );
+            }}
+            darkMode={darkMode}
+            loading={false}
+          />
+
+          {/* Journals Multi-Select Modal */}
+          <MultiSelectModalDropdown
+            isOpen={showJournalsModal}
+            onClose={() => setShowJournalsModal(false)}
+            title="Select Journals"
             placeholder="Type to search journals..."
             onSearchChange={searchJournals}
-            suggestions={journalSuggestions}
+            suggestions={journalSuggestions.filter(journal => 
+              !selectedJournals.some(selected => selected.id === journal.id)
+            )}
+            selectedItems={selectedJournals}
             onSelect={(journal) => {
-              setSelectedJournal(journal);
-              setJournalInput(journal.display_name);
+              setSelectedJournals(prev => [...prev, journal]);
+            }}
+            onDeselect={(journal) => {
+              setSelectedJournals(prev => 
+                prev.filter(j => j.id !== journal.id)
+              );
             }}
             darkMode={darkMode}
             loading={journalLoading}

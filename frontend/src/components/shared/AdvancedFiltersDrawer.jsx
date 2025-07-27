@@ -10,11 +10,13 @@ const AdvancedFiltersDrawer = ({
   setStartYear,
   endYear,
   setEndYear,
-  publicationType,
-  setPublicationType,
-  // Journal filter props
-  selectedJournal,
-  onJournalClick,
+  // Multi-select props
+  selectedPublicationTypes,
+  setSelectedPublicationTypes,
+  selectedJournals,
+  setSelectedJournals,
+  onPublicationTypesClick,
+  onJournalsClick,
   onApply,
   darkMode = true
 }) => {
@@ -119,6 +121,17 @@ const AdvancedFiltersDrawer = ({
     transition: 'all 0.2s ease'
   };
 
+  // Helper function to get display text for multi-select dropdowns
+  const getDisplayText = (selectedItems, placeholder) => {
+    if (!selectedItems || selectedItems.length === 0) {
+      return placeholder;
+    }
+    if (selectedItems.length === 1) {
+      return selectedItems[0].display_name;
+    }
+    return `${selectedItems.length} items selected`;
+  };
+
   return (
     <div style={drawerStyle}>
       <div style={headerStyle}>
@@ -137,27 +150,28 @@ const AdvancedFiltersDrawer = ({
         </button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-        {/* Journal Filter */}
+        {/* Publication Types Filter */}
         <div>
-          <label style={labelStyle}>Journal</label>
+          <label style={labelStyle}>Publication Types</label>
           <DropdownTrigger
-            value={selectedJournal ? selectedJournal.display_name : ''}
-            placeholder="Click to search journals..."
-            onClick={onJournalClick}
+            value={getDisplayText(selectedPublicationTypes, "Click to select publication types...")}
+            placeholder="Click to select publication types..."
+            onClick={onPublicationTypesClick}
             darkMode={darkMode}
           />
         </div>
 
+        {/* Journals Filter */}
         <div>
-          <label style={labelStyle}>Publication Type</label>
-          <input 
-            type="text" 
-            placeholder="Type (e.g., journal-article)" 
-            value={publicationType} 
-            onChange={e => setPublicationType(e.target.value)} 
-            style={inputStyle}
+          <label style={labelStyle}>Journals</label>
+          <DropdownTrigger
+            value={getDisplayText(selectedJournals, "Click to select journals...")}
+            placeholder="Click to select journals..."
+            onClick={onJournalsClick}
+            darkMode={darkMode}
           />
         </div>
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 0 }}>
           <label style={labelStyle}>Publication Year</label>
           <input
