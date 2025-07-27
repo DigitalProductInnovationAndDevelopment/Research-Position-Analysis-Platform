@@ -18,6 +18,7 @@ const SearchPageLight = ({ darkMode = true }) => {
   // Main search/filter state
   const [searchKeyword, setSearchKeyword] = useState("");
   const [author, setAuthor] = useState("");
+  const [authorObject, setAuthorObject] = useState(null);
   const [institution, setInstitution] = useState("");
   const [institutionObject, setInstitutionObject] = useState(null);
   // Advanced filters
@@ -41,10 +42,19 @@ const SearchPageLight = ({ darkMode = true }) => {
   const [apiCalls, setApiCalls] = useState([]);
 
   // Dropdown state
+  const [showAuthorModal, setShowAuthorModal] = useState(false);
   const [showInstitutionModal, setShowInstitutionModal] = useState(false);
   const [showJournalModal, setShowJournalModal] = useState(false);
   const [selectedJournal, setSelectedJournal] = useState(null);
   const [journalInput, setJournalInput] = useState('');
+
+  // Author dropdown search
+  const {
+    suggestions: authorSuggestions,
+    loading: authorLoading,
+    searchItems: searchAuthors,
+    clearSuggestions: clearAuthorSuggestions
+  } = useDropdownSearch('https://api.openalex.org/authors?search={query}&per_page=20');
 
   // Institution dropdown search
   const {
@@ -106,12 +116,15 @@ const SearchPageLight = ({ darkMode = true }) => {
   const clearAllFields = () => {
     setSearchKeyword("");
     setAuthor("");
+    setAuthorObject(null);
     setInstitution("");
     setInstitutionObject(null);
     setPublicationYear("");
     setStartYear("");
     setEndYear("");
     setPublicationType("");
+    setSelectedJournal(null);
+    setJournalInput("");
     setResults([]);
     setError(null);
   };
@@ -207,7 +220,7 @@ const SearchPageLight = ({ darkMode = true }) => {
     // Track user inputs for disclaimer
     const inputs = [];
     if (searchKeyword.trim()) inputs.push({ category: 'Keywords', value: searchKeyword.trim() });
-    if (author.trim()) inputs.push({ category: 'Author', value: author.trim() });
+    if (authorObject && authorObject.display_name) inputs.push({ category: 'Author', value: authorObject.display_name });
     if (institutionObject && institutionObject.display_name) inputs.push({ category: 'Institution', value: institutionObject.display_name });
     if (publicationType.trim()) inputs.push({ category: 'Publication Type', value: publicationType.trim() });
     if (publicationYear.trim()) inputs.push({ category: 'Publication Year', value: publicationYear.trim() });
@@ -222,25 +235,15 @@ const SearchPageLight = ({ darkMode = true }) => {
         // Format: title_and_abstract.search:keyword (OpenAlex handles multi-word automatically)
         filters.push(`title_and_abstract.search:${keyword}`);
       }
-      if (author.trim()) {
-        filters.push(`raw_author_name.search:${author.trim()}`);
+      if (authorObject && authorObject.id) {
+        // Use the author object if available (from dropdown)
+        const authorId = authorObject.id.split('/').pop();
+        filters.push(`authorships.author.id:A${authorId}`);
       }
       if (institutionObject && institutionObject.id) {
-        // Use the institution object if available (from URL params)
+        // Use the institution object if available (from URL params or dropdown)
         const instId = institutionObject.id.split('/').pop();
         filters.push(`authorships.institutions.id:I${instId}`);
-      } else if (institution.trim()) {
-        // Fetch institution ID from OpenAlex for manual searches
-        try {
-          const instRes = await fetch(`${OPENALEX_API_BASE}/institutions?search=${encodeURIComponent(institution.trim())}`);
-          const instData = await instRes.json();
-          if (instData.results && instData.results.length > 0) {
-            const instId = instData.results[0].id.split('/').pop();
-            filters.push(`authorships.institutions.id:I${instId}`);
-          }
-        } catch (err) {
-          // If lookup fails, skip institution filter
-        }
       }
       if (publicationType.trim()) {
         filters.push(`type:${publicationType.trim()}`);
@@ -346,69 +349,18 @@ const SearchPageLight = ({ darkMode = true }) => {
                 setInstitution={setInstitution}
                 onSearch={handleSearch}
                 onOpenAdvancedFilters={() => setShowAdvanced(true)}
+                onAuthorClick={() => {
+                  setShowAuthorModal(true);
+                  clearAuthorSuggestions();
+                }}
+                onInstitutionClick={() => {
+                  setShowInstitutionModal(true);
+                  clearInstitutionSuggestions();
+                }}
                 loading={loading}
                 darkMode={darkMode}
               />
 
-              {/* Additional Filters Section */}
-              <div style={{ 
-                background: '#2a2a2a', 
-                borderRadius: 16, 
-                boxShadow: '0 4px 24px rgba(0,0,0,0.3)', 
-                padding: 24, 
-                maxWidth: 900, 
-                margin: '0 auto 2rem auto',
-                border: '1px solid #404040'
-              }}>
-                <h3 style={{ 
-                  color: '#fff', 
-                  marginBottom: 16, 
-                  fontSize: 18, 
-                  fontWeight: 600 
-                }}>
-                  Additional Filters
-                </h3>
-                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                  <div style={{ flex: 1, minWidth: 200 }}>
-                    <label style={{ 
-                      fontWeight: 600, 
-                      marginBottom: 8, 
-                      display: 'block', 
-                      color: '#fff' 
-                    }}>
-                      Institution (Advanced)
-                    </label>
-                    <DropdownTrigger
-                      value={institutionObject ? institutionObject.display_name : ''}
-                      placeholder="Click to search institutions..."
-                      onClick={() => {
-                        setShowInstitutionModal(true);
-                        clearInstitutionSuggestions();
-                      }}
-                      darkMode={darkMode}
-                    />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 200 }}>
-                    <label style={{ 
-                      fontWeight: 600, 
-                      marginBottom: 8, 
-                      display: 'block', 
-                      color: '#fff' 
-                    }}>
-                      Journal Filter
-                    </label>
-                    <DropdownTrigger
-                      value={journalInput}
-                      placeholder="Click to search journals..."
-                      onClick={() => {
-                        setShowJournalModal(true);
-                        clearJournalSuggestions();
-                      }}
-                      darkMode={darkMode}
-                    />
-                  </div>
-                </div>
-              </div>
               <AdvancedFiltersDrawer
                 open={showAdvanced}
                 onClose={() => setShowAdvanced(false)}
@@ -420,6 +372,12 @@ const SearchPageLight = ({ darkMode = true }) => {
                 setEndYear={setEndYear}
                 publicationType={publicationType}
                 setPublicationType={setPublicationType}
+                selectedJournal={selectedJournal}
+                setSelectedJournal={setSelectedJournal}
+                onJournalClick={() => {
+                  setShowJournalModal(true);
+                  clearJournalSuggestions();
+                }}
                 onApply={handleApplyAdvanced}
                 darkMode={darkMode}
               />
@@ -528,6 +486,22 @@ const SearchPageLight = ({ darkMode = true }) => {
               </div>
             </div>
           )}
+
+          {/* Author Modal Dropdown */}
+          <ModalDropdown
+            isOpen={showAuthorModal}
+            onClose={() => setShowAuthorModal(false)}
+            title="Select Author"
+            placeholder="Type to search authors..."
+            onSearchChange={searchAuthors}
+            suggestions={authorSuggestions}
+            onSelect={(author) => {
+              setAuthorObject(author);
+              setAuthor(author.display_name);
+            }}
+            darkMode={darkMode}
+            loading={authorLoading}
+          />
 
           {/* Institution Modal Dropdown */}
           <ModalDropdown

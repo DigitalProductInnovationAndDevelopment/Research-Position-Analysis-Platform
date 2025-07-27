@@ -1,4 +1,5 @@
 import React from "react";
+import DropdownTrigger from "./DropdownTrigger/DropdownTrigger";
 
 const AdvancedFiltersDrawer = ({
   open,
@@ -11,6 +12,9 @@ const AdvancedFiltersDrawer = ({
   setEndYear,
   publicationType,
   setPublicationType,
+  // Journal filter props
+  selectedJournal,
+  onJournalClick,
   onApply,
   darkMode = true
 }) => {
@@ -87,6 +91,18 @@ const AdvancedFiltersDrawer = ({
     transition: 'all 0.2s ease'
   };
 
+  const cancelButtonStyle = {
+    background: 'transparent',
+    color: darkMode ? '#ccc' : '#666',
+    border: `1px solid ${darkMode ? '#404040' : '#ddd'}`,
+    borderRadius: 6,
+    padding: '10px 24px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    marginTop: 8,
+    transition: 'all 0.2s ease'
+  };
+
   const yearRangeStyle = {
     display: 'flex',
     gap: 8
@@ -121,6 +137,17 @@ const AdvancedFiltersDrawer = ({
         </button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+        {/* Journal Filter */}
+        <div>
+          <label style={labelStyle}>Journal</label>
+          <DropdownTrigger
+            value={selectedJournal ? selectedJournal.display_name : ''}
+            placeholder="Click to search journals..."
+            onClick={onJournalClick}
+            darkMode={darkMode}
+          />
+        </div>
+
         <div>
           <label style={labelStyle}>Publication Type</label>
           <input 
@@ -171,6 +198,18 @@ const AdvancedFiltersDrawer = ({
           }}
         >
           Apply Filters
+        </button>
+        <button 
+          onClick={onClose} 
+          style={cancelButtonStyle}
+          onMouseEnter={(e) => {
+            e.target.style.background = darkMode ? '#404040' : '#f0f0f0';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = 'transparent';
+          }}
+        >
+          Close
         </button>
       </div>
     </div>

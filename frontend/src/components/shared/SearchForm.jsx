@@ -1,5 +1,5 @@
 import React from "react";
-import Autocomplete from "./Autocomplete/Autocomplete";
+import DropdownTrigger from "./DropdownTrigger/DropdownTrigger";
 import searchPublicationsIcon from "../../assets/icons/search-publications.svg";
 import authorIcon from "../../assets/icons/author.svg";
 import institutionIcon from "../../assets/icons/institution.svg";
@@ -8,11 +8,11 @@ const SearchForm = ({
   searchKeyword,
   setSearchKeyword,
   author,
-  setAuthor,
   institution,
-  setInstitution,
   onSearch,
   onOpenAdvancedFilters,
+  onAuthorClick,
+  onInstitutionClick,
   loading,
   darkMode = false
 }) => {
@@ -94,12 +94,10 @@ const SearchForm = ({
               Author
             </div>
             <div style={{ width: '100%' }}>
-              <Autocomplete
+              <DropdownTrigger
                 value={author}
-                onValueChange={setAuthor}
-                placeholder="Type author name"
-                type="author"
-                inputStyle={{ ...inputBoxStyle, height: 56 }}
+                placeholder="Click to search authors..."
+                onClick={onAuthorClick}
                 darkMode={darkMode}
               />
             </div>
@@ -112,12 +110,10 @@ const SearchForm = ({
               Institution
             </div>
             <div style={{ width: '100%' }}>
-              <Autocomplete
+              <DropdownTrigger
                 value={institution}
-                onValueChange={setInstitution}
-                placeholder="Type institution name"
-                type="institution"
-                inputStyle={{ ...inputBoxStyle, height: 56 }}
+                placeholder="Click to search institutions..."
+                onClick={onInstitutionClick}
                 darkMode={darkMode}
               />
             </div>
