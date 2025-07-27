@@ -50,13 +50,14 @@ const SearchForm = ({
 
   return (
     <div style={{ 
-      background: '#1a1a1a', 
+      background: 'rgba(26, 26, 26, 0.25)', 
+      backdropFilter: 'blur(4px)',
       borderRadius: 16, 
       boxShadow: '0 4px 24px rgba(0,0,0,0.3)', 
       padding: 32, 
       maxWidth: 900, 
       margin: '0 auto 2rem auto',
-      border: '1px solid #404040'
+      border: '1px solid rgba(64, 64, 64, 0.2)'
     }}>
       <form onSubmit={e => { e.preventDefault(); onSearch(); }} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div style={labelStyle}>
@@ -143,7 +144,7 @@ const SearchForm = ({
           <button 
             type="button" 
             style={{ 
-              background: '#1a1a1a', 
+              background: 'rgba(26, 26, 26, 0.15)', 
               color: '#4F6AF6', 
               border: '1px solid #4F6AF6', 
               borderRadius: 8, 

@@ -557,12 +557,16 @@ const SearchPageLight = ({ darkMode = true }) => {
               // Return a mock suggestions array for the multi-select component
               return Promise.resolve(filtered);
             }}
-            suggestions={publicationTypes.filter(pt => 
-              !selectedPublicationTypes.some(selected => selected.id === pt.id)
-            )}
+            suggestions={publicationTypes}
             selectedItems={selectedPublicationTypes}
             onSelect={(publicationType) => {
-              setSelectedPublicationTypes(prev => [...prev, publicationType]);
+              setSelectedPublicationTypes(prev => {
+                // Prevent duplicate selection
+                if (prev.some(pt => pt.id === publicationType.id)) {
+                  return prev;
+                }
+                return [...prev, publicationType];
+              });
             }}
             onDeselect={(publicationType) => {
               setSelectedPublicationTypes(prev => 
@@ -580,12 +584,16 @@ const SearchPageLight = ({ darkMode = true }) => {
             title="Select Journals"
             placeholder="Type to search journals..."
             onSearchChange={searchJournals}
-            suggestions={journalSuggestions.filter(journal => 
-              !selectedJournals.some(selected => selected.id === journal.id)
-            )}
+            suggestions={journalSuggestions}
             selectedItems={selectedJournals}
             onSelect={(journal) => {
-              setSelectedJournals(prev => [...prev, journal]);
+              setSelectedJournals(prev => {
+                // Prevent duplicate selection
+                if (prev.some(j => j.id === journal.id)) {
+                  return prev;
+                }
+                return [...prev, journal];
+              });
             }}
             onDeselect={(journal) => {
               setSelectedJournals(prev => 

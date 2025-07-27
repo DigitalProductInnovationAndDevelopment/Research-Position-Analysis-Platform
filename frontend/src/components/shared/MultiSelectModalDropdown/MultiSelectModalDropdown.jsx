@@ -6,6 +6,7 @@ const MultiSelectModalDropdown = ({
   onClose,
   title,
   placeholder,
+  searchValue,
   onSearchChange,
   suggestions,
   selectedItems,
@@ -36,7 +37,10 @@ const MultiSelectModalDropdown = ({
     if (isSelected) {
       onDeselect(item);
     } else {
-      onSelect(item);
+      // Prevent duplicate selection
+      if (!selectedItems.some(selected => selected.id === item.id)) {
+        onSelect(item);
+      }
     }
   };
 
@@ -47,6 +51,11 @@ const MultiSelectModalDropdown = ({
   const isItemSelected = (item) => {
     return selectedItems.some(selected => selected.id === item.id);
   };
+
+  // Filter out already selected items from suggestions
+  const availableSuggestions = suggestions.filter(item => 
+    !selectedItems.some(selected => selected.id === item.id)
+  );
 
   if (!isOpen) return null;
 
@@ -98,7 +107,7 @@ const MultiSelectModalDropdown = ({
               Loading...
             </div>
           )}
-          {!loading && suggestions.map((item) => (
+          {!loading && availableSuggestions.map((item) => (
             <div
               key={item.id}
               onClick={() => handleItemToggle(item)}
@@ -113,7 +122,7 @@ const MultiSelectModalDropdown = ({
               <span className={styles.itemText}>{item.display_name}</span>
             </div>
           ))}
-          {!loading && suggestions.length === 0 && inputValue.length >= minSearchLength && (
+          {!loading && availableSuggestions.length === 0 && inputValue.length >= minSearchLength && (
             <div className={styles.noResults}>
               {noResultsMessage}
             </div>
