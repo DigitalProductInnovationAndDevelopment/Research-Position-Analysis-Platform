@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import WhatSparkDoesBox from "../components/about/WhatSparkDoesBox";
 import HowToUseSparkBox from "../components/about/HowToUseSparkBox";
 import DisclaimerBox from "../components/about/DisclaimerBox";

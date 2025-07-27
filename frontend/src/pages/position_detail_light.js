@@ -13,10 +13,6 @@ export const PositionDetailLight = ({ darkMode = true }) => {
   const [error, setError] = useState(null);
   const [chartData, setChartData] = useState([]);
   const [growthData, setGrowthData] = useState([]);
-
-  // Additional parameters for the API
-  const [years, setYears] = useState(5);
-  const [limit, setLimit] = useState(10);
   
   // New parameters for institution
   const [selectedInstitution, setSelectedInstitution] = useState(null);
@@ -143,7 +139,7 @@ export const PositionDetailLight = ({ darkMode = true }) => {
   const renderTrendIndicators = () => {
     if (!trendData?.meta?.trend_factors) return null;
 
-    const { average_growth_rate, relative_popularity, year_over_year_growth } = trendData.meta.trend_factors;
+    const { average_growth_rate, relative_popularity } = trendData.meta.trend_factors;
 
     return (
       <div className={styles.trendIndicators}>
@@ -198,7 +194,7 @@ export const PositionDetailLight = ({ darkMode = true }) => {
   };
 
   return (
-    <div style={{ background: '#1a1a1a', minHeight: '100vh' }}>
+    <div style={{ background: '#1a1a1a', minHeight: '100vh' }} className={darkMode ? 'dark' : ''}>
       <TopBar />
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem 1rem' }}>
         <h1 style={{ color: '#4F6AF6', fontWeight: 700, fontSize: '2.5rem', marginBottom: '1.5rem', lineHeight: 1.1 }}>Publication Trend by Keyword</h1>

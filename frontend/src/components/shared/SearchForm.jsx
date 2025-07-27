@@ -24,7 +24,7 @@ const SearchForm = ({
     alignItems: 'center', 
     gap: 8, 
     paddingLeft: 2,
-    color: darkMode ? '#fff' : '#000'
+    color: '#fff'
   };
   
   const subLabelStyle = { 
@@ -34,31 +34,29 @@ const SearchForm = ({
     display: 'flex', 
     alignItems: 'center', 
     gap: 6,
-    color: darkMode ? '#ccc' : '#000'
+    color: '#ccc'
   };
   
   const inputBoxStyle = { 
-    background: darkMode ? '#1a1a1a' : '#f8f9fb', 
-    border: darkMode ? '1px solid #404040' : '1px solid #e5e7eb', 
+    background: '#222', 
+    border: '1px solid #404040', 
     borderRadius: 8, 
     padding: '20px 22px', 
     fontSize: 18, 
     width: '100%', 
     height: 64,
-    color: darkMode ? '#fff' : '#000'
+    color: '#fff'
   };
 
   return (
     <div style={{ 
-      background: darkMode ? '#2a2a2a' : '#fff', 
+      background: '#1a1a1a', 
       borderRadius: 16, 
-      boxShadow: darkMode 
-        ? '0 4px 24px rgba(0,0,0,0.3)' 
-        : '0 4px 24px rgba(0,0,0,0.07)', 
+      boxShadow: '0 4px 24px rgba(0,0,0,0.3)', 
       padding: 32, 
       maxWidth: 900, 
       margin: '0 auto 2rem auto',
-      border: darkMode ? '1px solid #404040' : 'none'
+      border: '1px solid #404040'
     }}>
       <form onSubmit={e => { e.preventDefault(); onSearch(); }} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div style={labelStyle}>
@@ -68,7 +66,7 @@ const SearchForm = ({
           Search Publications
         </div>
         <div style={{ 
-          color: darkMode ? '#ccc' : '#888', 
+          color: '#ccc', 
           fontSize: 14, 
           marginBottom: 12, 
           paddingLeft: 2 
@@ -149,7 +147,7 @@ const SearchForm = ({
           <button 
             type="button" 
             style={{ 
-              background: darkMode ? '#1a1a1a' : '#f5f6fa', 
+              background: '#1a1a1a', 
               color: '#4F6AF6', 
               border: '1px solid #4F6AF6', 
               borderRadius: 8, 

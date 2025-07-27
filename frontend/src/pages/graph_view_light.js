@@ -1,12 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import PageLayout from '../components/shared/PageLayout/PageLayout';
-import InstitutionDropdown from '../components/shared/InstitutionDropdown/InstitutionDropdown';
 import ForceGraph2D from 'react-force-graph-2d';
 import TopBar from '../components/shared/TopBar';
 import Orb from '../components/shared/Orbit/Orbit';
 
 
-const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
+const GraphViewLight = ({ darkMode = true }) => {
   const [selectedInstitution, setSelectedInstitution] = useState(null);
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [loading, setLoading] = useState(false);
@@ -17,8 +15,6 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
   const [selectedJournal, setSelectedJournal] = useState(null);
   const [journalInput, setJournalInput] = useState('');
   const [journalSuggestions, setJournalSuggestions] = useState([]);
-  const [showJournalDropdown, setShowJournalDropdown] = useState(false);
-  const [highlightedJournalIndex, setHighlightedJournalIndex] = useState(-1);
   const [showJournalModal, setShowJournalModal] = useState(false);
   const [modalJournalInput, setModalJournalInput] = useState('');
   const [modalJournalSuggestions, setModalJournalSuggestions] = useState([]);
@@ -59,17 +55,6 @@ const GraphViewLight = ({ darkMode, toggleDarkMode }) => {
     fetchJournals();
   }, [journalInput]);
 
-  // Handle journal selection from suggestions
-  const handleJournalSelect = (displayName) => {
-    const found = journalSuggestions.find(j => j.display_name === displayName);
-    if (found) {
-      setSelectedJournal(found);
-      setJournalInput(found.display_name);
-    } else {
-      setSelectedJournal(null);
-      setJournalInput(displayName);
-    }
-  };
 
   // Only generate the graph when triggerSearch changes and selectedInstitution is set
   useEffect(() => {
