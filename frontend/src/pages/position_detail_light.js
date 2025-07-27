@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import styles from "../assets/styles/position.module.css";
 import TopBar from "../components/shared/TopBar";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { OPENALEX_API_BASE } from '../config/api';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { useNavigate } from "react-router-dom";
+import InstitutionDropdown from "../components/shared/InstitutionDropdown/InstitutionDropdown";
 
-export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
+export const PositionDetailLight = ({ darkMode = true }) => {
   const navigate = useNavigate();
   const [keyword, setKeyword] = useState("");
   const [trendData, setTrendData] = useState(null);
@@ -197,8 +198,8 @@ export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
   };
 
   return (
-    <div style={{ background: darkMode ? '#1a1a1a' : '#f5f6fa', minHeight: '100vh' }}>
-      <TopBar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+    <div style={{ background: '#1a1a1a', minHeight: '100vh' }}>
+      <TopBar />
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem 1rem' }}>
         <h1 style={{ color: '#4F6AF6', fontWeight: 700, fontSize: '2.5rem', marginBottom: '1.5rem', lineHeight: 1.1 }}>Publication Trend by Keyword</h1>
         <div className={styles.mainContent}>

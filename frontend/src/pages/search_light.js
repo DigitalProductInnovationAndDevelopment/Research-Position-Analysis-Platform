@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import TopBar from '../components/shared/TopBar';
 import SearchHeader from '../components/shared/SearchHeader';
 import SearchForm from '../components/shared/SearchForm';
 import AdvancedFiltersDrawer from '../components/shared/AdvancedFiltersDrawer';
 import SearchResultsList from '../components/shared/SearchResultsList';
+import DropdownTrigger from '../components/shared/DropdownTrigger';
+import ModalDropdown from '../components/shared/ModalDropdown';
+import useDropdownSearch from '../hooks/useDropdownSearch';
 
 const OPENALEX_API_BASE = 'https://api.openalex.org';
 
-const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
+const SearchPageLight = ({ darkMode = true }) => {
   const location = useLocation();
-  
   // Main search/filter state
   const [searchKeyword, setSearchKeyword] = useState("");
   const [author, setAuthor] = useState("");
@@ -30,6 +33,28 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
   const [totalResults, setTotalResults] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const resultsPerPage = 15;
+
+  // Dropdown state
+  const [showInstitutionModal, setShowInstitutionModal] = useState(false);
+  const [showJournalModal, setShowJournalModal] = useState(false);
+  const [selectedJournal, setSelectedJournal] = useState(null);
+  const [journalInput, setJournalInput] = useState('');
+
+  // Institution dropdown search
+  const {
+    suggestions: institutionSuggestions,
+    loading: institutionLoading,
+    searchItems: searchInstitutions,
+    clearSuggestions: clearInstitutionSuggestions
+  } = useDropdownSearch('https://api.openalex.org/institutions?search={query}&per_page=20');
+
+  // Journal dropdown search
+  const {
+    suggestions: journalSuggestions,
+    loading: journalLoading,
+    searchItems: searchJournals,
+    clearSuggestions: clearJournalSuggestions
+  } = useDropdownSearch('https://api.openalex.org/sources?filter=type:journal&search={query}&per_page=20');
 
   // Handle URL parameters and auto-search
   useEffect(() => {
@@ -77,12 +102,9 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
     setAuthor("");
     setInstitution("");
     setInstitutionObject(null);
-    setFunding("");
-    setTopic("");
     setPublicationYear("");
     setStartYear("");
     setEndYear("");
-    setIsOpenAccess(false);
     setPublicationType("");
     setResults([]);
     setError(null);
@@ -209,6 +231,10 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
       if (startYear.trim() && endYear.trim()) {
         filters.push(`publication_year:${startYear.trim()}-${endYear.trim()}`);
       }
+      if (selectedJournal && selectedJournal.id) {
+        const sourceId = selectedJournal.id.split('/').pop();
+        filters.push(`primary_location.source.id:${sourceId}`);
+      }
       const filterString = filters.join(',');
       const params = new URLSearchParams();
       if (filterString) params.append('filter', filterString);
@@ -267,8 +293,8 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
 
   return (
     <>
-      <TopBar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-      <div style={{ background: darkMode ? '#1a1a1a' : '#f5f6fa', minHeight: '100vh', paddingBottom: 40 }}>
+      <TopBar />
+      <div style={{ background: '#1a1a1a', minHeight: '100vh', paddingBottom: 40 }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem 1rem' }}>
           <SearchHeader darkMode={darkMode} />
           <SearchForm
@@ -283,6 +309,66 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
             loading={loading}
             darkMode={darkMode}
           />
+
+          {/* Additional Filters Section */}
+          <div style={{ 
+            background: '#2a2a2a', 
+            borderRadius: 16, 
+            boxShadow: '0 4px 24px rgba(0,0,0,0.3)', 
+            padding: 24, 
+            maxWidth: 900, 
+            margin: '0 auto 2rem auto',
+            border: '1px solid #404040'
+          }}>
+            <h3 style={{ 
+              color: '#fff', 
+              marginBottom: 16, 
+              fontSize: 18, 
+              fontWeight: 600 
+            }}>
+              Additional Filters
+            </h3>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <label style={{ 
+                  fontWeight: 600, 
+                  marginBottom: 8, 
+                  display: 'block', 
+                  color: '#fff' 
+                }}>
+                  Institution (Advanced)
+                </label>
+                <DropdownTrigger
+                  value={institutionObject ? institutionObject.display_name : ''}
+                  placeholder="Click to search institutions..."
+                  onClick={() => {
+                    setShowInstitutionModal(true);
+                    clearInstitutionSuggestions();
+                  }}
+                  darkMode={darkMode}
+                />
+              </div>
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <label style={{ 
+                  fontWeight: 600, 
+                  marginBottom: 8, 
+                  display: 'block', 
+                  color: '#fff' 
+                }}>
+                  Journal Filter
+                </label>
+                <DropdownTrigger
+                  value={journalInput}
+                  placeholder="Click to search journals..."
+                  onClick={() => {
+                    setShowJournalModal(true);
+                    clearJournalSuggestions();
+                  }}
+                  darkMode={darkMode}
+                />
+              </div>
+            </div>
+          </div>
           <AdvancedFiltersDrawer
             open={showAdvanced}
             onClose={() => setShowAdvanced(false)}
@@ -308,18 +394,18 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
               gap: '1rem', 
               marginTop: '2rem',
               padding: '1rem',
-              background: darkMode ? '#2a2a2a' : 'white',
+              background: '#2a2a2a',
               borderRadius: '8px',
-              boxShadow: darkMode ? '0 2px 8px rgba(0, 0, 0, 0.3)' : '0 2px 8px rgba(0, 0, 0, 0.1)',
-              border: darkMode ? '1px solid #404040' : 'none'
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+              border: '1px solid #404040'
             }}>
               <button
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
                 style={{
                   padding: '0.5rem 1rem',
-                  background: currentPage === 1 ? (darkMode ? '#3a3a3a' : '#f5f5f5') : '#4F6AF6',
-                  color: currentPage === 1 ? (darkMode ? '#888' : '#999') : 'white',
+                  background: currentPage === 1 ? '#3a3a3a' : '#4F6AF6',
+                  color: currentPage === 1 ? '#888' : 'white',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
@@ -349,7 +435,7 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
                       onClick={() => handlePageChange(pageNum)}
                       style={{
                         padding: '0.5rem 0.75rem',
-                        background: currentPage === pageNum ? '#4F6AF6' : (darkMode ? '#2a2a2a' : 'white'),
+                        background: currentPage === pageNum ? '#4F6AF6' : '#2a2a2a',
                         color: currentPage === pageNum ? 'white' : '#4F6AF6',
                         border: '1px solid #4F6AF6',
                         borderRadius: '4px',
@@ -369,8 +455,8 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
                 disabled={currentPage === totalPages}
                 style={{
                   padding: '0.5rem 1rem',
-                  background: currentPage === totalPages ? (darkMode ? '#3a3a3a' : '#f5f5f5') : '#4F6AF6',
-                  color: currentPage === totalPages ? (darkMode ? '#888' : '#999') : 'white',
+                  background: currentPage === totalPages ? '#3a3a3a' : '#4F6AF6',
+                  color: currentPage === totalPages ? '#888' : 'white',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
@@ -382,7 +468,7 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
               
               <div style={{ 
                 marginLeft: '1rem', 
-                color: darkMode ? '#ccc' : '#666', 
+                color: '#ccc', 
                 fontSize: '0.9rem',
                 fontWeight: '500'
               }}>
@@ -390,6 +476,38 @@ const SearchPageLight = ({ darkMode, toggleDarkMode }) => {
               </div>
             </div>
           )}
+
+          {/* Institution Modal Dropdown */}
+          <ModalDropdown
+            isOpen={showInstitutionModal}
+            onClose={() => setShowInstitutionModal(false)}
+            title="Select Institution"
+            placeholder="Type to search institutions..."
+            onSearchChange={searchInstitutions}
+            suggestions={institutionSuggestions}
+            onSelect={(institution) => {
+              setInstitutionObject(institution);
+              setInstitution(institution.display_name);
+            }}
+            darkMode={darkMode}
+            loading={institutionLoading}
+          />
+
+          {/* Journal Modal Dropdown */}
+          <ModalDropdown
+            isOpen={showJournalModal}
+            onClose={() => setShowJournalModal(false)}
+            title="Select Journal"
+            placeholder="Type to search journals..."
+            onSearchChange={searchJournals}
+            suggestions={journalSuggestions}
+            onSelect={(journal) => {
+              setSelectedJournal(journal);
+              setJournalInput(journal.display_name);
+            }}
+            darkMode={darkMode}
+            loading={journalLoading}
+          />
         </div>
       </div>
     </>

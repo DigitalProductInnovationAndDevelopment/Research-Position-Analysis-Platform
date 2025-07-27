@@ -21,11 +21,11 @@ function App() {
         <main>
           <Routes>
             <Route path="/" element={<LandingPageLight darkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
-            <Route path="/search" element={<SearchPageLight darkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
+            <Route path="/search" element={<SearchPageLight darkMode={isDarkMode} />} />
             <Route path="/graph-view" element={<GraphViewLight darkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
             <Route path="/about" element={<AboutPage darkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
-            <Route path="/trends" element={<PositionDetailLight darkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
-            <Route path="/world-map" element={<WorldMapPapersPage darkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
+            <Route path="/trends" element={<PositionDetailLight darkMode={true} />} />
+            <Route path="/world-map" element={<WorldMapPapersPage />} />
           </Routes>
         </main>
       </div>

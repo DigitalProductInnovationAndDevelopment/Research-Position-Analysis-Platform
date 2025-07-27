@@ -13,15 +13,15 @@ const navLinks = [
   { to: "/about", label: "Learn More" },
 ];
 
-const TopBar = ({ darkMode, toggleDarkMode }) => {
+const TopBar = () => {
   const location = useLocation();
   const isIndex = location.pathname === "/";
   
   return (
     <div style={{
       width: '100%',
-      background: darkMode ? '#2a2a2a' : '#fff',
-      borderBottom: darkMode ? '1px solid #404040' : '1px solid #f0f0f0',
+      background: '#2a2a2a',
+      borderBottom: '1px solid #404040',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -51,30 +51,28 @@ const TopBar = ({ darkMode, toggleDarkMode }) => {
               <button
                 style={{
                   background: location.pathname === link.to 
-                    ? (darkMode ? '#4F6AF6' : '#e0e0e0')
-                    : (darkMode ? '#1a1a1a' : '#f3f4f6'),
+                    ? '#4F6AF6'
+                    : '#1a1a1a',
                   color: location.pathname === link.to 
-                    ? (darkMode ? '#fff' : '#7B61FF')
-                    : (darkMode ? '#ccc' : '#333'),
-                  border: darkMode ? '1px solid #404040' : 'none',
+                    ? '#fff'
+                    : '#ccc',
+                  border: '1px solid #404040',
                   borderRadius: 8,
                   padding: '8px 20px',
                   fontWeight: 600,
                   fontSize: 16,
                   cursor: 'pointer',
-                  boxShadow: darkMode 
-                    ? '0 1px 4px rgba(0,0,0,0.3)' 
-                    : '0 1px 4px rgba(0,0,0,0.04)',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={(e) => {
                   if (location.pathname !== link.to) {
-                    e.target.style.background = darkMode ? '#404040' : '#e8e8e8';
+                    e.target.style.background = '#404040';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (location.pathname !== link.to) {
-                    e.target.style.background = darkMode ? '#1a1a1a' : '#f3f4f6';
+                    e.target.style.background = '#1a1a1a';
                   }
                 }}
               >
@@ -85,40 +83,7 @@ const TopBar = ({ darkMode, toggleDarkMode }) => {
         </div>
       )}
       
-      {/* Dark Mode Toggle Button */}
-      {toggleDarkMode && (
-        <button
-          onClick={toggleDarkMode}
-          style={{
-            background: darkMode ? '#4F6AF6' : '#f3f4f6',
-            color: darkMode ? '#fff' : '#333',
-            border: darkMode ? '1px solid #404040' : '1px solid #e0e0e0',
-            borderRadius: '50%',
-            width: 40,
-            height: 40,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 18,
-            transition: 'all 0.2s',
-            boxShadow: darkMode 
-              ? '0 2px 8px rgba(0,0,0,0.4)' 
-              : '0 2px 8px rgba(0,0,0,0.1)'
-          }}
-          onMouseEnter={(e) => {
-            e.target.style.transform = 'scale(1.1)';
-            e.target.style.background = darkMode ? '#5a7aff' : '#e8e8e8';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.transform = 'scale(1)';
-            e.target.style.background = darkMode ? '#4F6AF6' : '#f3f4f6';
-          }}
-          title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-        >
-          {darkMode ? '☀️' : '🌙'}
-        </button>
-      )}
+
     </div>
   );
 };
