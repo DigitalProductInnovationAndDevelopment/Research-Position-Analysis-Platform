@@ -8,7 +8,7 @@ import GraphViewLight from './pages/graph_view_light';
 import WorldMapPapersPage from './pages/WorldMapPapersPage';
 
 function App() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
