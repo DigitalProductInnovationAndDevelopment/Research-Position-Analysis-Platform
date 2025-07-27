@@ -1,30 +1,99 @@
 import React, { useState, useEffect } from "react";
 import styles from "../assets/styles/position.module.css";
 import TopBar from "../components/shared/TopBar";
+import SearchHeader from "../components/shared/SearchHeader";
+import SearchForm from "../components/shared/SearchForm";
+import AdvancedFiltersDrawer from "../components/shared/AdvancedFiltersDrawer";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { useNavigate } from "react-router-dom";
-import InstitutionDropdown from "../components/shared/InstitutionDropdown/InstitutionDropdown";
+import DropdownTrigger from "../components/shared/DropdownTrigger";
+import ModalDropdown from "../components/shared/ModalDropdown";
+import MultiSelectModalDropdown from "../components/shared/MultiSelectModalDropdown/MultiSelectModalDropdown";
+import useDropdownSearch from "../hooks/useDropdownSearch";
 import ApiCallInfoBox from "../components/shared/ApiCallInfoBox";
+import Particles from "../components/animated/SearchBackground/Particles";
+
+// TODO: restore old parameter for limit and year range like Umut provided in the first version?
 
 export const PositionDetailLight = ({ darkMode = true }) => {
   const navigate = useNavigate();
-  const [keyword, setKeyword] = useState("");
-  const [trendData, setTrendData] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  
+  // Main search/filter state
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [author, setAuthor] = useState("");
+  const [authorObject, setAuthorObject] = useState(null);
+  const [institution, setInstitution] = useState("");
+  const [institutionObject, setInstitutionObject] = useState(null);
+  // Advanced filters
+  const [publicationYear, setPublicationYear] = useState("");
+  const [startYear, setStartYear] = useState("");
+  const [endYear, setEndYear] = useState("");
+  // Multi-select filters
+  const [selectedPublicationTypes, setSelectedPublicationTypes] = useState([]);
+  const [selectedJournals, setSelectedJournals] = useState([]);
+  // UI state
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  
+  // Trend visualization state
+  const [trendData, setTrendData] = useState(null);
+  const [isLoadingTrend, setIsLoadingTrend] = useState(false);
   const [chartData, setChartData] = useState([]);
   const [growthData, setGrowthData] = useState([]);
-  
-  // New parameters for institution
-  const [selectedInstitution, setSelectedInstitution] = useState(null);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
 
   // Disclaimer state
   const [userInputs, setUserInputs] = useState([]);
   const [apiCalls, setApiCalls] = useState([]);
 
+  // Dropdown state
+  const [showAuthorModal, setShowAuthorModal] = useState(false);
+  const [showInstitutionModal, setShowInstitutionModal] = useState(false);
+  const [showPublicationTypesModal, setShowPublicationTypesModal] = useState(false);
+  const [showJournalsModal, setShowJournalsModal] = useState(false);
 
+  // Publication types data
+  const publicationTypes = [
+    { id: "article", display_name: "Article" },
+    { id: "preprint", display_name: "Preprint" },
+    { id: "posted-content", display_name: "Posted Content" },
+    { id: "book", display_name: "Book" },
+    { id: "book-chapter", display_name: "Book Chapter" },
+    { id: "edited-book", display_name: "Edited Book" },
+    { id: "journal-issue", display_name: "Journal Issue" },
+    { id: "journal-volume", display_name: "Journal Volume" },
+    { id: "proceedings-article", display_name: "Proceedings Article" },
+    { id: "reference-entry", display_name: "Reference Entry" },
+    { id: "dataset", display_name: "Dataset" },
+    { id: "dissertation", display_name: "Dissertation" },
+    { id: "monograph", display_name: "Monograph" },
+    { id: "report", display_name: "Report" },
+    { id: "standard", display_name: "Standard" }
+  ];
+
+  // Author dropdown search
+  const {
+    suggestions: authorSuggestions,
+    loading: authorLoading,
+    searchItems: searchAuthors,
+    clearSuggestions: clearAuthorSuggestions
+  } = useDropdownSearch('https://api.openalex.org/authors?search={query}&per_page=20');
+
+  // Institution dropdown search
+  const {
+    suggestions: institutionSuggestions,
+    loading: institutionLoading,
+    searchItems: searchInstitutions,
+    clearSuggestions: clearInstitutionSuggestions
+  } = useDropdownSearch('https://api.openalex.org/institutions?search={query}&per_page=20');
+
+  // Journal dropdown search
+  const {
+    suggestions: journalSuggestions,
+    loading: journalLoading,
+    searchItems: searchJournals,
+    clearSuggestions: clearJournalSuggestions
+  } = useDropdownSearch('https://api.openalex.org/sources?filter=type:journal&search={query}&per_page=20');
 
   useEffect(() => {
     if (trendData && trendData.yearly_distribution) {
@@ -49,8 +118,24 @@ export const PositionDetailLight = ({ darkMode = true }) => {
     }
   }, [trendData]);
 
-  const handleGetTrend = async () => {
-    if (!keyword.trim()) {
+  // Function to clear all search fields
+  const clearAllFields = () => {
+    setSearchKeyword("");
+    setAuthor("");
+    setAuthorObject(null);
+    setInstitution("");
+    setInstitutionObject(null);
+    setPublicationYear("");
+    setStartYear("");
+    setEndYear("");
+    setSelectedPublicationTypes([]);
+    setSelectedJournals([]);
+    setError(null);
+  };
+
+  // Search handler for trend analysis
+  const handleSearch = async () => {
+    if (!searchKeyword.trim()) {
       setError("Please enter a keyword to get the trend.");
       setTrendData(null);
       setChartData([]);
@@ -58,7 +143,7 @@ export const PositionDetailLight = ({ darkMode = true }) => {
       return;
     }
 
-    setIsLoading(true);
+    setIsLoadingTrend(true);
     setError(null);
     setTrendData(null);
     setChartData([]);
@@ -66,25 +151,69 @@ export const PositionDetailLight = ({ darkMode = true }) => {
 
     // Track user inputs for disclaimer
     const inputs = [];
-    if (keyword.trim()) inputs.push({ category: 'Keyword', value: keyword.trim() });
-    if (selectedInstitution && selectedInstitution.display_name) inputs.push({ category: 'Institution', value: selectedInstitution.display_name });
-    if (startDate) inputs.push({ category: 'Start Date', value: startDate });
-    if (endDate) inputs.push({ category: 'End Date', value: endDate });
+    if (searchKeyword.trim()) inputs.push({ category: 'Keywords', value: searchKeyword.trim() });
+    if (authorObject && authorObject.display_name) inputs.push({ category: 'Author', value: authorObject.display_name });
+    if (institutionObject && institutionObject.display_name) inputs.push({ category: 'Institution', value: institutionObject.display_name });
+    if (selectedPublicationTypes.length > 0) inputs.push({ category: 'Publication Types', value: selectedPublicationTypes.map(pt => pt.display_name).join(', ') });
+    if (publicationYear.trim()) inputs.push({ category: 'Publication Year', value: publicationYear.trim() });
+    if (startYear.trim() && endYear.trim()) inputs.push({ category: 'Year Range', value: `${startYear.trim()}-${endYear.trim()}` });
+    if (selectedJournals.length > 0) inputs.push({ category: 'Journals', value: selectedJournals.map(j => j.display_name).join(', ') });
     setUserInputs(inputs);
 
     try {
-      const params = new URLSearchParams({
-        keyword: keyword.trim()
-      });
-
-      if (startDate) params.append('start_date', startDate);
-      if (endDate) params.append('end_date', endDate);
-      if (selectedInstitution && selectedInstitution.id) {
-        const institutionId = selectedInstitution.id.split('/').pop();
-        params.append('institution_id', institutionId);
+      const filters = [];
+      
+      // Add keyword search
+      if (searchKeyword.trim()) {
+        const keyword = searchKeyword.trim();
+        filters.push(`title_and_abstract.search:${keyword}`);
+      }
+      
+      // Add author filter
+      if (authorObject && authorObject.id) {
+        const authorId = authorObject.id.split('/').pop();
+        filters.push(`authorships.author.id:A${authorId}`);
+      }
+      
+      // Add institution filter
+      if (institutionObject && institutionObject.id) {
+        const instId = institutionObject.id.split('/').pop();
+        filters.push(`authorships.institutions.id:I${instId}`);
+      }
+      
+      // Add publication types filter
+      if (selectedPublicationTypes.length > 0) {
+        const typeFilters = selectedPublicationTypes.map(pt => `type:${pt.id}`);
+        filters.push(typeFilters.join('|'));
+      }
+      
+      // Add publication year filter
+      if (publicationYear.trim()) {
+        filters.push(`publication_year:${publicationYear.trim()}`);
+      }
+      
+      // Add year range filter
+      if (startYear.trim() && endYear.trim()) {
+        filters.push(`publication_year:${startYear.trim()}-${endYear.trim()}`);
+      }
+      
+      // Add journals filter
+      if (selectedJournals.length > 0) {
+        const journalFilters = selectedJournals.map(journal => {
+          const sourceId = journal.id.split('/').pop();
+          return `primary_location.source.id:${sourceId}`;
+        });
+        filters.push(journalFilters.join('|'));
       }
 
-      const apiUrl = `/api/publications/keyword_trends?${params.toString()}`;
+      const filterString = filters.join(',');
+      const params = new URLSearchParams();
+      if (filterString) params.append('filter', filterString);
+      params.append('per_page', '200'); // Get more results for better trend analysis
+      params.append('page', '1');
+      params.append('sort', 'cited_by_count:desc');
+      
+      const apiUrl = `https://api.openalex.org/works?${params.toString()}`;
       
       // Track API call for disclaimer
       setApiCalls([apiUrl]);
@@ -98,19 +227,75 @@ export const PositionDetailLight = ({ darkMode = true }) => {
 
       const data = await response.json();
 
-      // Check if we have any data
-      if (!data.yearly_distribution || Object.values(data.yearly_distribution).every(count => count === 0)) {
-        setError("No data available for the given keyword and date range.");
+      // Check if we have any results
+      if (!data.results || data.results.length === 0) {
+        setError("No publications found for the given keyword and filters.");
         return;
       }
 
-      setTrendData(data);
+      // Process OpenAlex data to create trend analysis
+      const yearlyDistribution = {};
+      let totalPublications = 0;
+      
+      // Count publications by year
+      data.results.forEach(work => {
+        const year = work.publication_year;
+        if (year) {
+          yearlyDistribution[year] = (yearlyDistribution[year] || 0) + 1;
+          totalPublications++;
+        }
+      });
+
+      // Calculate growth rates
+      const years = Object.keys(yearlyDistribution).sort((a, b) => parseInt(a) - parseInt(b));
+      const yearOverYearGrowth = [];
+      
+      for (let i = 1; i < years.length; i++) {
+        const currentYear = parseInt(years[i]);
+        const previousYear = parseInt(years[i - 1]);
+        const currentCount = yearlyDistribution[currentYear];
+        const previousCount = yearlyDistribution[previousYear];
+        
+        if (previousCount > 0) {
+          const growthRate = ((currentCount - previousCount) / previousCount) * 100;
+          yearOverYearGrowth.push({
+            year: currentYear,
+            rate: Math.round(growthRate * 100) / 100
+          });
+        }
+      }
+
+      // Calculate average growth rate
+      const averageGrowthRate = yearOverYearGrowth.length > 0 
+        ? Math.round((yearOverYearGrowth.reduce((sum, item) => sum + item.rate, 0) / yearOverYearGrowth.length) * 100) / 100
+        : 0;
+
+      // Create trend data structure
+      const trendData = {
+        publication_count: totalPublications,
+        yearly_distribution: yearlyDistribution,
+        meta: {
+          trend_factors: {
+            average_growth_rate: averageGrowthRate,
+            year_over_year_growth: yearOverYearGrowth,
+            relative_popularity: Math.round((totalPublications / 1000) * 100) / 100 // Simple popularity metric
+          }
+        }
+      };
+
+      setTrendData(trendData);
     } catch (e) {
       setError("Failed to fetch publication trend. Please try again with a different keyword or date range.");
       console.error("Keyword trend fetch error:", e);
     } finally {
-      setIsLoading(false);
+      setIsLoadingTrend(false);
     }
+  };
+
+  // Advanced filter apply handler
+  const handleApplyAdvanced = () => {
+    setShowAdvanced(false);
+    handleSearch();
   };
 
   const CustomTooltip = ({ active, payload, label }) => {
@@ -133,20 +318,20 @@ export const PositionDetailLight = ({ darkMode = true }) => {
   };
 
   const handleBarClick = (data) => {
-    if (!data || !data.year || !keyword.trim()) return;
+    if (!data || !data.year || !searchKeyword.trim()) return;
     
     // Construct search parameters
     const searchParams = new URLSearchParams();
     
     // Add keyword search
-    searchParams.append('search', keyword.trim());
+    searchParams.append('search', searchKeyword.trim());
     
     // Add year filter
     searchParams.append('publication_year', data.year);
     
     // Add institution filter if selected
-    if (selectedInstitution && selectedInstitution.id) {
-      const institutionId = selectedInstitution.id.split('/').pop();
+    if (institutionObject && institutionObject.id) {
+      const institutionId = institutionObject.id.split('/').pop();
       searchParams.append('institution_id', institutionId);
     }
     
@@ -178,11 +363,11 @@ export const PositionDetailLight = ({ darkMode = true }) => {
             <span className={styles.indicatorValue}>{trendData.publication_count}</span>
           </div>
 
-          {selectedInstitution && (
+          {institutionObject && (
             <div className={styles.indicator}>
               <span className={styles.indicatorLabel}>Institution:</span>
               <span className={styles.indicatorValue}>
-                {selectedInstitution.display_name}
+                {institutionObject.display_name}
               </span>
             </div>
           )}
@@ -212,165 +397,249 @@ export const PositionDetailLight = ({ darkMode = true }) => {
   };
 
   return (
-    <div style={{ background: '#1a1a1a', minHeight: '100vh' }} className={darkMode ? 'dark' : ''}>
+    <>
       <TopBar />
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem 1rem' }}>
-        <h1 style={{ color: '#4F6AF6', fontWeight: 700, fontSize: '2.5rem', marginBottom: '1.5rem', lineHeight: 1.1 }}>Publication Trend by Keyword</h1>
-        <div className={styles.mainContent}>
-          <div className={styles.pageContent}>
-            <div className={styles.topRow}>
-              <div className={styles.trendVisualizationBox}>
-                {/* Enhanced Input Section */}
-                <div className={styles.inputSection}>
-                  <div className={styles.mainInputRow}>
-                    <input
-                      type="text"
-                      className={styles.trendInput}
-                      placeholder="Enter keyword (e.g., 'artificial intelligence')"
-                      value={keyword}
-                      onChange={(e) => setKeyword(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                          handleGetTrend();
-                        }
-                      }}
-                    />
-                    <button
-                      className={styles.trendButton}
-                      onClick={handleGetTrend}
-                      disabled={isLoading}
-                    >
-                      {isLoading ? "Loading..." : "Get Trend"}
-                    </button>
-                  </div>
+      <div style={{ background: '#1a1a1a', minHeight: '100vh', paddingBottom: 40 }} className={darkMode ? 'dark' : ''}>
+        {/* Search Background - covers the search interface area */}
+        <div style={{ position: 'relative' }}>
+          <div style={{ 
+            position: 'absolute', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            height: '600px', 
+            zIndex: 1,
+            pointerEvents: 'none'
+          }}>
+            <Particles />
+          </div>
+          
+          {/* Search Interface Content */}
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem 1rem' }}>
+              <SearchHeader 
+                darkMode={darkMode} 
+                title="Publication Trends"
+                subtitle="Visualize research trends and gain insights into the evolution of topics"
+              />
+              <SearchForm
+                searchKeyword={searchKeyword}
+                setSearchKeyword={setSearchKeyword}
+                author={author}
+                institution={institution}
+                onSearch={handleSearch}
+                onOpenAdvancedFilters={() => setShowAdvanced(true)}
+                onAuthorClick={() => {
+                  setShowAuthorModal(true);
+                  clearAuthorSuggestions();
+                }}
+                onInstitutionClick={() => {
+                  setShowInstitutionModal(true);
+                  clearInstitutionSuggestions();
+                }}
+                loading={isLoadingTrend}
+                darkMode={darkMode}
+                description="Enter keywords and apply filters to analyze research trends"
+              />
 
-                  <div className={styles.parameterRow}>
-                    <div className={styles.parameterGroup}>
-                      <label>Institution:</label>
-                      <InstitutionDropdown
-                        value={selectedInstitution}
-                        onChange={setSelectedInstitution}
-                        placeholder="Search for institution..."
-                        className={styles.institutionDropdown}
-                        label=""
-                        darkMode={darkMode}
-                      />
-                      {selectedInstitution && (
-                        <div className={styles.selectedInstitutionRow}>
-                          <span className={styles.selectedInstitutionText}>
-                            Selected: {selectedInstitution.display_name}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedInstitution(null)}
-                            className={styles.clearButton}
-                            title="Clear institution"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className={styles.parameterGroup}>
-                      <label>Start Date:</label>
-                      <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className={styles.parameterInput}
-                      />
-                    </div>
-                    <div className={styles.parameterGroup}>
-                      <label>End Date:</label>
-                      <input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        className={styles.parameterInput}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {error && <div className={styles.errorMessage}>{error}</div>}
-
-                {isLoading && (
-                  <div className={styles.loadingContainer}>
-                    <div className={styles.spinner}></div>
-                    <p>Fetching trend data...</p>
-                  </div>
-                )}
-
-                {/* Disclaimer Box */}
-                <ApiCallInfoBox 
-                  userInputs={userInputs} 
-                  apiCalls={apiCalls} 
-                  darkMode={darkMode} 
-                />
-
-                {/* Trend Indicators */}
-                {trendData && !isLoading && !error && renderTrendIndicators()}
-
-                {/* Main Chart */}
-                {chartData.length > 0 && (
-                  <div className={styles.chartContainer}>
-                    <h3>
-                      Publication Count by Year
-                      {selectedInstitution && ` - ${selectedInstitution.display_name}`}
-                    </h3>
-                    <ResponsiveContainer width="100%" height={400}>
-                      <BarChart
-                        data={chartData}
-                        margin={{
-                          top: 20, right: 30, left: 50, bottom: 40,
-                        }}
-                        onClick={handleBarClick}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis
-                          dataKey="year"
-                          angle={0}
-                          textAnchor="middle"
-                          height={40}
-                          tick={{ fontSize: 12 }}
-                        />
-                        <YAxis
-                          label={{
-                            value: 'Publications',
-                            angle: -90,
-                            position: 'insideLeft',
-                            style: { textAnchor: 'middle' }
-                          }}
-                        />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Bar
-                          dataKey="publications"
-                          fill="var(--color-primary)"
-                          stroke="var(--color-primary-dark)"
-                          strokeWidth={1}
-                          style={{ cursor: 'pointer' }}
-                          onClick={handleBarClick}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-
-                {/* Growth Rate Chart */}
-                {growthData.length > 0 && renderGrowthChart()}
-
-                {/* No Results Message */}
-                {!isLoading && !error && chartData.length === 0 && trendData && (
-                  <div className={styles.noResultsMessage}>
-                    No trend data found for "{keyword}". Try a different keyword or adjust the date range.
-                  </div>
-                )}
-              </div>
+              <AdvancedFiltersDrawer
+                open={showAdvanced}
+                onClose={() => setShowAdvanced(false)}
+                publicationYear={publicationYear}
+                setPublicationYear={setPublicationYear}
+                startYear={startYear}
+                setStartYear={setStartYear}
+                endYear={endYear}
+                setEndYear={setEndYear}
+                selectedPublicationTypes={selectedPublicationTypes}
+                setSelectedPublicationTypes={setSelectedPublicationTypes}
+                selectedJournals={selectedJournals}
+                setSelectedJournals={setSelectedJournals}
+                onPublicationTypesClick={() => setShowPublicationTypesModal(true)}
+                onJournalsClick={() => {
+                  setShowJournalsModal(true);
+                  clearJournalSuggestions();
+                }}
+                onApply={handleApplyAdvanced}
+                darkMode={darkMode}
+              />
+              {/* Disclaimer Box */}
+              <ApiCallInfoBox 
+                userInputs={userInputs} 
+                apiCalls={apiCalls} 
+                darkMode={darkMode} 
+              />
             </div>
           </div>
         </div>
+        
+        {/* Trend Visualization - outside the background area */}
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1rem' }}>
+          <div className={styles.mainContent}>
+            <div className={styles.pageContent}>
+              <div className={styles.topRow}>
+                <div className={styles.trendVisualizationBox}>
+                  {error && <div className={styles.errorMessage}>{error}</div>}
+
+                  {isLoadingTrend && (
+                    <div className={styles.loadingContainer}>
+                      <div className={styles.spinner}></div>
+                      <p>Fetching trend data...</p>
+                    </div>
+                  )}
+
+                  {/* Trend Indicators */}
+                  {trendData && !isLoadingTrend && !error && renderTrendIndicators()}
+
+                  {/* Main Chart */}
+                  {chartData.length > 0 && (
+                    <div className={styles.chartContainer}>
+                      <h3>
+                        Publication Count by Year
+                        {institutionObject && ` - ${institutionObject.display_name}`}
+                      </h3>
+                      <ResponsiveContainer width="100%" height={400}>
+                        <BarChart
+                          data={chartData}
+                          margin={{
+                            top: 20, right: 30, left: 50, bottom: 40,
+                          }}
+                          onClick={handleBarClick}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis
+                            dataKey="year"
+                            angle={0}
+                            textAnchor="middle"
+                            height={40}
+                            tick={{ fontSize: 12 }}
+                          />
+                          <YAxis
+                            label={{
+                              value: 'Publications',
+                              angle: -90,
+                              position: 'insideLeft',
+                              style: { textAnchor: 'middle' }
+                            }}
+                          />
+                          <Tooltip content={<CustomTooltip />} />
+                          <Bar
+                            dataKey="publications"
+                            fill="var(--color-primary)"
+                            stroke="var(--color-primary-dark)"
+                            strokeWidth={1}
+                            style={{ cursor: 'pointer' }}
+                            onClick={handleBarClick}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+
+                  {/* Growth Rate Chart */}
+                  {growthData.length > 0 && renderGrowthChart()}
+
+                  {/* No Results Message */}
+                  {!isLoadingTrend && !error && chartData.length === 0 && trendData && (
+                    <div className={styles.noResultsMessage}>
+                      No trend data found for "{searchKeyword}". Try a different keyword or adjust the date range.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Author Modal Dropdown */}
+          <ModalDropdown
+            isOpen={showAuthorModal}
+            onClose={() => setShowAuthorModal(false)}
+            title="Select Author"
+            placeholder="Type to search authors..."
+            onSearchChange={searchAuthors}
+            suggestions={authorSuggestions}
+            onSelect={(author) => {
+              setAuthorObject(author);
+              setAuthor(author.display_name);
+            }}
+            darkMode={darkMode}
+            loading={authorLoading}
+          />
+
+          {/* Institution Modal Dropdown */}
+          <ModalDropdown
+            isOpen={showInstitutionModal}
+            onClose={() => setShowInstitutionModal(false)}
+            title="Select Institution"
+            placeholder="Type to search institutions..."
+            onSearchChange={searchInstitutions}
+            suggestions={institutionSuggestions}
+            onSelect={(institution) => {
+              setInstitutionObject(institution);
+              setInstitution(institution.display_name);
+            }}
+            darkMode={darkMode}
+            loading={institutionLoading}
+          />
+
+          {/* Publication Types Multi-Select Modal */}
+          <MultiSelectModalDropdown
+            isOpen={showPublicationTypesModal}
+            onClose={() => setShowPublicationTypesModal(false)}
+            title="Select Publication Types"
+            placeholder="Type to search publication types..."
+            onSearchChange={(query) => {
+              const filtered = publicationTypes.filter(pt => 
+                pt.display_name.toLowerCase().includes(query.toLowerCase())
+              );
+              return Promise.resolve(filtered);
+            }}
+            suggestions={publicationTypes}
+            selectedItems={selectedPublicationTypes}
+            onSelect={(publicationType) => {
+              setSelectedPublicationTypes(prev => {
+                if (prev.some(pt => pt.id === publicationType.id)) {
+                  return prev;
+                }
+                return [...prev, publicationType];
+              });
+            }}
+            onDeselect={(publicationType) => {
+              setSelectedPublicationTypes(prev => 
+                prev.filter(pt => pt.id !== publicationType.id)
+              );
+            }}
+            darkMode={darkMode}
+            loading={false}
+          />
+
+          {/* Journals Multi-Select Modal */}
+          <MultiSelectModalDropdown
+            isOpen={showJournalsModal}
+            onClose={() => setShowJournalsModal(false)}
+            title="Select Journals"
+            placeholder="Type to search journals..."
+            onSearchChange={searchJournals}
+            suggestions={journalSuggestions}
+            selectedItems={selectedJournals}
+            onSelect={(journal) => {
+              setSelectedJournals(prev => {
+                if (prev.some(j => j.id === journal.id)) {
+                  return prev;
+                }
+                return [...prev, journal];
+              });
+            }}
+            onDeselect={(journal) => {
+              setSelectedJournals(prev => 
+                prev.filter(j => j.id !== journal.id)
+              );
+            }}
+            darkMode={darkMode}
+            loading={journalLoading}
+          />
+        </div>
       </div>
-    </div>
+    </>
   );
 };

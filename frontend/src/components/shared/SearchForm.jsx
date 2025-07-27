@@ -14,7 +14,8 @@ const SearchForm = ({
   onAuthorClick,
   onInstitutionClick,
   loading,
-  darkMode = false
+  darkMode = false,
+  description = "Enter keywords and apply filters to find relevant research"
 }) => {
   const labelStyle = { 
     fontWeight: 700, 
@@ -72,7 +73,7 @@ const SearchForm = ({
           marginBottom: 12, 
           paddingLeft: 2 
         }}>
-          Enter keywords and apply filters to find relevant research
+          {description}
         </div>
         <input
           type="text"
