@@ -9,6 +9,7 @@ import DropdownTrigger from '../components/shared/DropdownTrigger';
 import ModalDropdown from '../components/shared/ModalDropdown';
 import useDropdownSearch from '../hooks/useDropdownSearch';
 import ApiCallInfoBox from '../components/shared/ApiCallInfoBox';
+import Particles from '../components/animated/SearchBackground/Particles';
 
 const OPENALEX_API_BASE = 'https://api.openalex.org';
 
@@ -318,101 +319,122 @@ const SearchPageLight = ({ darkMode = true }) => {
     <>
       <TopBar />
       <div style={{ background: '#1a1a1a', minHeight: '100vh', paddingBottom: 40 }} className={darkMode ? 'dark' : ''}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem 1rem' }}>
-          <SearchHeader darkMode={darkMode} />
-          <SearchForm
-            searchKeyword={searchKeyword}
-            setSearchKeyword={setSearchKeyword}
-            author={author}
-            setAuthor={setAuthor}
-            institution={institution}
-            setInstitution={setInstitution}
-            onSearch={handleSearch}
-            onOpenAdvancedFilters={() => setShowAdvanced(true)}
-            loading={loading}
-            darkMode={darkMode}
-          />
-
-          {/* Additional Filters Section */}
+        {/* Search Background - covers the search interface area */}
+        <div style={{ position: 'relative' }}>
           <div style={{ 
-            background: '#2a2a2a', 
-            borderRadius: 16, 
-            boxShadow: '0 4px 24px rgba(0,0,0,0.3)', 
-            padding: 24, 
-            maxWidth: 900, 
-            margin: '0 auto 2rem auto',
-            border: '1px solid #404040'
+            position: 'absolute', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            height: '600px', 
+            zIndex: 1,
+            pointerEvents: 'none'
           }}>
-            <h3 style={{ 
-              color: '#fff', 
-              marginBottom: 16, 
-              fontSize: 18, 
-              fontWeight: 600 
-            }}>
-              Additional Filters
-            </h3>
-            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-              <div style={{ flex: 1, minWidth: 200 }}>
-                <label style={{ 
-                  fontWeight: 600, 
-                  marginBottom: 8, 
-                  display: 'block', 
-                  color: '#fff' 
+            <Particles />
+          </div>
+          
+          {/* Search Interface Content */}
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem 1rem' }}>
+              <SearchHeader darkMode={darkMode} />
+              <SearchForm
+                searchKeyword={searchKeyword}
+                setSearchKeyword={setSearchKeyword}
+                author={author}
+                setAuthor={setAuthor}
+                institution={institution}
+                setInstitution={setInstitution}
+                onSearch={handleSearch}
+                onOpenAdvancedFilters={() => setShowAdvanced(true)}
+                loading={loading}
+                darkMode={darkMode}
+              />
+
+              {/* Additional Filters Section */}
+              <div style={{ 
+                background: '#2a2a2a', 
+                borderRadius: 16, 
+                boxShadow: '0 4px 24px rgba(0,0,0,0.3)', 
+                padding: 24, 
+                maxWidth: 900, 
+                margin: '0 auto 2rem auto',
+                border: '1px solid #404040'
+              }}>
+                <h3 style={{ 
+                  color: '#fff', 
+                  marginBottom: 16, 
+                  fontSize: 18, 
+                  fontWeight: 600 
                 }}>
-                  Institution (Advanced)
-                </label>
-                <DropdownTrigger
-                  value={institutionObject ? institutionObject.display_name : ''}
-                  placeholder="Click to search institutions..."
-                  onClick={() => {
-                    setShowInstitutionModal(true);
-                    clearInstitutionSuggestions();
-                  }}
-                  darkMode={darkMode}
-                />
+                  Additional Filters
+                </h3>
+                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1, minWidth: 200 }}>
+                    <label style={{ 
+                      fontWeight: 600, 
+                      marginBottom: 8, 
+                      display: 'block', 
+                      color: '#fff' 
+                    }}>
+                      Institution (Advanced)
+                    </label>
+                    <DropdownTrigger
+                      value={institutionObject ? institutionObject.display_name : ''}
+                      placeholder="Click to search institutions..."
+                      onClick={() => {
+                        setShowInstitutionModal(true);
+                        clearInstitutionSuggestions();
+                      }}
+                      darkMode={darkMode}
+                    />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 200 }}>
+                    <label style={{ 
+                      fontWeight: 600, 
+                      marginBottom: 8, 
+                      display: 'block', 
+                      color: '#fff' 
+                    }}>
+                      Journal Filter
+                    </label>
+                    <DropdownTrigger
+                      value={journalInput}
+                      placeholder="Click to search journals..."
+                      onClick={() => {
+                        setShowJournalModal(true);
+                        clearJournalSuggestions();
+                      }}
+                      darkMode={darkMode}
+                    />
+                  </div>
+                </div>
               </div>
-              <div style={{ flex: 1, minWidth: 200 }}>
-                <label style={{ 
-                  fontWeight: 600, 
-                  marginBottom: 8, 
-                  display: 'block', 
-                  color: '#fff' 
-                }}>
-                  Journal Filter
-                </label>
-                <DropdownTrigger
-                  value={journalInput}
-                  placeholder="Click to search journals..."
-                  onClick={() => {
-                    setShowJournalModal(true);
-                    clearJournalSuggestions();
-                  }}
-                  darkMode={darkMode}
-                />
-              </div>
+              <AdvancedFiltersDrawer
+                open={showAdvanced}
+                onClose={() => setShowAdvanced(false)}
+                publicationYear={publicationYear}
+                setPublicationYear={setPublicationYear}
+                startYear={startYear}
+                setStartYear={setStartYear}
+                endYear={endYear}
+                setEndYear={setEndYear}
+                publicationType={publicationType}
+                setPublicationType={setPublicationType}
+                onApply={handleApplyAdvanced}
+                darkMode={darkMode}
+              />
+              {/* Disclaimer Box */}
+              <ApiCallInfoBox 
+                userInputs={userInputs} 
+                apiCalls={apiCalls} 
+                darkMode={darkMode} 
+              />
             </div>
           </div>
-          <AdvancedFiltersDrawer
-            open={showAdvanced}
-            onClose={() => setShowAdvanced(false)}
-            publicationYear={publicationYear}
-            setPublicationYear={setPublicationYear}
-            startYear={startYear}
-            setStartYear={setStartYear}
-            endYear={endYear}
-            setEndYear={setEndYear}
-            publicationType={publicationType}
-            setPublicationType={setPublicationType}
-            onApply={handleApplyAdvanced}
-            darkMode={darkMode}
-          />
-          {/* Disclaimer Box */}
-          <ApiCallInfoBox 
-            userInputs={userInputs} 
-            apiCalls={apiCalls} 
-            darkMode={darkMode} 
-          />
-          
+        </div>
+        
+        {/* Search Results - outside the background area */}
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1rem' }}>
           <SearchResultsList results={results} loading={loading} error={error} darkMode={darkMode} />
           
           {/* Pagination */}
