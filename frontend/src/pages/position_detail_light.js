@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import styles from "../../assets/styles/position.module.css";
-import TopBar from "../../components/shared/TopBar";
+import styles from "../assets/styles/position.module.css";
+import TopBar from "../components/shared/TopBar";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { OPENALEX_API_BASE } from '../../config/api';
+import { OPENALEX_API_BASE } from '../config/api';
 
 export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
   const [keyword, setKeyword] = useState("Siemens");
@@ -11,7 +11,7 @@ export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
   const [error, setError] = useState(null);
   const [chartData, setChartData] = useState([]);
   const [growthData, setGrowthData] = useState([]);
-  
+
   // Additional parameters for the API
   const [years, setYears] = useState(5);
   const [limit, setLimit] = useState(10);
@@ -54,7 +54,7 @@ export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
       setGrowthData([]);
       return;
     }
-    
+
     setIsLoading(true);
     setError(null);
     setTrendData(null);
@@ -72,20 +72,20 @@ export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
       if (endDate) params.append('end_date', endDate);
 
       const response = await fetch(`/api/publications/keyword_trends?${params.toString()}`);
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.details || `HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       // Check if we have any data
       if (!data.yearly_distribution || Object.values(data.yearly_distribution).every(count => count === 0)) {
         setError("No data available for the given keyword and date range.");
         return;
       }
-      
+
       setTrendData(data);
     } catch (e) {
       setError("Failed to fetch publication trend. Please try again with a different keyword or date range.");
@@ -115,7 +115,7 @@ export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
     if (!trendData?.meta?.trend_factors) return null;
 
     const { average_growth_rate, relative_popularity, year_over_year_growth } = trendData.meta.trend_factors;
-    
+
     return (
       <div className={styles.trendIndicators}>
         <h3>Trend Analysis</h3>
@@ -196,7 +196,7 @@ export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
                       {isLoading ? "Loading..." : "Get Trend"}
                     </button>
                   </div>
-                  
+
                   <div className={styles.parameterRow}>
                     <div className={styles.parameterGroup}>
                       <label>Years:</label>
@@ -242,7 +242,7 @@ export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
                 </div>
 
                 {error && <div className={styles.errorMessage}>{error}</div>}
-                
+
                 {isLoading && (
                   <div className={styles.loadingContainer}>
                     <div className={styles.spinner}></div>
@@ -265,24 +265,24 @@ export const PositionDetailLight = ({ darkMode, toggleDarkMode }) => {
                         }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="year" 
-                          angle={0} 
-                          textAnchor="middle" 
+                        <XAxis
+                          dataKey="year"
+                          angle={0}
+                          textAnchor="middle"
                           height={40}
                           tick={{ fontSize: 12 }}
                         />
-                        <YAxis 
-                          label={{ 
-                            value: 'Publications', 
-                            angle: -90, 
+                        <YAxis
+                          label={{
+                            value: 'Publications',
+                            angle: -90,
                             position: 'insideLeft',
                             style: { textAnchor: 'middle' }
                           }}
                         />
                         <Tooltip content={<CustomTooltip />} />
-                        <Bar 
-                          dataKey="publications" 
+                        <Bar
+                          dataKey="publications"
                           fill="var(--color-primary)"
                           stroke="var(--color-primary-dark)"
                           strokeWidth={1}

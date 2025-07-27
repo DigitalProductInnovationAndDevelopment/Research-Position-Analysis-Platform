@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { LandingPageLight } from './pages/light_mode/landing_light';
-import SearchPageLight from './pages/light_mode/search_light';
-import { AboutPage } from './pages/light_mode/about_light';
-import { PositionDetailLight } from './pages/light_mode/position_detail_light';
-import GraphViewLight from './pages/light_mode/graph_view_light';
-import WorldMapPapersPage from './pages/light_mode/WorldMapPapersPage';
+import { LandingPageLight } from './pages/landing_light';
+import SearchPageLight from './pages/search_light';
+import { AboutPage } from './pages/about_light';
+import { PositionDetailLight } from './pages/position_detail_light';
+import GraphViewLight from './pages/graph_view_light';
+import WorldMapPapersPage from './pages/WorldMapPapersPage';
 
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
