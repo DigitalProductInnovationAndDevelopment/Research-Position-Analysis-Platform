@@ -1,13 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import DisclaimerBox from "../../components/about/DisclaimerBox";
-import PrivacyPolicyBox from "../../components/about/PrivacyPolicyBox";
-import ImpressumBox from "../../components/about/ImpressumBox";
-import searchIcon from "../../assets/icons/search.svg";
-import trendIcon from "../../assets/icons/trend.svg";
-import graphIcon from "../../assets/icons/graph.svg";
-import barChartIcon from "../../assets/images/bar-chart.png";
-import styles from "../../assets/styles/landing.module.css";
+import DisclaimerBox from "../components/about/DisclaimerBox";
+import PrivacyPolicyBox from "../components/about/PrivacyPolicyBox";
+import ImpressumBox from "../components/about/ImpressumBox";
+import searchIcon from "../assets/icons/search.svg";
+import trendIcon from "../assets/icons/trend.svg";
+import graphIcon from "../assets/icons/graph.svg";
+import styles from "../assets/styles/landing.module.css";
 
 export const LandingPageLight = () => {
   const features = [
@@ -60,7 +59,7 @@ export const LandingPageLight = () => {
       {/* Features Grid */}
       <section className={styles.featuresSection}>
         <div className={styles.featuresHeader}>
-          <h2 className={styles.featuresTitle}>Research Analysis Tools TEST AUTO DEPLOY</h2>
+          <h2 className={styles.featuresTitle}>Research Analysis Tools</h2>
           <p className={styles.featuresSubtitle}>
             Powerful features to analyze research publications, track trends, and discover collaborations
           </p>

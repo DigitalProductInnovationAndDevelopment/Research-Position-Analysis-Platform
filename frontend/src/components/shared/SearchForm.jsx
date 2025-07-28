@@ -1,5 +1,5 @@
 import React from "react";
-import Autocomplete from "./Autocomplete/Autocomplete";
+import DropdownTrigger from "./DropdownTrigger/DropdownTrigger";
 import searchPublicationsIcon from "../../assets/icons/search-publications.svg";
 import authorIcon from "../../assets/icons/author.svg";
 import institutionIcon from "../../assets/icons/institution.svg";
@@ -8,13 +8,14 @@ const SearchForm = ({
   searchKeyword,
   setSearchKeyword,
   author,
-  setAuthor,
   institution,
-  setInstitution,
   onSearch,
   onOpenAdvancedFilters,
+  onAuthorClick,
+  onInstitutionClick,
   loading,
-  darkMode = false
+  darkMode = false,
+  description = "Enter keywords and apply filters to find relevant research"
 }) => {
   const labelStyle = { 
     fontWeight: 700, 
@@ -24,7 +25,7 @@ const SearchForm = ({
     alignItems: 'center', 
     gap: 8, 
     paddingLeft: 2,
-    color: darkMode ? '#fff' : '#000'
+    color: '#fff'
   };
   
   const subLabelStyle = { 
@@ -34,31 +35,30 @@ const SearchForm = ({
     display: 'flex', 
     alignItems: 'center', 
     gap: 6,
-    color: darkMode ? '#ccc' : '#000'
+    color: '#ccc'
   };
   
   const inputBoxStyle = { 
-    background: darkMode ? '#1a1a1a' : '#f8f9fb', 
-    border: darkMode ? '1px solid #404040' : '1px solid #e5e7eb', 
+    background: '#222', 
+    border: '1px solid #404040', 
     borderRadius: 8, 
     padding: '20px 22px', 
     fontSize: 18, 
     width: '100%', 
     height: 64,
-    color: darkMode ? '#fff' : '#000'
+    color: '#fff'
   };
 
   return (
     <div style={{ 
-      background: darkMode ? '#2a2a2a' : '#fff', 
+      background: 'rgba(26, 26, 26, 0.25)', 
+      backdropFilter: 'blur(4px)',
       borderRadius: 16, 
-      boxShadow: darkMode 
-        ? '0 4px 24px rgba(0,0,0,0.3)' 
-        : '0 4px 24px rgba(0,0,0,0.07)', 
+      boxShadow: '0 4px 24px rgba(0,0,0,0.3)', 
       padding: 32, 
       maxWidth: 900, 
       margin: '0 auto 2rem auto',
-      border: darkMode ? '1px solid #404040' : 'none'
+      border: '1px solid rgba(64, 64, 64, 0.2)'
     }}>
       <form onSubmit={e => { e.preventDefault(); onSearch(); }} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div style={labelStyle}>
@@ -68,12 +68,12 @@ const SearchForm = ({
           Search Publications
         </div>
         <div style={{ 
-          color: darkMode ? '#ccc' : '#888', 
+          color: '#ccc', 
           fontSize: 14, 
           marginBottom: 12, 
           paddingLeft: 2 
         }}>
-          Enter keywords and apply filters to find relevant research
+          {description}
         </div>
         <input
           type="text"
@@ -96,12 +96,10 @@ const SearchForm = ({
               Author
             </div>
             <div style={{ width: '100%' }}>
-              <Autocomplete
+              <DropdownTrigger
                 value={author}
-                onValueChange={setAuthor}
-                placeholder="Type author name"
-                type="author"
-                inputStyle={{ ...inputBoxStyle, height: 56 }}
+                placeholder="Click to search authors..."
+                onClick={onAuthorClick}
                 darkMode={darkMode}
               />
             </div>
@@ -114,12 +112,10 @@ const SearchForm = ({
               Institution
             </div>
             <div style={{ width: '100%' }}>
-              <Autocomplete
+              <DropdownTrigger
                 value={institution}
-                onValueChange={setInstitution}
-                placeholder="Type institution name"
-                type="institution"
-                inputStyle={{ ...inputBoxStyle, height: 56 }}
+                placeholder="Click to search institutions..."
+                onClick={onInstitutionClick}
                 darkMode={darkMode}
               />
             </div>
@@ -149,7 +145,7 @@ const SearchForm = ({
           <button 
             type="button" 
             style={{ 
-              background: darkMode ? '#1a1a1a' : '#f5f6fa', 
+              background: 'rgba(26, 26, 26, 0.15)', 
               color: '#4F6AF6', 
               border: '1px solid #4F6AF6', 
               borderRadius: 8, 

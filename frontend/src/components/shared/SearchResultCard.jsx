@@ -11,32 +11,30 @@ const SearchResultCard = ({ result, darkMode = false }) => {
 
   return (
     <div style={{ 
-      background: darkMode ? '#2a2a2a' : '#fff', 
+      background: '#2a2a2a', 
       borderRadius: 12, 
-      boxShadow: darkMode 
-        ? '0 2px 16px rgba(0,0,0,0.3)' 
-        : '0 2px 16px rgba(0,0,0,0.07)', 
+      boxShadow: '0 2px 16px rgba(0,0,0,0.3)', 
       padding: 24, 
       marginBottom: 24,
-      border: darkMode ? '1px solid #404040' : 'none'
+      border: '1px solid #404040'
     }}>
       <h3 style={{ 
         margin: 0, 
         fontWeight: 700, 
         fontSize: '1.2rem',
-        color: darkMode ? '#fff' : '#000'
+        color: '#fff'
       }}>
         {result.display_name}
       </h3>
       <div style={{ 
-        color: darkMode ? '#ccc' : '#555', 
+        color: '#ccc', 
         margin: '8px 0' 
       }}>
         {authorString}
       </div>
       {institutionString && (
         <div style={{ 
-          color: darkMode ? '#999' : '#888', 
+          color: '#999', 
           marginBottom: 4 
         }}>
           {institutionString}
@@ -44,7 +42,7 @@ const SearchResultCard = ({ result, darkMode = false }) => {
       )}
       {journalName && (
         <div style={{ 
-          color: darkMode ? '#999' : '#888', 
+          color: '#999', 
           marginBottom: 4 
         }}>
           {journalName}
@@ -52,7 +50,7 @@ const SearchResultCard = ({ result, darkMode = false }) => {
       )}
       {publicationDate && (
         <div style={{ 
-          color: darkMode ? '#999' : '#888', 
+          color: '#999', 
           marginBottom: 4 
         }}>
           {publicationDate}
@@ -61,7 +59,7 @@ const SearchResultCard = ({ result, darkMode = false }) => {
       {result.abstract_inverted_index && (
         <div style={{ 
           marginTop: 12, 
-          color: darkMode ? '#ddd' : '#333' 
+          color: '#ddd' 
         }}>
           <span>{Object.keys(result.abstract_inverted_index).slice(0, 30).join(' ')}...</span>
         </div>

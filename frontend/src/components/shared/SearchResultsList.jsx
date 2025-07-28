@@ -7,7 +7,7 @@ const SearchResultsList = ({ results, loading, error, darkMode = false }) => {
       <div style={{ 
         textAlign: 'center', 
         margin: '2rem 0',
-        color: darkMode ? '#ccc' : '#666'
+        color: '#ccc'
       }}>
         Loading...
       </div>
@@ -17,11 +17,11 @@ const SearchResultsList = ({ results, loading, error, darkMode = false }) => {
   if (error) {
     return (
       <div style={{ 
-        color: darkMode ? '#ff6666' : 'red', 
+        color: '#ff6666', 
         textAlign: 'center', 
         margin: '2rem 0',
-        background: darkMode ? '#4a1a1a' : '#fef2f2',
-        border: darkMode ? '1px solid #ff4444' : '1px solid #fecaca',
+        background: '#4a1a1a',
+        border: '1px solid #ff4444',
         borderRadius: '8px',
         padding: '1rem'
       }}>
@@ -35,9 +35,9 @@ const SearchResultsList = ({ results, loading, error, darkMode = false }) => {
       <div style={{ 
         textAlign: 'center', 
         margin: '2rem 0',
-        color: darkMode ? '#ccc' : '#666',
-        background: darkMode ? '#2a2a2a' : '#f9fafb',
-        border: darkMode ? '1px dashed #404040' : '1px dashed #d1d5db',
+        color: '#ccc',
+        background: '#2a2a2a',
+        border: '1px dashed #404040',
         borderRadius: '8px',
         padding: '2rem'
       }}>

@@ -23,6 +23,20 @@ body.dark {
   color: var(--color-text-dark);
 }
 
+/* Dark mode input placeholder styles */
+.dark input::placeholder {
+  color: #888;
+  opacity: 1;
+}
+
+.dark input:-ms-input-placeholder {
+  color: #888;
+}
+
+.dark input::-ms-input-placeholder {
+  color: #888;
+}
+
 /* App layout */
 .app {
   width: 100%;
