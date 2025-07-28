@@ -1,0 +1,48 @@
+.triggerContainer {
+  background: #222;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0.5rem;
+  width: 100%;
+  position: relative;
+  cursor: pointer;
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+  transition: border-color 0.15s;
+}
+
+.triggerContainer:hover {
+  border-color: #4F6AF6;
+}
+
+.triggerContainer.dark {
+  background: #222;
+  color: #fff;
+}
+
+.triggerContainer.disabled {
+  background: #333;
+  color: #888;
+  border-color: #555;
+}
+
+.triggerText {
+  color: inherit;
+  font-size: 16px;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.triggerArrow {
+  color: #888;
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  transition: transform 0.15s;
+}
+
+.triggerContainer:hover .triggerArrow {
+  color: #4F6AF6;
+} 

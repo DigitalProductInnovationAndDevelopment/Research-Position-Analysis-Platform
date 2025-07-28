@@ -146,8 +146,7 @@ router.get('/keyword_trends', async (req, res) => {
             start_date,
             end_date,
             per_page = 200,
-            years,
-            limit
+            institution_id
         } = req.query;
 
         let filterParts = [];
@@ -159,6 +158,11 @@ router.get('/keyword_trends', async (req, res) => {
         if (keyword) {
             filterParts.push(`title_and_abstract.search:${keyword}`);
         }
+        // Add institution filter if provided
+        if (institution_id) {
+            filterParts.push(`authorships.institutions.id:I${institution_id}`);
+        }
+
         // Only add date filters if start_date or end_date is provided
         if (start_date) {
             filterParts.push(`from_publication_date:${start_date}`);
