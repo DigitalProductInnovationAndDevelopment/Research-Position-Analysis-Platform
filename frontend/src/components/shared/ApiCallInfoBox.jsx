@@ -27,7 +27,7 @@ const apiCallInfoBox = ({ userInputs, apiCalls, darkMode = true }) => {
         <span style={{ fontSize: '1.2rem' }}>ℹ️</span>
         API Call Information
       </h3>
-      
+
       {userInputs.length > 0 && (
         <div style={{ marginBottom: 16 }}>
           <div style={{ color: '#ccc', fontSize: '0.9rem', marginBottom: 8, fontWeight: 500 }}>
@@ -35,8 +35,8 @@ const apiCallInfoBox = ({ userInputs, apiCalls, darkMode = true }) => {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {userInputs.map((input, index) => (
-              <div key={index} style={{ 
-                color: '#fff', 
+              <div key={index} style={{
+                color: '#fff',
                 fontSize: '0.9rem',
                 padding: '4px 0'
               }}>
@@ -46,9 +46,21 @@ const apiCallInfoBox = ({ userInputs, apiCalls, darkMode = true }) => {
           </div>
         </div>
       )}
-      
+
       {apiCalls.length > 0 && (
         <div>
+          <div style={{
+            color: '#4F6AF6',
+            fontSize: '0.9rem',
+            marginBottom: 8,
+            fontWeight: 600,
+            padding: '8px 12px',
+            background: 'rgba(79, 106, 246, 0.1)',
+            borderRadius: 6,
+            border: '1px solid rgba(79, 106, 246, 0.3)'
+          }}>
+            ℹ️ <strong>Data Source:</strong> All results are fetched from OpenAlex
+          </div>
           <div style={{ color: '#ccc', fontSize: '0.9rem', marginBottom: 8, fontWeight: 500 }}>
             The results displayed on this page are retrieved from the following database search:
           </div>
