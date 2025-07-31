@@ -39,8 +39,12 @@ body.dark {
 
 /* App layout */
 .app {
-  width: 100%;
+  width: 100vw;
   min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .main-content {
@@ -51,9 +55,9 @@ body.dark {
 
 /* Utility classes */
 .container {
-  max-width: var(--breakpoint-desktop);
-  margin: 0 auto;
-  padding: 0 var(--spacing-md);
+  width: 100vw;
+  margin: 0;
+  padding: 0;
 }
 
 .text-center {
@@ -82,9 +86,11 @@ body.dark {
 
 html,
 body {
-  overflow-y: scroll !important;
-  /* Always show vertical scrollbar */
-  height: 100%;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  /* Allow vertical scrolling, prevent horizontal overflow */
+  height: 100vh;
+  width: 100vw;
   margin: 0;
   padding: 0;
 }
@@ -92,25 +98,25 @@ body {
 /* For Webkit browsers (Chrome, Safari, Edge) */
 html::-webkit-scrollbar,
 body::-webkit-scrollbar {
-  width: 12px;
+  width: 0px;
+  display: none;
 }
 
 html::-webkit-scrollbar-thumb,
 body::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 6px;
+  display: none;
 }
 
 html::-webkit-scrollbar-track,
 body::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  display: none;
 }
 
 /* For Firefox */
 html,
 body {
-  scrollbar-width: auto;
-  scrollbar-color: #ccc #f1f1f1;
+  scrollbar-width: none;
+  scrollbar-color: transparent transparent;
 }
 
 /* === DESIGN SYSTEM TOKENS (HSL) === */
@@ -323,11 +329,9 @@ body {
 
 /* Container */
 .container {
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 /* Responsive text center */
