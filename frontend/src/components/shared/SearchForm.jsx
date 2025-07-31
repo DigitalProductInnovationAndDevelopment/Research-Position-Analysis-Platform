@@ -8,7 +8,11 @@ const SearchForm = ({
   searchKeyword,
   setSearchKeyword,
   author,
+  setAuthor,
+  setAuthorObject,
   institution,
+  setInstitution,
+  setInstitutionObject,
   onSearch,
   onOpenAdvancedFilters,
   onAuthorClick,
@@ -100,6 +104,10 @@ const SearchForm = ({
                 value={author}
                 placeholder="Click to search authors..."
                 onClick={onAuthorClick}
+                onClear={author ? () => {
+                  setAuthor("");
+                  if (typeof setAuthorObject === 'function') setAuthorObject(null);
+                } : undefined}
                 darkMode={darkMode}
               />
             </div>
@@ -116,6 +124,10 @@ const SearchForm = ({
                 value={institution}
                 placeholder="Click to search institutions..."
                 onClick={onInstitutionClick}
+                onClear={institution ? () => {
+                  setInstitution("");
+                  if (typeof setInstitutionObject === 'function') setInstitutionObject(null);
+                } : undefined}
                 darkMode={darkMode}
               />
             </div>
