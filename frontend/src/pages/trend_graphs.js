@@ -426,7 +426,11 @@ export const PositionDetailLight = ({ darkMode = true }) => {
                 searchKeyword={searchKeyword}
                 setSearchKeyword={setSearchKeyword}
                 author={author}
+                setAuthor={setAuthor}
+                setAuthorObject={setAuthorObject}
                 institution={institution}
+                setInstitution={setInstitution}
+                setInstitutionObject={setInstitutionObject}
                 onSearch={handleSearch}
                 onOpenAdvancedFilters={() => setShowAdvanced(true)}
                 onAuthorClick={() => {
