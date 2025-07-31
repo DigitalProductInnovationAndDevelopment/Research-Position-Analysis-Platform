@@ -98,29 +98,29 @@ const SearchPageLight = ({ darkMode = true }) => {
     const searchParam = urlParams.get('search');
     const yearParam = urlParams.get('publication_year');
     const institutionIdParam = urlParams.get('institution_id');
-    
+
     // Check if we have any chart-related parameters (coming from graph click)
     const hasChartParams = searchParam || yearParam || institutionIdParam;
-    
+
     if (hasChartParams) {
       // Has URL parameters - came from graph click, auto-search
       console.log('Graph navigation detected - auto-searching with params:', { searchParam, yearParam, institutionIdParam });
-      
+
       // Set search keyword if provided
       if (searchParam) {
         setSearchKeyword(searchParam);
       }
-      
+
       // Set publication year if provided
       if (yearParam) {
         setPublicationYear(yearParam);
       }
-      
+
       // Handle institution if provided
       if (institutionIdParam) {
         fetchInstitutionById(institutionIdParam);
       }
-      
+
       // Auto-search with URL parameters
       setTimeout(() => {
         performAutoSearchWithParams(searchParam, yearParam, institutionIdParam);
@@ -151,54 +151,54 @@ const SearchPageLight = ({ darkMode = true }) => {
   // Separate function for auto-search with URL parameters
   const performAutoSearchWithParams = async (searchParam, yearParam, institutionIdParam, page = 1) => {
     console.log('performAutoSearchWithParams called with:', { searchParam, yearParam, institutionIdParam, page });
-    
+
     setLoading(true);
     setError(null);
     if (page === 1) {
       setResults([]);
       setCurrentPage(1);
     }
-    
+
     try {
       const filters = [];
-      
+
       // Use search parameter directly from URL
       if (searchParam && searchParam.trim()) {
         const keyword = searchParam.trim();
         // Format: title_and_abstract.search:keyword (spaces become + in URL)
         filters.push(`title_and_abstract.search:${keyword}`);
       }
-      
+
       // Use year parameter directly from URL
       if (yearParam && yearParam.trim()) {
         filters.push(`publication_year:${yearParam.trim()}`);
       }
-      
+
       // Use institution parameter directly from URL
       if (institutionIdParam && institutionIdParam.trim()) {
         filters.push(`authorships.institutions.id:I${institutionIdParam.trim()}`);
       }
-      
+
       const filterString = filters.join(',');
       const params = new URLSearchParams();
       if (filterString) params.append('filter', filterString);
       params.append('per_page', resultsPerPage.toString());
       params.append('page', page.toString());
       params.append('sort', 'cited_by_count:desc');
-      
+
       const finalUrl = `${OPENALEX_API_BASE}/works?${params.toString()}`;
       console.log('Auto-search URL:', finalUrl);
       console.log('Search filters:', filters);
       console.log('URL matches format: https://openalex.org/works?page=X&filter=...&sort=cited_by_count:desc');
-      
+
       // Track API call for disclaimer
       setApiCalls([finalUrl]);
-      
+
       const url = `${OPENALEX_API_BASE}/works?${params.toString()}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch search results');
       const data = await response.json();
-      
+
       setResults(data.results || []);
       setTotalResults(data.meta?.count || 0);
       setTotalPages(Math.ceil((data.meta?.count || 0) / resultsPerPage));
@@ -235,7 +235,7 @@ const SearchPageLight = ({ darkMode = true }) => {
       setResults([]);
       setCurrentPage(1);
     }
-    
+
     // Track user inputs for disclaimer
     const inputs = [];
     if (searchKeyword.trim()) inputs.push({ category: 'Keywords', value: searchKeyword.trim() });
@@ -246,7 +246,7 @@ const SearchPageLight = ({ darkMode = true }) => {
     if (startYear.trim() && endYear.trim()) inputs.push({ category: 'Year Range', value: `${startYear.trim()}-${endYear.trim()}` });
     if (selectedJournals.length > 0) inputs.push({ category: 'Journals', value: selectedJournals.map(j => j.display_name).join(', ') });
     setUserInputs(inputs);
-    
+
     try {
       const filters = [];
       if (searchKeyword.trim()) {
@@ -289,16 +289,16 @@ const SearchPageLight = ({ darkMode = true }) => {
       params.append('per_page', resultsPerPage.toString());
       params.append('page', page.toString());
       params.append('sort', 'cited_by_count:desc');
-      
+
       const url = `${OPENALEX_API_BASE}/works?${params.toString()}`;
-      
+
       // Track API call for disclaimer
       setApiCalls([url]);
-      
+
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch search results');
       const data = await response.json();
-      
+
       setResults(data.results || []);
       setTotalResults(data.meta?.count || 0);
       setTotalPages(Math.ceil((data.meta?.count || 0) / resultsPerPage));
@@ -324,7 +324,7 @@ const SearchPageLight = ({ darkMode = true }) => {
       const searchParam = urlParams.get('search');
       const yearParam = urlParams.get('publication_year');
       const institutionIdParam = urlParams.get('institution_id');
-      
+
       if (searchParam || yearParam || institutionIdParam) {
         // Use auto-search with parameters
         performAutoSearchWithParams(searchParam, yearParam, institutionIdParam, newPage);
@@ -349,18 +349,18 @@ const SearchPageLight = ({ darkMode = true }) => {
       <div style={{ background: '#1a1a1a', minHeight: '100vh', paddingBottom: 40 }} className={darkMode ? 'dark' : ''}>
         {/* Search Background - covers the search interface area */}
         <div style={{ position: 'relative' }}>
-          <div style={{ 
-            position: 'absolute', 
-            top: 0, 
-            left: 0, 
-            right: 0, 
-            height: '600px', 
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '600px',
             zIndex: 1,
             pointerEvents: 'none'
           }}>
             <Particles />
           </div>
-          
+
           {/* Search Interface Content */}
           <div style={{ position: 'relative', zIndex: 2 }}>
             <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem 1rem' }}>
@@ -369,7 +369,11 @@ const SearchPageLight = ({ darkMode = true }) => {
                 searchKeyword={searchKeyword}
                 setSearchKeyword={setSearchKeyword}
                 author={author}
+                setAuthor={setAuthor}
+                setAuthorObject={setAuthorObject}
                 institution={institution}
+                setInstitution={setInstitution}
+                setInstitutionObject={setInstitutionObject}
                 onSearch={handleSearch}
                 onOpenAdvancedFilters={() => setShowAdvanced(true)}
                 onAuthorClick={() => {
@@ -406,26 +410,26 @@ const SearchPageLight = ({ darkMode = true }) => {
                 darkMode={darkMode}
               />
               {/* Disclaimer Box */}
-              <ApiCallInfoBox 
-                userInputs={userInputs} 
-                apiCalls={apiCalls} 
-                darkMode={darkMode} 
+              <ApiCallInfoBox
+                userInputs={userInputs}
+                apiCalls={apiCalls}
+                darkMode={darkMode}
               />
             </div>
           </div>
         </div>
-        
+
         {/* Search Results - outside the background area */}
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1rem' }}>
           <SearchResultsList results={results} loading={loading} error={error} darkMode={darkMode} />
-          
+
           {/* Pagination */}
           {!loading && !error && totalPages > 1 && (
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center', 
-              gap: '1rem', 
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '1rem',
               marginTop: '2rem',
               padding: '1rem',
               background: '#2a2a2a',
@@ -448,7 +452,7 @@ const SearchPageLight = ({ darkMode = true }) => {
               >
                 Previous
               </button>
-              
+
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 {/* Page numbers */}
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -462,7 +466,7 @@ const SearchPageLight = ({ darkMode = true }) => {
                   } else {
                     pageNum = currentPage - 2 + i;
                   }
-                  
+
                   return (
                     <button
                       key={pageNum}
@@ -483,7 +487,7 @@ const SearchPageLight = ({ darkMode = true }) => {
                   );
                 })}
               </div>
-              
+
               <button
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
@@ -499,10 +503,10 @@ const SearchPageLight = ({ darkMode = true }) => {
               >
                 Next
               </button>
-              
-              <div style={{ 
-                marginLeft: '1rem', 
-                color: '#ccc', 
+
+              <div style={{
+                marginLeft: '1rem',
+                color: '#ccc',
                 fontSize: '0.9rem',
                 fontWeight: '500'
               }}>
@@ -551,7 +555,7 @@ const SearchPageLight = ({ darkMode = true }) => {
             placeholder="Type to search publication types..."
             onSearchChange={(query) => {
               // Filter the predefined publication types based on search query
-              const filtered = publicationTypes.filter(pt => 
+              const filtered = publicationTypes.filter(pt =>
                 pt.display_name.toLowerCase().includes(query.toLowerCase())
               );
               // Return a mock suggestions array for the multi-select component
@@ -569,7 +573,7 @@ const SearchPageLight = ({ darkMode = true }) => {
               });
             }}
             onDeselect={(publicationType) => {
-              setSelectedPublicationTypes(prev => 
+              setSelectedPublicationTypes(prev =>
                 prev.filter(pt => pt.id !== publicationType.id)
               );
             }}
@@ -596,7 +600,7 @@ const SearchPageLight = ({ darkMode = true }) => {
               });
             }}
             onDeselect={(journal) => {
-              setSelectedJournals(prev => 
+              setSelectedJournals(prev =>
                 prev.filter(j => j.id !== journal.id)
               );
             }}

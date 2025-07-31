@@ -22,7 +22,7 @@ router.get('/', async (req, res) => {
             ...(search && { search })
         };
 
-        const response = await axios.get(url, { 
+        const response = await axios.get(url, {
             params,
             headers: OPENALEX_HEADERS
         });
@@ -295,6 +295,81 @@ router.get('/keyword_trends', async (req, res) => {
             error: 'OpenAlex API error',
             details: error.response?.data || error.message
         });
+    }
+});
+
+
+
+// Route to get conference information for a list of DOIs
+router.get('/conference-info', async (req, res) => {
+    try {
+        console.log('Conference-info route called');
+        const { dois } = req.query;
+        console.log('DOIs received:', dois);
+
+        if (!dois) {
+            return res.status(400).json({ error: 'DOIs parameter is required' });
+        }
+
+        // Split the DOIs string and extract just the DOI part from URLs
+        const doiList = Array.isArray(dois) ? dois : dois.split(',');
+        const extractedDois = doiList.map(doiUrl => {
+            // Extract just the DOI part from the full URL
+            const doiMatch = doiUrl.match(/https:\/\/doi\.org\/(.+)/);
+            return doiMatch ? doiMatch[1] : doiUrl;
+        });
+
+        console.log('Extracted DOIs:', extractedDois);
+        const results = [];
+
+        // Process each DOI with individual API calls
+        for (const doi of extractedDois) {
+            try {
+                console.log(`Processing DOI: ${doi}`);
+                const url = `https://api.crossref.org/works/${doi}`;
+                console.log(`CrossRef URL: ${url}`);
+
+                const response = await axios.get(url);
+                console.log(`Response status: ${response.status}`);
+
+                if (response.status !== 200) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = response.data;
+                const msg = data.message;
+                console.log(`Conference name: ${msg.event?.name}`);
+
+                const info = {
+                    doi: doi,
+                    title: msg.title?.[0] || null,
+                    container: msg['container-title']?.[0] || null,
+                    type: msg.type || null,
+                    publisher: msg.publisher || null,
+                    year: msg.issued?.['date-parts']?.[0]?.[0] || null,
+                    event: {
+                        name: msg.event?.name || null
+                    }
+                };
+
+                results.push(info);
+
+                // Small delay to avoid overwhelming the API
+                await new Promise(resolve => setTimeout(resolve, 100));
+            } catch (error) {
+                console.error(`Error processing DOI ${doi}:`, error);
+                results.push({
+                    doi: doi,
+                    error: 'Failed to fetch conference information'
+                });
+            }
+        }
+
+        console.log('Results:', results);
+        res.json({ results });
+    } catch (error) {
+        console.error('Error in conference-info route:', error);
+        res.status(500).json({ error: 'Failed to fetch conference information' });
     }
 });
 
