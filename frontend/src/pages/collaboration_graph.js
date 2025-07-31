@@ -240,89 +240,123 @@ const GraphViewLight = ({ darkMode = true }) => {
   };
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh', width: '100vw', overflow: 'hidden', background: '#000' }}>
-      {/* Orbit as full-page background */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          zIndex: 0,
-          pointerEvents: 'none',
-        }}
-      >
-        <Orb
-          hoverIntensity={0.5}
-          rotateOnHover={true}
-          hue={0}
-          forceHoverState={false}
-        />
-      </div>
-
-      {/* Main content */}
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        <TopBar />
-        {/* Centered header and search/filter controls */}
+    <>
+      <TopBar />
+      <div style={{ background: '#000', minHeight: '100vh', paddingBottom: 40 }} className={darkMode ? 'dark' : ''}>
+        {/* Orbit as full-page background */}
         <div
           style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '40vh',
-            width: '100%',
-            position: 'relative',
-            zIndex: 2,
-            marginTop: '12vh',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 0,
+            pointerEvents: 'none',
           }}
         >
-          <h1
-            style={{
-              color: '#4F6AF6',
-              fontWeight: 700,
-              fontSize: '2rem',
-              marginBottom: '0.75rem',
-              lineHeight: 1.1,
-              textAlign: 'center',
-              textShadow: '0 2px 16px #000',
-              maxWidth: 500,
-            }}
-          >
-            Collaboration Network
-          </h1>
-          <p
-            style={{
-              color: '#fff',
-              fontSize: '1rem',
-              textAlign: 'center',
-              maxWidth: 400,
-              margin: '0 auto',
-              lineHeight: 1.5,
-              fontWeight: 700,
-              fontFamily: 'inherit',
-              textShadow: '0 2px 16px #000',
-            }}
-          >
-            Show insights into collaborative networks formed through scholarly publications.
-          </p>
+          <Orb
+            hoverIntensity={0.5}
+            rotateOnHover={true}
+            hue={0}
+            forceHoverState={false}
+          />
+        </div>
 
-          {/* Search/filter controls */}
-          <div style={{
-            marginTop: 24,
-            width: '100%',
-            maxWidth: 400,
-            marginLeft: 'auto',
-            marginRight: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12,
-            alignItems: 'center',
-          }}>
-            <div style={{ width: '100%', color: '#fff' }}>
+        {/* Main content */}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {/* Centered header and search/filter controls */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '40vh',
+              width: '100%',
+              position: 'relative',
+              zIndex: 2,
+              paddingTop: '2rem',
+            }}
+          >
+            <h1
+              style={{
+                color: '#4F6AF6',
+                fontWeight: 700,
+                fontSize: '2rem',
+                marginBottom: '0.75rem',
+                lineHeight: 1.1,
+                textAlign: 'center',
+                textShadow: '0 2px 16px #000',
+                maxWidth: 500,
+              }}
+            >
+              Collaboration Network
+            </h1>
+            <p
+              style={{
+                color: '#fff',
+                fontSize: '1rem',
+                textAlign: 'center',
+                maxWidth: 400,
+                margin: '0 auto',
+                lineHeight: 1.5,
+                fontWeight: 700,
+                fontFamily: 'inherit',
+                textShadow: '0 2px 16px #000',
+              }}
+            >
+              Show insights into collaborative networks formed through scholarly publications.
+            </p>
+
+            {/* Search/filter controls */}
+            <div style={{
+              marginTop: 24,
+              width: '100%',
+              maxWidth: 400,
+              marginLeft: 'auto',
+              marginRight: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+              alignItems: 'center',
+            }}>
+              <div style={{ width: '100%', color: '#fff' }}>
+                <div style={{ marginBottom: 8, width: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                  <label style={{ fontWeight: 600, color: '#fff' }}>Select Institution</label>
+                  <div
+                    style={{
+                      background: '#222',
+                      border: '1px solid #ccc',
+                      borderRadius: 4,
+                      padding: '0.5rem',
+                      width: '100%',
+                      position: 'relative',
+                      cursor: 'pointer',
+                      minHeight: '2.5rem',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                    onClick={() => {
+                      setShowInstitutionModal(true);
+                      setModalInstitutionInput('');
+                      setModalInstitutionSuggestions([]);
+                    }}
+                  >
+                    <span style={{
+                      color: selectedInstitution ? '#fff' : '#888',
+                      fontSize: 16,
+                      flex: 1
+                    }}>
+                      {selectedInstitution ? selectedInstitution.display_name : "Click to search institutions..."}
+                    </span>
+                    <span style={{ color: '#888', marginLeft: '0.5rem' }}>▼</span>
+                  </div>
+                </div>
+              </div>
+              {/* Journal Dropdown */}
               <div style={{ marginBottom: 8, width: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-                <label style={{ fontWeight: 600, color: '#fff' }}>Select Institution</label>
+                <label style={{ fontWeight: 600, color: '#fff' }}>Filter by Journal (optional)</label>
                 <div
                   style={{
                     background: '#222',
@@ -337,581 +371,549 @@ const GraphViewLight = ({ darkMode = true }) => {
                     alignItems: 'center'
                   }}
                   onClick={() => {
-                    setShowInstitutionModal(true);
-                    setModalInstitutionInput('');
-                    setModalInstitutionSuggestions([]);
+                    setShowJournalModal(true);
+                    setModalJournalInput('');
+                    setModalJournalSuggestions([]);
                   }}
                 >
                   <span style={{
-                    color: selectedInstitution ? '#fff' : '#888',
+                    color: journalInput ? '#fff' : '#888',
                     fontSize: 16,
                     flex: 1
                   }}>
-                    {selectedInstitution ? selectedInstitution.display_name : "Click to search institutions..."}
+                    {journalInput || "Click to search journals..."}
                   </span>
                   <span style={{ color: '#888', marginLeft: '0.5rem' }}>▼</span>
                 </div>
               </div>
-            </div>
-            {/* Journal Dropdown */}
-            <div style={{ marginBottom: 8, width: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-              <label style={{ fontWeight: 600, color: '#fff' }}>Filter by Journal (optional)</label>
-              <div
-                style={{
-                  background: '#222',
-                  border: '1px solid #ccc',
-                  borderRadius: 4,
-                  padding: '0.5rem',
-                  width: '100%',
-                  position: 'relative',
-                  cursor: 'pointer',
-                  minHeight: '2.5rem',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
-                onClick={() => {
-                  setShowJournalModal(true);
-                  setModalJournalInput('');
-                  setModalJournalSuggestions([]);
-                }}
-              >
-                <span style={{
-                  color: journalInput ? '#fff' : '#888',
-                  fontSize: 16,
-                  flex: 1
-                }}>
-                  {journalInput || "Click to search journals..."}
-                </span>
-                <span style={{ color: '#888', marginLeft: '0.5rem' }}>▼</span>
+              {/* Keyword input and search button */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+                <label style={{ fontWeight: 600, marginBottom: 4, display: 'block', color: '#fff' }}>Search by Keyword</label>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Enter keyword to filter papers..."
+                  style={{ flex: 1, width: '100%', padding: 10, fontSize: 16, borderRadius: 6, border: '1px solid #ccc', background: '#222', color: '#fff' }}
+                />
+                <button
+                  onClick={() => {
+                    setTriggerSearch(s => !s);
+                    setHasSearched(true);
+                  }}
+                  disabled={!selectedInstitution}
+                  style={{
+                    padding: '10px 24px',
+                    fontSize: 16,
+                    borderRadius: 6,
+                    background: !selectedInstitution ? '#ccc' : '#4F6AF6',
+                    color: '#fff',
+                    border: 'none',
+                    cursor: !selectedInstitution ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 2px 8px rgba(25, 118, 210, 0.08)'
+                  }}
+                >
+                  Generate Graph
+                </button>
               </div>
             </div>
-            {/* Keyword input and search button */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
-              <label style={{ fontWeight: 600, marginBottom: 4, display: 'block', color: '#fff' }}>Search by Keyword</label>
-              <input
-                ref={inputRef}
-                type="text"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Enter keyword to filter papers..."
-                style={{ flex: 1, width: '100%', padding: 10, fontSize: 16, borderRadius: 6, border: '1px solid #ccc', background: '#222', color: '#fff' }}
-              />
-              <button
-                onClick={() => {
-                  setTriggerSearch(s => !s);
-                  setHasSearched(true);
-                }}
-                disabled={!selectedInstitution}
-                style={{
-                  padding: '10px 24px',
-                  fontSize: 16,
-                  borderRadius: 6,
-                  background: !selectedInstitution ? '#ccc' : '#4F6AF6',
-                  color: '#fff',
-                  border: 'none',
-                  cursor: !selectedInstitution ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 2px 8px rgba(25, 118, 210, 0.08)'
-                }}
-              >
-                Generate Graph
-              </button>
-            </div>
           </div>
-        </div>
 
-        {/* Rest of the content below */}
-        {hasSearched && (
-          <div style={{
-            background: '#23272f',
-            borderRadius: 12,
-            boxShadow: '0 2px 16px rgba(0,0,0,0.15)',
-            border: '1px solid #333',
-            padding: '2rem 1rem',
-            color: '#fff',
-            maxWidth: 1200,
-            margin: '2rem auto 0 auto',
-            zIndex: 2,
-            position: 'relative',
-          }}>
-            {/* Selected Institution in top left */}
-            {selectedInstitution && (
+          {/* Rest of the content below */}
+          {hasSearched && (
+            <div style={{
+              background: '#23272f',
+              borderRadius: 12,
+              boxShadow: '0 2px 16px rgba(0,0,0,0.15)',
+              border: '1px solid #333',
+              padding: '2rem 1rem',
+              color: '#fff',
+              maxWidth: 1200,
+              margin: '2rem auto 0 auto',
+              zIndex: 2,
+              position: 'relative',
+            }}>
+              {/* Selected Institution in top left */}
+              {selectedInstitution && (
+                <div style={{
+                  position: 'absolute',
+                  top: 16,
+                  left: 24,
+                  color: '#fff',
+                  fontWeight: 600,
+                }}>
+                  <strong>Selected Institution:</strong> {selectedInstitution.display_name}
+                </div>
+              )}
+
+              {/* Toggle in top right */}
               <div style={{
                 position: 'absolute',
                 top: 16,
-                left: 24,
-                color: '#fff',
-                fontWeight: 600,
-              }}>
-                <strong>Selected Institution:</strong> {selectedInstitution.display_name}
-              </div>
-            )}
-
-            {/* Toggle in top right */}
-            <div style={{
-              position: 'absolute',
-              top: 16,
-              right: 24,
-              display: 'flex',
-              alignItems: 'center',
-            }}>
-              <div
-                onClick={() => {
-                  setShowJournalsInGraph(!showJournalsInGraph);
-                  setTriggerSearch(s => !s);
-                }}
-                style={{
-                  width: 50,
-                  height: 24,
-                  backgroundColor: showJournalsInGraph ? '#4F6AF6' : '#666',
-                  borderRadius: 12,
-                  position: 'relative',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.3s ease',
-                  marginRight: 8,
-                }}
-              >
-                <div
-                  style={{
-                    width: 18,
-                    height: 18,
-                    backgroundColor: '#fff',
-                    borderRadius: '50%',
-                    position: 'absolute',
-                    top: 3,
-                    left: showJournalsInGraph ? 29 : 3,
-                    transition: 'left 0.3s ease',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                  }}
-                />
-              </div>
-              <label htmlFor="showJournals" style={{ color: '#fff', fontWeight: 600, cursor: 'pointer' }}>
-                Show Journals in Graph
-              </label>
-            </div>
-
-            {/* Remove the old selected institution text that was below */}
-            {loading && <div style={{ marginTop: '2rem' }}>Loading...</div>}
-            {error && <div style={{ marginTop: '2rem', color: 'red' }}>{error}</div>}
-            {!loading && !error && graphData.nodes.length > 1 && (
-              <div style={{
-                height: 800,
-                width: '100%',
-                minWidth: 900,
-                marginTop: '2rem',
-                borderRadius: 16,
-                position: 'relative',
-                boxShadow: '0 8px 32px rgba(25, 118, 210, 0.10)',
-                padding: 24,
+                right: 24,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
               }}>
-                <ForceGraph2D
-                  ref={fgRef}
-                  width={1200}
-                  height={750}
-                  graphData={graphData}
-                  nodeLabel={node => node.label}
-                  nodeAutoColorBy="type"
-                  nodeCanvasObject={(node, ctx, globalScale) => {
-                    const label = node.label.length > 30 ? node.label.slice(0, 29) + '…' : node.label;
-                    const fontSize = 12;
-                    ctx.font = `${fontSize}px Sans-Serif`;
-                    // Color logic
-                    let fill = '#1976d2'; // default: blue for institutions
-                    if (node.type === 'source') {
-                      fill = '#8e24aa'; // purple for journals/sources
-                    } else if (node.main) {
-                      fill = '#ff9800'; // orange for selected institution
-                    }
-                    ctx.fillStyle = fill;
-                    ctx.beginPath();
-                    ctx.arc(node.x, node.y, 10, 0, 2 * Math.PI, false);
-                    ctx.shadowColor = fill;
-                    ctx.shadowBlur = 4;
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                    ctx.fillStyle = '#fff';
-                    ctx.fillText(label, node.x + 14, node.y + 5);
+                <div
+                  onClick={() => {
+                    setShowJournalsInGraph(!showJournalsInGraph);
+                    setTriggerSearch(s => !s);
                   }}
-                  linkDirectionalArrowLength={6}
-                  linkDirectionalArrowRelPos={1}
-                  linkWidth={link => Math.max(2, Math.log2(link.value + 1))}
-                  linkColor={() => '#90caf9'}
-                  onLinkHover={setHoverLink}
-                  onLinkClick={async (link) => {
-                    setSelectedEdge(link);
-                    setPapersLoading(true);
-                    setPapersError(null);
-                    setCollabPapers([]);
-                    try {
-                      // Build the filter for both institutions (selected and collaborator)
-                      const getLineageId = (node) => {
-                        const id = typeof node === 'object' ? node.id : node;
-                        const cleanId = id.replace('https://openalex.org/I', '').replace(/^I/, '');
-                        return cleanId.startsWith('i') ? cleanId : `i${cleanId}`;
-                      };
-                      const sourceLineage = getLineageId(link.source);
-                      const targetLineage = getLineageId(link.target);
-                      const filterParts = [
-                        `authorships.institutions.lineage:${sourceLineage}`,
-                        `authorships.institutions.lineage:${targetLineage}`
-                      ];
-                      if (searchTerm.trim()) {
-                        filterParts.push(`title_and_abstract.search:${encodeURIComponent(searchTerm.trim())}`);
-                      }
-                      const filterString = filterParts.join(',');
-                      let allPapers = [];
-                      let page = 1;
-                      let hasMore = true;
-                      const perPage = 50;
-                      while (hasMore && page <= 10) { // limit to 500 for performance
-                        const res = await fetch(
-                          `https://api.openalex.org/works?filter=${filterString}&per_page=${perPage}&page=${page}`
-                        );
-                        const data = await res.json();
-                        allPapers = allPapers.concat(data.results || []);
-                        hasMore = data.results && data.results.length === perPage;
-                        page++;
-                      }
-                      setCollabPapers(allPapers);
-                    } catch (e) {
-                      setPapersError('Failed to fetch collaborated papers.');
-                    } finally {
-                      setPapersLoading(false);
-                    }
-                  }}
-                  enableZoomPanInteraction={false}
-                  backgroundColor="#23272f"
-                />
-                {hoverLink && (
-                  <div style={{
-                    position: 'absolute',
-                    left: 40,
-                    top: 40,
-                    background: 'rgba(255,255,255,0.97)',
-                    border: '1.5px solid #1976d2',
-                    borderRadius: 8,
-                    padding: 14,
-                    pointerEvents: 'none',
-                    zIndex: 10,
-                    fontSize: 18,
-                    color: '#222',
-                    boxShadow: '0 2px 8px rgba(25, 118, 210, 0.10)'
-                  }}>
-                    <div><strong>Collaborations:</strong> {hoverLink.value}</div>
-                    <div><strong>With:</strong> {getNodeLabel(hoverLink.target)}</div>
-                  </div>
-                )}
-                {/* Legend */}
-              </div>
-            )}
-            {!loading && !error && selectedInstitution && graphData.nodes.length <= 1 && (
-              <div style={{ marginTop: '2rem' }}>No collaborators found for this institution.</div>
-            )}
-            {selectedEdge && (
-              <div style={{
-                marginTop: 32,
-                background: '#23272f',
-                borderRadius: 12,
-                border: '1px solid #333',
-                padding: 24,
-                boxShadow: '0 2px 16px rgba(0,0,0,0.15)',
-                color: '#fff',
-              }}>
-                <h3 style={{ color: '#fff', marginTop: 0 }}>
-                  Papers co-authored by
-                  {' '}
-                  <span style={{ color: '#4F6AF6' }}>
-                    {getNodeLabel(selectedEdge.source)}
-                  </span>
-                  {' '}
-                  and
-                  {' '}
-                  <span style={{ color: '#4F6AF6' }}>
-                    {getNodeLabel(selectedEdge.target)}
-                  </span>
-                </h3>
-                {papersLoading && <div style={{ color: '#fff' }}>Loading papers...</div>}
-                {papersError && <div style={{ color: '#ff6b6b' }}>{papersError}</div>}
-                {!papersLoading && !papersError && (
-                  <ul style={{ marginTop: 16, color: '#fff' }}>
-                    {collabPapers.map(paper => (
-                      <li key={paper.id} style={{ marginBottom: 12 }}>
-                        <a
-                          href={paper.id}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ color: '#4F6AF6', textDecoration: 'none' }}
-                        >
-                          {paper.display_name}
-                        </a>
-                        {paper.publication_year && <span style={{ color: '#ccc' }}> ({paper.publication_year})</span>}
-                      </li>
-                    ))}
-                    {collabPapers.length === 0 && <li style={{ color: '#ccc' }}>No papers found.</li>}
-                  </ul>
-                )}
-                <button
-                  onClick={() => setSelectedEdge(null)}
                   style={{
-                    marginTop: 16,
-                    padding: '8px 16px',
-                    background: '#4F6AF6',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: 6,
+                    width: 50,
+                    height: 24,
+                    backgroundColor: showJournalsInGraph ? '#4F6AF6' : '#666',
+                    borderRadius: 12,
+                    position: 'relative',
                     cursor: 'pointer',
-                    fontSize: 14,
+                    transition: 'background-color 0.3s ease',
+                    marginRight: 8,
                   }}
                 >
-                  Close
+                  <div
+                    style={{
+                      width: 18,
+                      height: 18,
+                      backgroundColor: '#fff',
+                      borderRadius: '50%',
+                      position: 'absolute',
+                      top: 3,
+                      left: showJournalsInGraph ? 29 : 3,
+                      transition: 'left 0.3s ease',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                    }}
+                  />
+                </div>
+                <label htmlFor="showJournals" style={{ color: '#fff', fontWeight: 600, cursor: 'pointer' }}>
+                  Show Journals in Graph
+                </label>
+              </div>
+
+              {/* Remove the old selected institution text that was below */}
+              {loading && <div style={{ marginTop: '2rem' }}>Loading...</div>}
+              {error && <div style={{ marginTop: '2rem', color: 'red' }}>{error}</div>}
+              {!loading && !error && graphData.nodes.length > 1 && (
+                <div style={{
+                  height: 800,
+                  width: '100%',
+                  minWidth: 900,
+                  marginTop: '2rem',
+                  borderRadius: 16,
+                  position: 'relative',
+                  boxShadow: '0 8px 32px rgba(25, 118, 210, 0.10)',
+                  padding: 24,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <ForceGraph2D
+                    ref={fgRef}
+                    width={1200}
+                    height={750}
+                    graphData={graphData}
+                    nodeLabel={node => node.label}
+                    nodeAutoColorBy="type"
+                    nodeCanvasObject={(node, ctx, globalScale) => {
+                      const label = node.label.length > 30 ? node.label.slice(0, 29) + '…' : node.label;
+                      const fontSize = 12;
+                      ctx.font = `${fontSize}px Sans-Serif`;
+                      // Color logic
+                      let fill = '#1976d2'; // default: blue for institutions
+                      if (node.type === 'source') {
+                        fill = '#8e24aa'; // purple for journals/sources
+                      } else if (node.main) {
+                        fill = '#ff9800'; // orange for selected institution
+                      }
+                      ctx.fillStyle = fill;
+                      ctx.beginPath();
+                      ctx.arc(node.x, node.y, 10, 0, 2 * Math.PI, false);
+                      ctx.shadowColor = fill;
+                      ctx.shadowBlur = 4;
+                      ctx.fill();
+                      ctx.shadowBlur = 0;
+                      ctx.fillStyle = '#fff';
+                      ctx.fillText(label, node.x + 14, node.y + 5);
+                    }}
+                    linkDirectionalArrowLength={6}
+                    linkDirectionalArrowRelPos={1}
+                    linkWidth={link => Math.max(2, Math.log2(link.value + 1))}
+                    linkColor={() => '#90caf9'}
+                    onLinkHover={setHoverLink}
+                    onLinkClick={async (link) => {
+                      setSelectedEdge(link);
+                      setPapersLoading(true);
+                      setPapersError(null);
+                      setCollabPapers([]);
+                      try {
+                        // Build the filter for both institutions (selected and collaborator)
+                        const getLineageId = (node) => {
+                          const id = typeof node === 'object' ? node.id : node;
+                          const cleanId = id.replace('https://openalex.org/I', '').replace(/^I/, '');
+                          return cleanId.startsWith('i') ? cleanId : `i${cleanId}`;
+                        };
+                        const sourceLineage = getLineageId(link.source);
+                        const targetLineage = getLineageId(link.target);
+                        const filterParts = [
+                          `authorships.institutions.lineage:${sourceLineage}`,
+                          `authorships.institutions.lineage:${targetLineage}`
+                        ];
+                        if (searchTerm.trim()) {
+                          filterParts.push(`title_and_abstract.search:${encodeURIComponent(searchTerm.trim())}`);
+                        }
+                        const filterString = filterParts.join(',');
+                        let allPapers = [];
+                        let page = 1;
+                        let hasMore = true;
+                        const perPage = 50;
+                        while (hasMore && page <= 10) { // limit to 500 for performance
+                          const res = await fetch(
+                            `https://api.openalex.org/works?filter=${filterString}&per_page=${perPage}&page=${page}`
+                          );
+                          const data = await res.json();
+                          allPapers = allPapers.concat(data.results || []);
+                          hasMore = data.results && data.results.length === perPage;
+                          page++;
+                        }
+                        setCollabPapers(allPapers);
+                      } catch (e) {
+                        setPapersError('Failed to fetch collaborated papers.');
+                      } finally {
+                        setPapersLoading(false);
+                      }
+                    }}
+                    enableZoomPanInteraction={false}
+                    backgroundColor="#23272f"
+                  />
+                  {hoverLink && (
+                    <div style={{
+                      position: 'absolute',
+                      left: 40,
+                      top: 40,
+                      background: 'rgba(255,255,255,0.97)',
+                      border: '1.5px solid #1976d2',
+                      borderRadius: 8,
+                      padding: 14,
+                      pointerEvents: 'none',
+                      zIndex: 10,
+                      fontSize: 18,
+                      color: '#222',
+                      boxShadow: '0 2px 8px rgba(25, 118, 210, 0.10)'
+                    }}>
+                      <div><strong>Collaborations:</strong> {hoverLink.value}</div>
+                      <div><strong>With:</strong> {getNodeLabel(hoverLink.target)}</div>
+                    </div>
+                  )}
+                  {/* Legend */}
+                </div>
+              )}
+              {!loading && !error && selectedInstitution && graphData.nodes.length <= 1 && (
+                <div style={{ marginTop: '2rem' }}>No collaborators found for this institution.</div>
+              )}
+              {selectedEdge && (
+                <div style={{
+                  marginTop: 32,
+                  background: '#23272f',
+                  borderRadius: 12,
+                  border: '1px solid #333',
+                  padding: 24,
+                  boxShadow: '0 2px 16px rgba(0,0,0,0.15)',
+                  color: '#fff',
+                }}>
+                  <h3 style={{ color: '#fff', marginTop: 0 }}>
+                    Papers co-authored by
+                    {' '}
+                    <span style={{ color: '#4F6AF6' }}>
+                      {getNodeLabel(selectedEdge.source)}
+                    </span>
+                    {' '}
+                    and
+                    {' '}
+                    <span style={{ color: '#4F6AF6' }}>
+                      {getNodeLabel(selectedEdge.target)}
+                    </span>
+                  </h3>
+                  {papersLoading && <div style={{ color: '#fff' }}>Loading papers...</div>}
+                  {papersError && <div style={{ color: '#ff6b6b' }}>{papersError}</div>}
+                  {!papersLoading && !papersError && (
+                    <ul style={{ marginTop: 16, color: '#fff' }}>
+                      {collabPapers.map(paper => (
+                        <li key={paper.id} style={{ marginBottom: 12 }}>
+                          <a
+                            href={paper.id}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: '#4F6AF6', textDecoration: 'none' }}
+                          >
+                            {paper.display_name}
+                          </a>
+                          {paper.publication_year && <span style={{ color: '#ccc' }}> ({paper.publication_year})</span>}
+                        </li>
+                      ))}
+                      {collabPapers.length === 0 && <li style={{ color: '#ccc' }}>No papers found.</li>}
+                    </ul>
+                  )}
+                  <button
+                    onClick={() => setSelectedEdge(null)}
+                    style={{
+                      marginTop: 16,
+                      padding: '8px 16px',
+                      background: '#4F6AF6',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                      fontSize: 14,
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        
+        {/* Disclaimer Box */}
+        <ApiCallInfoBox 
+          userInputs={userInputs} 
+          apiCalls={apiCalls} 
+          darkMode={darkMode} 
+        />
+        {showJournalModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0,0,0,0.9)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <div style={{
+              background: '#222',
+              border: '1px solid #ccc',
+              borderRadius: 8,
+              padding: '2rem',
+              width: '90%',
+              maxWidth: 600,
+              maxHeight: '80vh',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h2 style={{ color: '#fff', margin: 0 }}>Select Journal</h2>
+                <button
+                  onClick={() => setShowJournalModal(false)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#fff',
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    padding: '0.5rem'
+                  }}
+                >
+                  ×
                 </button>
               </div>
-            )}
+
+              <input
+                type="text"
+                value={modalJournalInput}
+                onChange={async (e) => {
+                  const value = e.target.value;
+                  setModalJournalInput(value);
+                  if (value.length >= 2) {
+                    try {
+                      const res = await fetch(`https://api.openalex.org/sources?filter=type:journal&search=${encodeURIComponent(value)}&per_page=20`);
+                      const data = await res.json();
+                      setModalJournalSuggestions(data.results || []);
+                    } catch {
+                      setModalJournalSuggestions([]);
+                    }
+                  } else {
+                    setModalJournalSuggestions([]);
+                  }
+                }}
+                placeholder="Type to search journals..."
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  fontSize: 16,
+                  border: '1px solid #ccc',
+                  borderRadius: 4,
+                  background: '#333',
+                  color: '#fff',
+                  marginBottom: '1rem'
+                }}
+                autoFocus
+              />
+
+              <div style={{
+                flex: 1,
+                overflowY: 'auto',
+                border: '1px solid #ccc',
+                borderRadius: 4,
+                background: '#333'
+              }}>
+                {modalJournalSuggestions.map((journal) => (
+                  <div
+                    key={journal.id}
+                    onClick={() => {
+                      setSelectedJournal(journal);
+                      setJournalInput(journal.display_name);
+                      setShowJournalModal(false);
+                    }}
+                    style={{
+                      padding: '0.75rem 1rem',
+                      cursor: 'pointer',
+                      color: '#fff',
+                      borderBottom: '1px solid #444',
+                      transition: 'background 0.15s'
+                    }}
+                    onMouseEnter={(e) => e.target.style.background = '#444'}
+                    onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                  >
+                    {journal.display_name}
+                  </div>
+                ))}
+                {modalJournalSuggestions.length === 0 && modalJournalInput.length >= 2 && (
+                  <div style={{ padding: '1rem', color: '#888', textAlign: 'center' }}>
+                    No journals found
+                  </div>
+                )}
+                {modalJournalInput.length < 2 && (
+                  <div style={{ padding: '1rem', color: '#888', textAlign: 'center' }}>
+                    Type at least 2 characters to search
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        {showInstitutionModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0,0,0,0.9)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <div style={{
+              background: '#222',
+              border: '1px solid #ccc',
+              borderRadius: 8,
+              padding: '2rem',
+              width: '90%',
+              maxWidth: 600,
+              maxHeight: '80vh',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h2 style={{ color: '#fff', margin: 0 }}>Select Institution</h2>
+                <button
+                  onClick={() => setShowInstitutionModal(false)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#fff',
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    padding: '0.5rem'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+
+              <input
+                type="text"
+                value={modalInstitutionInput}
+                onChange={async (e) => {
+                  const value = e.target.value;
+                  setModalInstitutionInput(value);
+                  if (value.length >= 2) {
+                    try {
+                      const res = await fetch(`https://api.openalex.org/institutions?search=${encodeURIComponent(value)}&per_page=20`);
+                      const data = await res.json();
+                      setModalInstitutionSuggestions(data.results || []);
+                    } catch {
+                      setModalInstitutionSuggestions([]);
+                    }
+                  } else {
+                    setModalInstitutionSuggestions([]);
+                  }
+                }}
+                placeholder="Type to search institutions..."
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  fontSize: 16,
+                  border: '1px solid #ccc',
+                  borderRadius: 4,
+                  background: '#333',
+                  color: '#fff',
+                  marginBottom: '1rem'
+                }}
+                autoFocus
+              />
+
+              <div style={{
+                flex: 1,
+                overflowY: 'auto',
+                border: '1px solid #ccc',
+                borderRadius: 4,
+                background: '#333'
+              }}>
+                {modalInstitutionSuggestions.map((institution) => (
+                  <div
+                    key={institution.id}
+                    onClick={() => {
+                      setSelectedInstitution(institution);
+                      setShowInstitutionModal(false);
+                    }}
+                    style={{
+                      padding: '0.75rem 1rem',
+                      cursor: 'pointer',
+                      color: '#fff',
+                      borderBottom: '1px solid #444',
+                      transition: 'background 0.15s'
+                    }}
+                    onMouseEnter={(e) => e.target.style.background = '#444'}
+                    onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                  >
+                    {institution.display_name}
+                  </div>
+                ))}
+                {modalInstitutionSuggestions.length === 0 && modalInstitutionInput.length >= 2 && (
+                  <div style={{ padding: '1rem', color: '#888', textAlign: 'center' }}>
+                    No institutions found
+                  </div>
+                )}
+                {modalInstitutionInput.length < 2 && (
+                  <div style={{ padding: '1rem', color: '#888', textAlign: 'center' }}>
+                    Type at least 2 characters to search
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
-      
-      {/* Disclaimer Box */}
-      <ApiCallInfoBox 
-        userInputs={userInputs} 
-        apiCalls={apiCalls} 
-        darkMode={darkMode} 
-      />
-      {showJournalModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          background: 'rgba(0,0,0,0.9)',
-          zIndex: 9999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <div style={{
-            background: '#222',
-            border: '1px solid #ccc',
-            borderRadius: 8,
-            padding: '2rem',
-            width: '90%',
-            maxWidth: 600,
-            maxHeight: '80vh',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h2 style={{ color: '#fff', margin: 0 }}>Select Journal</h2>
-              <button
-                onClick={() => setShowJournalModal(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#fff',
-                  fontSize: '1.5rem',
-                  cursor: 'pointer',
-                  padding: '0.5rem'
-                }}
-              >
-                ×
-              </button>
-            </div>
-
-            <input
-              type="text"
-              value={modalJournalInput}
-              onChange={async (e) => {
-                const value = e.target.value;
-                setModalJournalInput(value);
-                if (value.length >= 2) {
-                  try {
-                    const res = await fetch(`https://api.openalex.org/sources?filter=type:journal&search=${encodeURIComponent(value)}&per_page=20`);
-                    const data = await res.json();
-                    setModalJournalSuggestions(data.results || []);
-                  } catch {
-                    setModalJournalSuggestions([]);
-                  }
-                } else {
-                  setModalJournalSuggestions([]);
-                }
-              }}
-              placeholder="Type to search journals..."
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                fontSize: 16,
-                border: '1px solid #ccc',
-                borderRadius: 4,
-                background: '#333',
-                color: '#fff',
-                marginBottom: '1rem'
-              }}
-              autoFocus
-            />
-
-            <div style={{
-              flex: 1,
-              overflowY: 'auto',
-              border: '1px solid #ccc',
-              borderRadius: 4,
-              background: '#333'
-            }}>
-              {modalJournalSuggestions.map((journal) => (
-                <div
-                  key={journal.id}
-                  onClick={() => {
-                    setSelectedJournal(journal);
-                    setJournalInput(journal.display_name);
-                    setShowJournalModal(false);
-                  }}
-                  style={{
-                    padding: '0.75rem 1rem',
-                    cursor: 'pointer',
-                    color: '#fff',
-                    borderBottom: '1px solid #444',
-                    transition: 'background 0.15s'
-                  }}
-                  onMouseEnter={(e) => e.target.style.background = '#444'}
-                  onMouseLeave={(e) => e.target.style.background = 'transparent'}
-                >
-                  {journal.display_name}
-                </div>
-              ))}
-              {modalJournalSuggestions.length === 0 && modalJournalInput.length >= 2 && (
-                <div style={{ padding: '1rem', color: '#888', textAlign: 'center' }}>
-                  No journals found
-                </div>
-              )}
-              {modalJournalInput.length < 2 && (
-                <div style={{ padding: '1rem', color: '#888', textAlign: 'center' }}>
-                  Type at least 2 characters to search
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-      {showInstitutionModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          background: 'rgba(0,0,0,0.9)',
-          zIndex: 9999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <div style={{
-            background: '#222',
-            border: '1px solid #ccc',
-            borderRadius: 8,
-            padding: '2rem',
-            width: '90%',
-            maxWidth: 600,
-            maxHeight: '80vh',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h2 style={{ color: '#fff', margin: 0 }}>Select Institution</h2>
-              <button
-                onClick={() => setShowInstitutionModal(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#fff',
-                  fontSize: '1.5rem',
-                  cursor: 'pointer',
-                  padding: '0.5rem'
-                }}
-              >
-                ×
-              </button>
-            </div>
-
-            <input
-              type="text"
-              value={modalInstitutionInput}
-              onChange={async (e) => {
-                const value = e.target.value;
-                setModalInstitutionInput(value);
-                if (value.length >= 2) {
-                  try {
-                    const res = await fetch(`https://api.openalex.org/institutions?search=${encodeURIComponent(value)}&per_page=20`);
-                    const data = await res.json();
-                    setModalInstitutionSuggestions(data.results || []);
-                  } catch {
-                    setModalInstitutionSuggestions([]);
-                  }
-                } else {
-                  setModalInstitutionSuggestions([]);
-                }
-              }}
-              placeholder="Type to search institutions..."
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                fontSize: 16,
-                border: '1px solid #ccc',
-                borderRadius: 4,
-                background: '#333',
-                color: '#fff',
-                marginBottom: '1rem'
-              }}
-              autoFocus
-            />
-
-            <div style={{
-              flex: 1,
-              overflowY: 'auto',
-              border: '1px solid #ccc',
-              borderRadius: 4,
-              background: '#333'
-            }}>
-              {modalInstitutionSuggestions.map((institution) => (
-                <div
-                  key={institution.id}
-                  onClick={() => {
-                    setSelectedInstitution(institution);
-                    setShowInstitutionModal(false);
-                  }}
-                  style={{
-                    padding: '0.75rem 1rem',
-                    cursor: 'pointer',
-                    color: '#fff',
-                    borderBottom: '1px solid #444',
-                    transition: 'background 0.15s'
-                  }}
-                  onMouseEnter={(e) => e.target.style.background = '#444'}
-                  onMouseLeave={(e) => e.target.style.background = 'transparent'}
-                >
-                  {institution.display_name}
-                </div>
-              ))}
-              {modalInstitutionSuggestions.length === 0 && modalInstitutionInput.length >= 2 && (
-                <div style={{ padding: '1rem', color: '#888', textAlign: 'center' }}>
-                  No institutions found
-                </div>
-              )}
-              {modalInstitutionInput.length < 2 && (
-                <div style={{ padding: '1rem', color: '#888', textAlign: 'center' }}>
-                  Type at least 2 characters to search
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </>
   );
 };
 
