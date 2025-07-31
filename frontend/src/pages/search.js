@@ -10,7 +10,6 @@ import MultiSelectModalDropdown from '../components/shared/MultiSelectModalDropd
 import useDropdownSearch from '../hooks/useDropdownSearch';
 import ApiCallInfoBox from '../components/shared/ApiCallInfoBox';
 import Particles from '../components/animated/SearchBackground/Particles';
-import Lightning from '../components/animated/Lighting/Lightining';
 
 const OPENALEX_API_BASE = 'https://api.openalex.org';
 
@@ -43,10 +42,6 @@ const SearchPageLight = ({ darkMode = true }) => {
   // Disclaimer state
   const [userInputs, setUserInputs] = useState([]);
   const [apiCalls, setApiCalls] = useState([]);
-
-  // Background state
-  const [isSearchActive, setIsSearchActive] = useState(false);
-  const [backgroundTransition, setBackgroundTransition] = useState(false);
 
   // Dropdown state
   const [showAuthorModal, setShowAuthorModal] = useState(false);
@@ -151,11 +146,6 @@ const SearchPageLight = ({ darkMode = true }) => {
     setSelectedJournals([]);
     setResults([]);
     setError(null);
-    setBackgroundTransition(true);
-    setTimeout(() => {
-      setIsSearchActive(false);
-      setBackgroundTransition(false);
-    }, 300);
   };
 
   // Separate function for auto-search with URL parameters
@@ -164,11 +154,6 @@ const SearchPageLight = ({ darkMode = true }) => {
 
     setLoading(true);
     setError(null);
-    setBackgroundTransition(true);
-    setTimeout(() => {
-      setIsSearchActive(true);
-      setBackgroundTransition(false);
-    }, 300);
     if (page === 1) {
       setResults([]);
       setCurrentPage(1);
@@ -246,11 +231,6 @@ const SearchPageLight = ({ darkMode = true }) => {
   const handleSearch = async (page = 1) => {
     setLoading(true);
     setError(null);
-    setBackgroundTransition(true);
-    setTimeout(() => {
-      setIsSearchActive(true);
-      setBackgroundTransition(false);
-    }, 300);
     if (page === 1) {
       setResults([]);
       setCurrentPage(1);
@@ -376,21 +356,9 @@ const SearchPageLight = ({ darkMode = true }) => {
             right: 0,
             height: '600px',
             zIndex: 1,
-            pointerEvents: 'none',
-            transition: 'opacity 0.3s ease-in-out',
-            opacity: backgroundTransition ? 0.7 : 1
+            pointerEvents: 'none'
           }}>
-            {isSearchActive ? (
-              <Lightning
-                hue={260}
-                xOffset={0}
-                speed={loading ? 2.5 : 1.5}
-                intensity={loading ? 3.5 : 2.5}
-                size={loading ? 1.5 : 1.2}
-              />
-            ) : (
-              <Particles />
-            )}
+            <Particles />
           </div>
 
           {/* Search Interface Content */}

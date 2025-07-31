@@ -493,6 +493,31 @@ const GraphViewLight = ({ darkMode = true }) => {
                   }}>
                     {selectedInstitution ? selectedInstitution.display_name : "Click to search institutions..."}
                   </span>
+                  {selectedInstitution && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedInstitution(null);
+                      }}
+                      style={{
+                        background: '#dc3545',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '50%',
+                        width: '20px',
+                        height: '20px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginRight: '0.5rem'
+                      }}
+                      title="Remove institution"
+                    >
+                      ×
+                    </button>
+                  )}
                   <span style={{ color: '#888', marginLeft: '0.5rem' }}>▼</span>
                 </div>
               </div>
@@ -526,6 +551,32 @@ const GraphViewLight = ({ darkMode = true }) => {
                 }}>
                   {authorInput || "Click to search authors..."}
                 </span>
+                {selectedAuthor && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedAuthor(null);
+                      setAuthorInput('');
+                    }}
+                    style={{
+                      background: '#dc3545',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '20px',
+                      height: '20px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: '0.5rem'
+                    }}
+                    title="Remove author"
+                  >
+                    ×
+                  </button>
+                )}
                 <span style={{ color: '#888', marginLeft: '0.5rem' }}>▼</span>
               </div>
             </div>
@@ -1108,6 +1159,45 @@ const GraphViewLight = ({ darkMode = true }) => {
               borderRadius: 4,
               background: '#333'
             }}>
+              {/* Show selected author with delete option */}
+              {selectedAuthor && (
+                <div style={{
+                  padding: '0.75rem 1rem',
+                  background: '#4F6AF6',
+                  color: '#fff',
+                  borderBottom: '1px solid #555',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <span>{selectedAuthor.display_name}</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedAuthor(null);
+                      setAuthorInput('');
+                    }}
+                    style={{
+                      background: '#dc3545',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '24px',
+                      height: '24px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    title="Remove author"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+
+              {/* Show author suggestions */}
               {modalAuthorSuggestions.map((author) => (
                 <div
                   key={author.id}
@@ -1229,6 +1319,44 @@ const GraphViewLight = ({ darkMode = true }) => {
               borderRadius: 4,
               background: '#333'
             }}>
+              {/* Show selected institution with delete option */}
+              {selectedInstitution && (
+                <div style={{
+                  padding: '0.75rem 1rem',
+                  background: '#4F6AF6',
+                  color: '#fff',
+                  borderBottom: '1px solid #555',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <span>{selectedInstitution.display_name}</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedInstitution(null);
+                    }}
+                    style={{
+                      background: '#dc3545',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '24px',
+                      height: '24px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    title="Remove institution"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+
+              {/* Show institution suggestions */}
               {modalInstitutionSuggestions.map((institution) => (
                 <div
                   key={institution.id}
