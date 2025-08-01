@@ -136,7 +136,7 @@ export const LandingPageLight = () => {
       </div>
       
       {/* Bottom Section - outside particle area, opaque background */}
-      <div style={{ position: 'relative', zIndex: 2 }}>
+      <div style={{ position: 'relative', zIndex: 3 }}>
         <section className={styles.statisticsSection}>
           <div className={styles.statisticsGrid}>
             <DisclaimerBox />

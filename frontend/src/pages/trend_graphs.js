@@ -541,18 +541,8 @@ export const PositionDetailLight = ({ darkMode = true }) => {
 
                   {/* No Results Message */}
                   {!isLoadingTrend && !error && chartData.length === 0 && trendData && (
-                    <div style={{ 
-                      textAlign: 'center', 
-                      margin: '2rem 0',
-                      color: '#ccc',
-                      background: '#2a2a2a',
-                      border: '1px dashed #404040',
-                      borderRadius: '8px',
-                      padding: '2rem'
-                    }}>
-                      <p style={{ fontWeight: 'bold', fontSize: '1.125rem', color: '#fff', margin: 0 }}>
-                        No publications found
-                      </p>
+                    <div className={styles.noResultsMessage}>
+                      <p>No publications found</p>
                     </div>
                   )}
                 </div>

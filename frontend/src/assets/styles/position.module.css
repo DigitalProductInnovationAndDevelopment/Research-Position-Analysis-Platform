@@ -284,7 +284,7 @@
   margin-top: var(--spacing-xl);
   padding: var(--spacing-lg);
   background-color: var(--color-background-light);
-  border: 1px dashed var(--color-border);
+  border: 1px dotted var(--color-border);
   border-radius: var(--border-radius-md);
   color: var(--color-text-secondary);
 }

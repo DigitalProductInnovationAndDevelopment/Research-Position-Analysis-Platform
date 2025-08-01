@@ -92,15 +92,17 @@ export const AboutPage = ({ darkMode = true }) => {
               How to use SPARK
             </button>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'stretch', justifyContent: 'center', minHeight: '40vh', width: '100%' }}>
             <div style={{ 
               border: '2px solid #a259ff',
               borderRadius: '18px',
-              padding: '2rem 1.5rem 1.5rem 1.5rem',
+              padding: '3rem 2.5rem 2.5rem 2.5rem',
               maxWidth: 800, 
               width: '100%', 
               margin: '0 auto',
-              color: '#fff'
+              color: '#fff',
+              display: 'flex',
+              flexDirection: 'column'
             }}>
               {tab === "what" ? <WhatSparkDoesBox /> : <HowToUseSparkBox />}
             </div>

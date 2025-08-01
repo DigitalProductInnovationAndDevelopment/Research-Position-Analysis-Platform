@@ -103,15 +103,28 @@
   padding-bottom: var(--spacing-md); /* Reduce bottom padding */
 }
 
+.whatSparkDoesBox ol,
+.whatSparkDoesBox ul {
+  padding-left: 2rem; /* Add proper indentation */
+  margin-top: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.whatSparkDoesBox li {
+  margin-bottom: var(--spacing-xs);
+  list-style-position: outside; /* Ensure bullets/numbers are outside the content */
+}
+
 .howToUseSparkBox ol,
 .howToUseSparkBox ul {
-  padding-left: 0; /* Removed indent */
+  padding-left: 2rem; /* Add proper indentation */
   margin-top: var(--spacing-sm);
   margin-bottom: var(--spacing-md);
 }
 
 .howToUseSparkBox li {
   margin-bottom: var(--spacing-xs);
+  list-style-position: outside; /* Ensure bullets/numbers are outside the content */
 }
 
 .howToUseSparkBox p {
