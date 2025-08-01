@@ -281,12 +281,18 @@
 
 .noResultsMessage {
   text-align: center;
-  padding: 3rem;
-  color: #6b7280;
-  font-style: italic;
-  background: #f9fafb;
-  border-radius: 0.75rem;
-  border: 1px dashed #d1d5db;
+  margin-top: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background-color: var(--color-background-light);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-secondary);
+}
+
+.noResultsMessage p:first-child {
+  font-weight: bold;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-light);
 }
 
 .customTooltip {
@@ -431,9 +437,13 @@
 }
 
 :global(.dark) .noResultsMessage {
-  background: #2a2a2a;
-  border: 1px dashed #404040;
-  color: #ccc;
+  background-color: var(--color-card-background) !important;
+  border: 1px dashed var(--color-border);
+  color: var(--color-text-secondary) !important;
+}
+
+:global(.dark) .noResultsMessage p:first-child {
+  color: #fff !important;
 }
 
 :global(.dark) .customTooltip {

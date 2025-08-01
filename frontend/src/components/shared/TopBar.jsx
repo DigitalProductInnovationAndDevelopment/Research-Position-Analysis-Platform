@@ -3,11 +3,13 @@ import { Link, useLocation } from "react-router-dom";
 import searchIcon from "../../assets/icons/search.svg";
 import trendIcon from "../../assets/icons/trend.svg";
 import graphIcon from "../../assets/icons/graph.svg";
+import worldMapIcon from "../../assets/icons/world-map.svg";
 
 const navLinks = [
   { to: "/search", label: "Search", icon: searchIcon },
   { to: "/trends", label: "Topic Trends", icon: trendIcon },
   { to: "/graph-view", label: "Collaboration", icon: graphIcon },
+  { to: "/world-map", label: "World Map", icon: worldMapIcon },
   { to: "/about", label: "Learn More" },
 ];
 

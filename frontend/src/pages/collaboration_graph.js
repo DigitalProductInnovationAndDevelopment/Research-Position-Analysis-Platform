@@ -279,6 +279,19 @@ const GraphViewLight = ({ darkMode = true }) => {
               paddingTop: '2rem',
             }}
           >
+            {/* Title in top left */}
+            <div style={{
+              position: 'absolute',
+              top: '2rem',
+              left: '2rem',
+              color: '#4F6AF6',
+              fontWeight: 700,
+              fontSize: '2rem',
+              lineHeight: 1.1,
+            }}>
+              Collaboration Network
+            </div>
+            
             <h1
               style={{
                 color: '#4F6AF6',
