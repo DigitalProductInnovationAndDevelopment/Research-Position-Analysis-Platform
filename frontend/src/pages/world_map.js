@@ -189,7 +189,7 @@ const WorldMapPapersPage = () => {
   return (
     <>
       <TopBar />
-      <div style={{ background: '#1a1a1a', minHeight: '100vh', paddingBottom: 40 }}>
+      <div style={{ background: '#000', minHeight: '100vh', paddingBottom: 40 }}>
         {/* Search Background - covers the search interface area */}
         <div style={{ position: 'relative' }}>
           <div style={{ 

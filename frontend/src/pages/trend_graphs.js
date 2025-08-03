@@ -399,7 +399,7 @@ export const PositionDetailLight = ({ darkMode = true }) => {
   return (
     <>
       <TopBar />
-      <div style={{ background: '#1a1a1a', minHeight: '100vh', paddingBottom: 40 }} className={darkMode ? 'dark' : ''}>
+      <div style={{ background: '#000', minHeight: '100vh', paddingBottom: 40 }} className={darkMode ? 'dark' : ''}>
         {/* Search Background - covers the search interface area */}
         <div style={{ position: 'relative' }}>
           <div style={{ 
@@ -546,7 +546,7 @@ export const PositionDetailLight = ({ darkMode = true }) => {
                   {/* No Results Message */}
                   {!isLoadingTrend && !error && chartData.length === 0 && trendData && (
                     <div className={styles.noResultsMessage}>
-                      No trend data found for "{searchKeyword}". Try a different keyword or adjust the date range.
+                      <p>No publications found</p>
                     </div>
                   )}
                 </div>
