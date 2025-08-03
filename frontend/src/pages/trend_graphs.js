@@ -209,9 +209,8 @@ export const PositionDetailLight = ({ darkMode = true }) => {
       const filterString = filters.join(',');
       const params = new URLSearchParams();
       if (filterString) params.append('filter', filterString);
-      params.append('per_page', '200'); // Get more results for better trend analysis
-      params.append('page', '1');
-      params.append('sort', 'cited_by_count:desc');
+      params.append('group_by', 'publication_year');
+      params.append('per_page', '200');
       
       const apiUrl = `https://api.openalex.org/works?${params.toString()}`;
       
@@ -228,21 +227,22 @@ export const PositionDetailLight = ({ darkMode = true }) => {
       const data = await response.json();
 
       // Check if we have any results
-      if (!data.results || data.results.length === 0) {
+      if (!data.group_by || data.group_by.length === 0) {
         setError("No publications found for the given keyword and filters.");
         return;
       }
 
-      // Process OpenAlex data to create trend analysis
+      // Process group_by data to create trend analysis
       const yearlyDistribution = {};
       let totalPublications = 0;
       
-      // Count publications by year
-      data.results.forEach(work => {
-        const year = work.publication_year;
-        if (year) {
-          yearlyDistribution[year] = (yearlyDistribution[year] || 0) + 1;
-          totalPublications++;
+      // Process group_by results
+      data.group_by.forEach(group => {
+        const year = group.key;
+        const count = group.count;
+        if (year && count > 0) {
+          yearlyDistribution[year] = count;
+          totalPublications += count;
         }
       });
 

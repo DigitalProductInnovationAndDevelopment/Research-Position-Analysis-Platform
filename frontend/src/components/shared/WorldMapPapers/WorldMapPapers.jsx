@@ -213,20 +213,65 @@ const countryCentroids = {
   LI: [9.5554, 47.1660],      // Liechtenstein
 };
 
-const getCountryCentroid = (countryCode) => countryCentroids[countryCode] || [0, 0];
+const getCountryCentroid = (countryCode) => {
+  if (!countryCode) return null;
+  
+  // Normalize country code to uppercase
+  const normalizedCode = countryCode.toUpperCase();
+  
+  // Direct lookup
+  if (countryCentroids[normalizedCode]) {
+    return countryCentroids[normalizedCode];
+  }
+  
+  // Handle common variations
+  const codeVariations = {
+    'GERMANY': 'DE',
+    'DEUTSCHLAND': 'DE',
+    'UNITED STATES': 'US',
+    'USA': 'US',
+    'UNITED KINGDOM': 'GB',
+    'UK': 'GB',
+    'CHINA': 'CN',
+    'JAPAN': 'JP',
+    'FRANCE': 'FR',
+    'ITALY': 'IT',
+    'SPAIN': 'ES',
+    'NETHERLANDS': 'NL',
+    'SWEDEN': 'SE',
+    'SWITZERLAND': 'CH',
+    'CANADA': 'CA',
+    'AUSTRALIA': 'AU'
+  };
+  
+  // Try variations
+  if (codeVariations[normalizedCode]) {
+    return countryCentroids[codeVariations[normalizedCode]];
+  }
+  
+  // Try partial matches
+  for (const [variation, code] of Object.entries(codeVariations)) {
+    if (normalizedCode.includes(variation) || variation.includes(normalizedCode)) {
+      return countryCentroids[code];
+    }
+  }
+  
+  return null;
+};
 
 const OPENALEX_API_BASE = 'https://api.openalex.org';
 
 const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerSearch = false, searchResults = null }) => {
   const [papers, setPapers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [tooltipContent, setTooltipContent] = useState('');
-  const [mapError, setMapError] = useState(false);
   const [fetchError, setFetchError] = useState(null);
+  const [mapError, setMapError] = useState(false);
+  const [tooltipContent, setTooltipContent] = useState(null);
+  const [zoom, setZoom] = useState(1);
 
   useEffect(() => {
-    // If search results are provided from parent, use those
     if (searchResults && searchResults.length > 0) {
+      // Process searchResults directly
       const mapped = searchResults.map((work, idx) => {
         // Try to get first author institution country and coordinates
         let country = null;
@@ -264,24 +309,84 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerS
           institution: institution || null
         };
       }).filter(Boolean);
-      setPapers(mapped);
-      setLoading(false);
-      setFetchError(null);
-    } else if (triggerSearch && searchQuery && searchQuery.trim().length > 0) {
-      // Fallback to own API call if no results provided
-      fetchPapersByQuery(searchQuery.trim());
-    } else if (!triggerSearch) {
-      // Reset to empty state when not searching
+
+      // Ensure all countries from leadership analysis have markers
+      const countriesWithMarkers = new Set(mapped.map(p => p.country));
+      const additionalMarkers = [];
+
+      // Get all unique countries from the search results
+      const allCountriesInData = new Set();
+      searchResults.forEach((work) => {
+        let country = null;
+        if (work.authorships && work.authorships.length > 0) {
+          const firstAuth = work.authorships[0];
+          if (firstAuth.institutions && firstAuth.institutions.length > 0) {
+            const inst = firstAuth.institutions[0];
+            country = inst.country_code || inst.country || null;
+          }
+        }
+        if (!country && work.country_code) {
+          country = work.country_code;
+        }
+        if (country) {
+          allCountriesInData.add(country);
+        }
+      });
+
+      // Create markers for ALL countries that appear in the data
+      allCountriesInData.forEach((country) => {
+        const coordinates = getCountryCentroid(country);
+        if (coordinates) {
+          // If country doesn't have any markers yet, create one
+          if (!countriesWithMarkers.has(country)) {
+            additionalMarkers.push({
+              id: `additional-${country}`,
+              title: `Research papers from ${country}`,
+              authors: [],
+              citations: 0,
+              country,
+              coordinates,
+              year: null,
+              institution: null,
+              isAdditional: true
+            });
+            countriesWithMarkers.add(country);
+          }
+        }
+      });
+      const allMarkers = [...mapped, ...additionalMarkers];
+      setPapers(allMarkers);
+    } else if (triggerSearch && searchQuery) {
+      fetchPapersByQuery(searchQuery);
+    } else {
       setPapers([]);
-      setFetchError(null);
-      setLoading(false);
-      // Update API calls for disclaimer
-      if (onApiCallsUpdate) {
-        onApiCallsUpdate([]);
-      }
     }
-    // eslint-disable-next-line
-  }, [triggerSearch, searchQuery, searchResults]);
+  }, [searchResults, triggerSearch, searchQuery]);
+
+  // Add global event listeners to prevent zoom
+  useEffect(() => {
+    const handleWheel = (e) => {
+      if (e.ctrlKey) {
+        e.preventDefault(); // Prevent zoom on ctrl + wheel
+      }
+    };
+
+    const handleGesture = (e) => {
+      e.preventDefault(); // Prevent pinch zoom on Mac trackpad
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    window.addEventListener('gesturestart', handleGesture, { passive: false });
+    window.addEventListener('gesturechange', handleGesture, { passive: false });
+    window.addEventListener('gestureend', handleGesture, { passive: false });
+
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('gesturestart', handleGesture);
+      window.removeEventListener('gesturechange', handleGesture);
+      window.removeEventListener('gestureend', handleGesture);
+    };
+  }, []);
 
   const fetchPapersByQuery = async (query) => {
     const trimmed = (query || '').trim();
@@ -301,7 +406,7 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerS
       const filter = `title_and_abstract.search:"${trimmed.replace(/"/g, '\\"')}"`;
       const params = new URLSearchParams({
         filter,
-        per_page: 20
+        per_page: 100
       });
       const apiUrl = `${OPENALEX_API_BASE}/works?${params.toString()}`;
       
@@ -372,6 +477,7 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerS
 
   // Helper to offset markers with the same coordinates
   function offsetMarkers(papers) {
+    
     // Group by coordinates as string
     const groups = {};
     papers.forEach((paper) => {
@@ -381,6 +487,7 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerS
         groups[key].push(paper);
       }
     });
+    
     // Offset each group
     const R = 2.5; // increased degrees offset radius
     const result = [];
@@ -399,6 +506,7 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerS
         });
       }
     });
+    
     return result;
   }
 
@@ -445,6 +553,19 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerS
 
   const handleMapError = () => {
     setMapError(true);
+  };
+
+  // Zoom control functions
+  const handleZoomIn = () => {
+    setZoom(prevZoom => Math.min(prevZoom + 0.5, 4));
+  };
+
+  const handleZoomOut = () => {
+    setZoom(prevZoom => Math.max(prevZoom - 0.5, 0.8));
+  };
+
+  const handleZoomReset = () => {
+    setZoom(1);
   };
 
   return (
@@ -520,7 +641,34 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerS
           </button>
         </div>
       ) : papers.length > 0 && (
-        <div className={styles.mapContainer}>
+        <div 
+          className={styles.mapContainer}
+        >
+          {/* Zoom Controls */}
+          <div className={styles.zoomControls}>
+            <button 
+              className={styles.zoomButton} 
+              onClick={handleZoomIn}
+              title="Zoom In"
+            >
+              +
+            </button>
+            <button 
+              className={styles.zoomButton} 
+              onClick={handleZoomOut}
+              title="Zoom Out"
+            >
+              −
+            </button>
+            <button 
+              className={styles.zoomButton} 
+              onClick={handleZoomReset}
+              title="Reset Zoom"
+            >
+              ⌂
+            </button>
+          </div>
+          
           <ComposableMap
             projection="geoEqualEarth"
             projectionConfig={{
@@ -534,9 +682,11 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerS
           >
             <ZoomableGroup
               center={[0, 0]}
-              zoom={1}
+              zoom={zoom}
               maxZoom={4}
               minZoom={0.8}
+              disablePanning={false}
+              disableZooming={true}
             >
               <Geographies 
                 geography="https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson"
@@ -559,23 +709,29 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerS
                   ));
                 }}
               </Geographies>
-              {offsetMarkers(papers.slice(0, 20)).map((paper) => (
-                <Marker
-                  key={paper.id}
-                  coordinates={paper.coordinates}
-                  onClick={() => handleMarkerClick(paper)}
-                  onMouseEnter={e => handleMarkerMouseEnter(paper, e)}
-                  onMouseLeave={handleMarkerMouseLeave}
-                >
-                  <circle
-                    r={getMarkerSize(paper.citations)}
-                    fill={getMarkerColor(paper.citations)}
-                    stroke="#fff"
-                    strokeWidth={2}
-                    className={styles.marker}
-                  />
-                </Marker>
-              ))}
+              {(() => {
+                const markersToRender = offsetMarkers(papers.slice(0, 100));
+                
+                return markersToRender.map((paper) => {
+                  return (
+                    <Marker
+                      key={paper.id}
+                      coordinates={paper.coordinates}
+                      onClick={() => handleMarkerClick(paper)}
+                      onMouseEnter={e => handleMarkerMouseEnter(paper, e)}
+                      onMouseLeave={handleMarkerMouseLeave}
+                    >
+                      <circle
+                        r={getMarkerSize(paper.citations)}
+                        fill={getMarkerColor(paper.citations)}
+                        stroke="#fff"
+                        strokeWidth={2}
+                        className={styles.marker}
+                      />
+                    </Marker>
+                  );
+                });
+              })()}
             </ZoomableGroup>
           </ComposableMap>
         </div>
