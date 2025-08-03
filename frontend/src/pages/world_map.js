@@ -30,6 +30,10 @@ const WorldMapPapersPage = () => {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  // Search trigger state
+  const [triggerSearch, setTriggerSearch] = useState(false);
+  // Search results state
+  const [searchResults, setSearchResults] = useState([]);
 
   // Disclaimer state
   const [userInputs, setUserInputs] = useState([]);
@@ -103,6 +107,7 @@ const WorldMapPapersPage = () => {
   const handleSearch = async () => {
     setLoading(true);
     setError(null);
+    setTriggerSearch(true); // Trigger the search
     
     // Track user inputs for disclaimer
     const inputs = [];
@@ -162,13 +167,16 @@ const WorldMapPapersPage = () => {
       if (!response.ok) throw new Error('Failed to fetch search results');
       const data = await response.json();
       
-      // Pass the search results to WorldMapPapers component
-      // You might need to update the WorldMapPapers component to accept these results
+      // Store the search results for the world map
+      setSearchResults(data.results || []);
       
     } catch (e) {
       setError(e.message || 'Failed to fetch search results');
+      setSearchResults([]);
     } finally {
       setLoading(false);
+      // Reset trigger after a short delay to allow the component to process
+      setTimeout(() => setTriggerSearch(false), 100);
     }
   };
 
@@ -270,6 +278,8 @@ const WorldMapPapersPage = () => {
             publicationYear={publicationYear}
             startYear={startYear}
             endYear={endYear}
+            triggerSearch={triggerSearch}
+            searchResults={searchResults}
           />
 
           {/* Author Modal Dropdown */}

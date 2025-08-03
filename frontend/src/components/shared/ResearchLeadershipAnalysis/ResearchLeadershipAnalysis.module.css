@@ -1,7 +1,7 @@
 .analysisContainer {
-  background: #ffffff;
+  background: #1a1a1a;
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   padding: 24px;
   margin: 20px 0;
   position: relative;
@@ -14,7 +14,7 @@
 }
 
 .header h3 {
-  color: #2c3e50;
+  color: #ffffff;
   font-size: 24px;
   font-weight: 700;
   margin: 0 0 8px 0;
@@ -25,7 +25,7 @@
 }
 
 .header p {
-  color: #7f8c8d;
+  color: #b0b0b0;
   font-size: 16px;
   margin: 0;
   font-weight: 400;
@@ -39,10 +39,10 @@
 }
 
 .analysisCard {
-  background: #f8f9fa;
+  background: #2a2a2a;
   border-radius: 8px;
   padding: 20px;
-  border: 1px solid #e9ecef;
+  border: 1px solid #404040;
   transition: all 0.3s ease;
 }
 
@@ -52,7 +52,7 @@
 }
 
 .analysisCard h4 {
-  color: #2c3e50;
+  color: #ffffff;
   font-size: 18px;
   font-weight: 600;
   margin: 0 0 16px 0;
@@ -72,14 +72,14 @@
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: white;
+  background: #1a1a1a;
   border-radius: 6px;
-  border: 1px solid #e9ecef;
+  border: 1px solid #404040;
   transition: all 0.2s ease;
 }
 
 .statItem:hover {
-  background: #f8f9fa;
+  background: #2a2a2a;
   border-color: #667eea;
 }
 
@@ -125,7 +125,7 @@
 
 .name {
   font-weight: 600;
-  color: #2c3e50;
+  color: #ffffff;
   font-size: 14px;
   margin-bottom: 4px;
   white-space: nowrap;
@@ -137,7 +137,7 @@
   display: flex;
   gap: 12px;
   font-size: 12px;
-  color: #6c757d;
+  color: #b0b0b0;
 }
 
 .citations {
@@ -155,14 +155,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  background: white;
+  background: #1a1a1a;
   border-radius: 4px;
-  border: 1px solid #e9ecef;
+  border: 1px solid #404040;
 }
 
 .year {
   font-weight: 600;
-  color: #2c3e50;
+  color: #ffffff;
   font-size: 14px;
 }
 
@@ -170,7 +170,7 @@
   display: flex;
   gap: 12px;
   font-size: 12px;
-  color: #6c757d;
+  color: #b0b0b0;
 }
 
 .summaryStats {
@@ -182,9 +182,9 @@
 .summaryItem {
   text-align: center;
   padding: 16px;
-  background: white;
+  background: #1a1a1a;
   border-radius: 6px;
-  border: 1px solid #e9ecef;
+  border: 1px solid #404040;
 }
 
 .summaryValue {
@@ -196,7 +196,7 @@
 
 .summaryLabel {
   font-size: 12px;
-  color: #6c757d;
+  color: #b0b0b0;
   font-weight: 500;
 }
 
@@ -225,7 +225,7 @@
 }
 
 .loading p {
-  color: #7f8c8d;
+  color: #b0b0b0;
   font-size: 14px;
   margin: 0;
 }
@@ -277,73 +277,5 @@
 
   .summaryValue {
     font-size: 20px;
-  }
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .analysisContainer {
-    background: #1a1a1a;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  }
-
-  .header h3 {
-    color: #ffffff;
-  }
-
-  .header p {
-    color: #b0b0b0;
-  }
-
-  .analysisCard {
-    background: #2a2a2a;
-    border-color: #404040;
-  }
-
-  .analysisCard h4 {
-    color: #ffffff;
-  }
-
-  .statItem {
-    background: #1a1a1a;
-    border-color: #404040;
-  }
-
-  .statItem:hover {
-    background: #2a2a2a;
-  }
-
-  .name {
-    color: #ffffff;
-  }
-
-  .metrics {
-    color: #b0b0b0;
-  }
-
-  .trendItem {
-    background: #1a1a1a;
-    border-color: #404040;
-  }
-
-  .year {
-    color: #ffffff;
-  }
-
-  .trendMetrics {
-    color: #b0b0b0;
-  }
-
-  .summaryItem {
-    background: #1a1a1a;
-    border-color: #404040;
-  }
-
-  .summaryLabel {
-    color: #b0b0b0;
-  }
-
-  .loading p {
-    color: #b0b0b0;
   }
 } 
