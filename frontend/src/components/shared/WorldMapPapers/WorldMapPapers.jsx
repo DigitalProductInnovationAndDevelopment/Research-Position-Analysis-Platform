@@ -217,133 +217,76 @@ const getCountryCentroid = (countryCode) => countryCentroids[countryCode] || [0,
 
 const OPENALEX_API_BASE = 'https://api.openalex.org';
 
-const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate }) => {
+const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerSearch = false, searchResults = null }) => {
   const [papers, setPapers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [tooltipContent, setTooltipContent] = useState('');
   const [mapError, setMapError] = useState(false);
   const [fetchError, setFetchError] = useState(null);
 
-  // Sample data structure for fallback
-  const samplePapers = [
-    {
-      id: 1,
-      title: "Attention Is All You Need",
-      authors: ["Vaswani, A.", "Shazeer, N.", "Parmar, N."],
-      citations: 45000,
-      country: "US",
-      coordinates: [-95.7129, 37.0902],
-      year: 2017,
-      institution: "Google Research"
-    },
-    {
-      id: 2,
-      title: "BERT: Pre-training of Deep Bidirectional Transformers",
-      authors: ["Devlin, J.", "Chang, M.W.", "Lee, K."],
-      citations: 38000,
-      country: "US",
-      coordinates: [-95.7129, 37.0902],
-      year: 2018,
-      institution: "Google AI"
-    },
-    {
-      id: 3,
-      title: "Deep Learning",
-      authors: ["LeCun, Y.", "Bengio, Y.", "Hinton, G."],
-      citations: 35000,
-      country: "CA",
-      coordinates: [-106.3468, 56.1304],
-      year: 2015,
-      institution: "University of Toronto"
-    },
-    {
-      id: 4,
-      title: "ImageNet Classification with Deep Convolutional Neural Networks",
-      authors: ["Krizhevsky, A.", "Sutskever, I.", "Hinton, G.E."],
-      citations: 32000,
-      country: "CA",
-      coordinates: [-106.3468, 56.1304],
-      year: 2012,
-      institution: "University of Toronto"
-    },
-    {
-      id: 5,
-      title: "Generative Adversarial Networks",
-      authors: ["Goodfellow, I.", "Pouget-Abadie, J.", "Mirza, M."],
-      citations: 30000,
-      country: "US",
-      coordinates: [-95.7129, 37.0902],
-      year: 2014,
-      institution: "University of Montreal"
-    },
-    {
-      id: 6,
-      title: "ResNet: Deep Residual Learning for Image Recognition",
-      authors: ["He, K.", "Zhang, X.", "Ren, S."],
-      citations: 28000,
-      country: "CN",
-      coordinates: [104.1954, 35.8617],
-      year: 2015,
-      institution: "Microsoft Research"
-    },
-    {
-      id: 7,
-      title: "YOLO: Real-Time Object Detection",
-      authors: ["Redmon, J.", "Divvala, S.", "Girshick, R."],
-      citations: 25000,
-      country: "US",
-      coordinates: [-95.7129, 37.0902],
-      year: 2016,
-      institution: "University of Washington"
-    },
-    {
-      id: 8,
-      title: "Transformer: A Novel Neural Network Architecture",
-      authors: ["Vaswani, A.", "Shazeer, N.", "Parmar, N."],
-      citations: 22000,
-      country: "GB",
-      coordinates: [-0.1278, 51.5074],
-      year: 2017,
-      institution: "Google DeepMind"
-    },
-    {
-      id: 9,
-      title: "AlphaGo: Mastering the Game of Go",
-      authors: ["Silver, D.", "Huang, A.", "Maddison, C."],
-      citations: 20000,
-      country: "GB",
-      coordinates: [-0.1278, 51.5074],
-      year: 2016,
-      institution: "Google DeepMind"
-    },
-    {
-      id: 10,
-      title: "GPT: Improving Language Understanding",
-      authors: ["Radford, A.", "Narasimhan, K.", "Salimans, T."],
-      citations: 18000,
-      country: "US",
-      coordinates: [-95.7129, 37.0902],
-      year: 2018,
-      institution: "OpenAI"
-    }
-  ];
-
   useEffect(() => {
-    const trimmedQuery = (searchQuery || '').trim();
-    if (trimmedQuery.length > 0) {
-      fetchPapersByQuery(trimmedQuery);
-    } else {
-      setPapers(samplePapers);
+    // If search results are provided from parent, use those
+    if (searchResults && searchResults.length > 0) {
+      const mapped = searchResults.map((work, idx) => {
+        // Try to get first author institution country and coordinates
+        let country = null;
+        let coordinates = null;
+        let institution = null;
+        if (work.authorships && work.authorships.length > 0) {
+          const firstAuth = work.authorships[0];
+          if (firstAuth.institutions && firstAuth.institutions.length > 0) {
+            const inst = firstAuth.institutions[0];
+            country = inst.country_code || inst.country || null;
+            institution = inst.display_name || null;
+            // If OpenAlex provides lat/lon, use it (not always available)
+            if (inst.latitude && inst.longitude) {
+              coordinates = [inst.longitude, inst.latitude];
+            } else if (country) {
+              coordinates = getCountryCentroid(country);
+            }
+          }
+        }
+        // Fallback: use country from work if available
+        if (!coordinates && work.country_code) {
+          coordinates = getCountryCentroid(work.country_code);
+          country = work.country_code;
+        }
+        // Fallback: skip if no coordinates
+        if (!coordinates) return null;
+        return {
+          id: work.id || idx,
+          title: work.title || work.display_name || 'Untitled',
+          authors: work.authorships ? work.authorships.map(a => a.author?.display_name || '').filter(Boolean) : [],
+          citations: work.citation_count || work.cited_by_count || 0,
+          country,
+          coordinates,
+          year: work.publication_year || null,
+          institution: institution || null
+        };
+      }).filter(Boolean);
+      setPapers(mapped);
+      setLoading(false);
+      setFetchError(null);
+    } else if (triggerSearch && searchQuery && searchQuery.trim().length > 0) {
+      // Fallback to own API call if no results provided
+      fetchPapersByQuery(searchQuery.trim());
+    } else if (!triggerSearch) {
+      // Reset to empty state when not searching
+      setPapers([]);
       setFetchError(null);
       setLoading(false);
+      // Update API calls for disclaimer
+      if (onApiCallsUpdate) {
+        onApiCallsUpdate([]);
+      }
     }
     // eslint-disable-next-line
-  }, [searchQuery]);
+  }, [triggerSearch, searchQuery, searchResults]);
 
   const fetchPapersByQuery = async (query) => {
     const trimmed = (query || '').trim();
     if (!trimmed) {
-      setPapers(samplePapers);
+      setPapers([]);
       setFetchError(null);
       setLoading(false);
       // Update API calls for disclaimer
@@ -522,6 +465,52 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate }) => {
           <p>{fetchError}</p>
         </div>
       )}
+      {!loading && !fetchError && papers.length === 0 && searchQuery && (
+        <div className={styles.emptyStateContainer}>
+          <div className={styles.emptyStateIcon}>🔍</div>
+          <h3 className={styles.emptyStateTitle}>No Results Found</h3>
+          <p className={styles.emptyStateSubtitle}>
+            No research papers found for your search query. Try different keywords or filters to discover relevant research.
+          </p>
+          <div className={styles.emptyStateFeatures}>
+            <div className={styles.emptyStateFeature}>
+              <div className={styles.featureIcon}>📝</div>
+              <div className={styles.featureText}>Try different keywords</div>
+            </div>
+            <div className={styles.emptyStateFeature}>
+              <div className={styles.featureIcon}>🔬</div>
+              <div className={styles.featureText}>Use specific terms</div>
+            </div>
+            <div className={styles.emptyStateFeature}>
+              <div className={styles.featureIcon}>🌍</div>
+              <div className={styles.featureText}>Check filters</div>
+            </div>
+          </div>
+        </div>
+      )}
+      {!loading && !fetchError && papers.length === 0 && !searchQuery && (
+        <div className={styles.emptyStateContainer}>
+          <div className={styles.emptyStateIcon}>🌍</div>
+          <h3 className={styles.emptyStateTitle}>Discover Global Research Impact</h3>
+          <p className={styles.emptyStateSubtitle}>
+            Enter keywords in the search box above to find research papers and visualize their global impact on the world map.
+          </p>
+          <div className={styles.emptyStateFeatures}>
+            <div className={styles.emptyStateFeature}>
+              <div className={styles.featureIcon}>📊</div>
+              <div className={styles.featureText}>Citation Analysis</div>
+            </div>
+            <div className={styles.emptyStateFeature}>
+              <div className={styles.featureIcon}>🏆</div>
+              <div className={styles.featureText}>Research Leadership</div>
+            </div>
+            <div className={styles.emptyStateFeature}>
+              <div className={styles.featureIcon}>🎯</div>
+              <div className={styles.featureText}>Global Impact</div>
+            </div>
+          </div>
+        </div>
+      )}
       {mapError ? (
         <div className={styles.errorContainer}>
           <h3>Map Loading Error</h3>
@@ -530,7 +519,7 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate }) => {
             Retry
           </button>
         </div>
-      ) : (
+      ) : papers.length > 0 && (
         <div className={styles.mapContainer}>
           <ComposableMap
             projection="geoEqualEarth"
@@ -592,31 +581,33 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate }) => {
         </div>
       )}
       
-      <div className={styles.legend}>
-        <h4>Citation Impact Legend</h4>
-        <div className={styles.legendItems}>
-          <div className={styles.legendItem}>
-            <div className={styles.legendDot} style={{ backgroundColor: '#ff4444', width: '12px', height: '12px' }}></div>
-            <span>20,000+ citations</span>
-          </div>
-          <div className={styles.legendItem}>
-            <div className={styles.legendDot} style={{ backgroundColor: '#ff8800', width: '10px', height: '10px' }}></div>
-            <span>15,000+ citations</span>
-          </div>
-          <div className={styles.legendItem}>
-            <div className={styles.legendDot} style={{ backgroundColor: '#ffcc00', width: '8px', height: '8px' }}></div>
-            <span>10,000+ citations</span>
-          </div>
-          <div className={styles.legendItem}>
-            <div className={styles.legendDot} style={{ backgroundColor: '#88ff00', width: '6px', height: '6px' }}></div>
-            <span>5,000+ citations</span>
-          </div>
-          <div className={styles.legendItem}>
-            <div className={styles.legendDot} style={{ backgroundColor: '#44ff44', width: '4px', height: '4px' }}></div>
-            <span>&lt; 5,000 citations</span>
+      {papers.length > 0 && (
+        <div className={styles.legend}>
+          <h4>Citation Impact Legend</h4>
+          <div className={styles.legendItems}>
+            <div className={styles.legendItem}>
+              <div className={styles.legendDot} style={{ backgroundColor: '#ff4444', width: '12px', height: '12px' }}></div>
+              <span>20,000+ citations</span>
+            </div>
+            <div className={styles.legendItem}>
+              <div className={styles.legendDot} style={{ backgroundColor: '#ff8800', width: '10px', height: '10px' }}></div>
+              <span>15,000+ citations</span>
+            </div>
+            <div className={styles.legendItem}>
+              <div className={styles.legendDot} style={{ backgroundColor: '#ffcc00', width: '8px', height: '8px' }}></div>
+              <span>10,000+ citations</span>
+            </div>
+            <div className={styles.legendItem}>
+              <div className={styles.legendDot} style={{ backgroundColor: '#88ff00', width: '6px', height: '6px' }}></div>
+              <span>5,000+ citations</span>
+            </div>
+            <div className={styles.legendItem}>
+              <div className={styles.legendDot} style={{ backgroundColor: '#44ff44', width: '4px', height: '4px' }}></div>
+              <span>&lt; 5,000 citations</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
       
       {/* Research Leadership Analysis */}
       {papers.length > 0 && !loading && (
