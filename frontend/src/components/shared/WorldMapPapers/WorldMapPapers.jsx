@@ -279,6 +279,135 @@ const WorldMapPapers = ({
   const [mapError, setMapError] = useState(false);
   const [tooltipContent, setTooltipContent] = useState(null);
   const [zoom, setZoom] = useState(1);
+  
+  // Local state for slider values (for dynamic display without API calls)
+  const [localTotalPapers, setLocalTotalPapers] = useState(totalPapers);
+  const [localPapersPerCountry, setLocalPapersPerCountry] = useState(papersPerCountry);
+
+  // Update local state when props change
+  useEffect(() => {
+    setLocalTotalPapers(totalPapers);
+  }, [totalPapers]);
+
+  useEffect(() => {
+    setLocalPapersPerCountry(papersPerCountry);
+  }, [papersPerCountry]);
+
+  // Local handlers for sliders (no API calls)
+  const handleLocalTotalPapersChange = (value) => {
+    setLocalTotalPapers(value);
+    // Ensure papers per country doesn't exceed total papers
+    if (localPapersPerCountry > value) {
+      setLocalPapersPerCountry(value);
+    }
+  };
+
+  const handleLocalPapersPerCountryChange = (value) => {
+    setLocalPapersPerCountry(Math.min(value, localTotalPapers));
+  };
+
+  // Re-process papers when local slider values change
+  useEffect(() => {
+    if (searchResults && searchResults.length > 0) {
+      // Re-process the existing search results with new slider values
+      const mapped = searchResults.map((work, idx) => {
+        // Try to get first author institution country and coordinates
+        let country = null;
+        let coordinates = null;
+        let institution = null;
+        if (work.authorships && work.authorships.length > 0) {
+          const firstAuth = work.authorships[0];
+          if (firstAuth.institutions && firstAuth.institutions.length > 0) {
+            const inst = firstAuth.institutions[0];
+            country = inst.country_code || inst.country || null;
+            institution = inst.display_name || null;
+            // If OpenAlex provides lat/lon, use it (not always available)
+            if (inst.latitude && inst.longitude) {
+              coordinates = [inst.longitude, inst.latitude];
+            } else if (country) {
+              coordinates = getCountryCentroid(country);
+            }
+          }
+        }
+        // Fallback: use country from work if available
+        if (!coordinates && work.country_code) {
+          coordinates = getCountryCentroid(work.country_code);
+          country = work.country_code;
+        }
+        // Fallback: skip if no coordinates
+        if (!coordinates) return null;
+        return {
+          id: work.id || idx,
+          title: work.title || work.display_name || 'Untitled',
+          authors: work.authorships ? work.authorships.map(a => a.author?.display_name || '').filter(Boolean) : [],
+          citations: work.citation_count || work.cited_by_count || 0,
+          country,
+          coordinates,
+          year: work.publication_year || null,
+          institution: institution || null
+        };
+      }).filter(Boolean);
+
+      // Ensure all countries from leadership analysis have markers
+      const countriesWithMarkers = new Set(mapped.map(p => p.country));
+      const additionalMarkers = [];
+
+      // Get all unique countries from the search results
+      const allCountriesInData = new Set();
+      searchResults.forEach((work) => {
+        let country = null;
+        if (work.authorships && work.authorships.length > 0) {
+          const firstAuth = work.authorships[0];
+          if (firstAuth.institutions && firstAuth.institutions.length > 0) {
+            const inst = firstAuth.institutions[0];
+            country = inst.country_code || inst.country || null;
+          }
+        }
+        if (!country && work.country_code) {
+          country = work.country_code;
+        }
+        if (country) {
+          allCountriesInData.add(country);
+        }
+      });
+
+      // Limit papers per country
+      const countryPaperCounts = {};
+      const limitedMapped = mapped.filter(paper => {
+        const country = paper.country;
+        if (!country) return false;
+        
+        countryPaperCounts[country] = (countryPaperCounts[country] || 0) + 1;
+        return countryPaperCounts[country] <= localPapersPerCountry;
+      });
+
+      // Create markers for ALL countries that appear in the data
+      allCountriesInData.forEach((country) => {
+        const coordinates = getCountryCentroid(country);
+        if (coordinates) {
+          // If country doesn't have any markers yet, create one
+          if (!countriesWithMarkers.has(country)) {
+            additionalMarkers.push({
+              id: `additional-${country}`,
+              title: `Research papers from ${country}`,
+              authors: [],
+              citations: 0,
+              country,
+              coordinates,
+              year: null,
+              institution: null,
+              isAdditional: true
+            });
+            countriesWithMarkers.add(country);
+          }
+        }
+      });
+
+      setPapers([...limitedMapped, ...additionalMarkers]);
+      setLoading(false);
+      setFetchError(null);
+    }
+  }, [searchResults, localTotalPapers, localPapersPerCountry]);
 
   useEffect(() => {
     if (searchResults && searchResults.length > 0) {
@@ -351,7 +480,7 @@ const WorldMapPapers = ({
         if (!country) return false;
         
         countryPaperCounts[country] = (countryPaperCounts[country] || 0) + 1;
-        return countryPaperCounts[country] <= papersPerCountry;
+        return countryPaperCounts[country] <= localPapersPerCountry;
       });
 
       // Create markers for ALL countries that appear in the data
@@ -498,13 +627,15 @@ const WorldMapPapers = ({
 
   // Helper to offset markers with the same coordinates
   function offsetMarkers(papers) {
+    // First, limit total papers to display
+    const limitedPapers = papers.slice(0, localTotalPapers);
     
     // Group by coordinates as string
     const groups = {};
-    papers.forEach((paper) => {
+    limitedPapers.forEach((paper) => {
       const key = paper.coordinates.join(',');
       if (!groups[key]) groups[key] = [];
-      if (groups[key].length < 5) { // Only allow up to 5 papers per country
+      if (groups[key].length < localPapersPerCountry) { // Use local slider value for papers per country
         groups[key].push(paper);
       }
     });
@@ -731,7 +862,7 @@ const WorldMapPapers = ({
                 }}
               </Geographies>
               {(() => {
-                const markersToRender = offsetMarkers(papers.slice(0, 100));
+                const markersToRender = offsetMarkers(papers);
                 
                 return markersToRender.map((paper) => {
                   return (
@@ -789,7 +920,7 @@ const WorldMapPapers = ({
                 Total Papers to Display
               </label>
               <ElasticSlider
-                defaultValue={totalPapers}
+                defaultValue={localTotalPapers}
                 startingValue={10}
                 maxValue={200}
                 isStepped={true}
@@ -797,9 +928,9 @@ const WorldMapPapers = ({
                 leftIcon={<span style={{ color: '#888', fontSize: '0.8rem' }}>10</span>}
                 rightIcon={<span style={{ color: '#888', fontSize: '0.8rem' }}>200</span>}
                 className="dark"
-                onChange={onTotalPapersChange}
+                onChange={handleLocalTotalPapersChange}
               />
-              <span style={{ fontSize: '0.8rem', color: '#888' }}>{totalPapers} papers</span>
+              <span style={{ fontSize: '0.8rem', color: '#888' }}>{localTotalPapers} papers</span>
             </div>
 
             {/* Papers Per Country Slider */}
@@ -819,17 +950,17 @@ const WorldMapPapers = ({
                 Papers Per Country
               </label>
               <ElasticSlider
-                defaultValue={papersPerCountry}
+                defaultValue={localPapersPerCountry}
                 startingValue={1}
-                maxValue={Math.min(totalPapers, 100)}
+                maxValue={Math.min(localTotalPapers, 100)}
                 isStepped={true}
                 stepSize={1}
                 leftIcon={<span style={{ color: '#888', fontSize: '0.8rem' }}>1</span>}
-                rightIcon={<span style={{ color: '#888', fontSize: '0.8rem' }}>{Math.min(totalPapers, 100)}</span>}
+                rightIcon={<span style={{ color: '#888', fontSize: '0.8rem' }}>{Math.min(localTotalPapers, 100)}</span>}
                 className="dark"
-                onChange={onPapersPerCountryChange}
+                onChange={handleLocalPapersPerCountryChange}
               />
-              <span style={{ fontSize: '0.8rem', color: '#888' }}>{papersPerCountry} per country</span>
+              <span style={{ fontSize: '0.8rem', color: '#888' }}>{localPapersPerCountry} per country</span>
             </div>
           </div>
 
