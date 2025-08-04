@@ -925,8 +925,8 @@ const WorldMapPapers = ({
                 maxValue={200}
                 isStepped={true}
                 stepSize={10}
-                leftIcon={<span style={{ color: '#888', fontSize: '0.8rem' }}>10</span>}
-                rightIcon={<span style={{ color: '#888', fontSize: '0.8rem' }}>200</span>}
+                leftIcon={<span style={{ color: '#888', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>10</span>}
+                rightIcon={<span style={{ color: '#888', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>200</span>}
                 className="dark"
                 onChange={handleLocalTotalPapersChange}
               />
@@ -955,8 +955,8 @@ const WorldMapPapers = ({
                 maxValue={Math.min(localTotalPapers, 100)}
                 isStepped={true}
                 stepSize={1}
-                leftIcon={<span style={{ color: '#888', fontSize: '0.8rem' }}>1</span>}
-                rightIcon={<span style={{ color: '#888', fontSize: '0.8rem' }}>{Math.min(localTotalPapers, 100)}</span>}
+                leftIcon={<span style={{ color: '#888', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>1</span>}
+                rightIcon={<span style={{ color: '#888', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>{Math.min(localTotalPapers, 100)}</span>}
                 className="dark"
                 onChange={handleLocalPapersPerCountryChange}
               />
