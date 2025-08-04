@@ -4,7 +4,6 @@ import SearchHeader from "../components/shared/SearchHeader";
 import SearchForm from "../components/shared/SearchForm";
 import AdvancedFiltersDrawer from "../components/shared/AdvancedFiltersDrawer";
 import WorldMapPapers from "../components/shared/WorldMapPapers/WorldMapPapers";
-import ModalDropdown from "../components/shared/ModalDropdown";
 import MultiSelectModalDropdown from "../components/shared/MultiSelectModalDropdown/MultiSelectModalDropdown";
 import useDropdownSearch from "../hooks/useDropdownSearch";
 import ApiCallInfoBox from "../components/shared/ApiCallInfoBox";
@@ -15,10 +14,9 @@ import Particles from "../components/animated/SearchBackground/Particles";
 const WorldMapPapersPage = () => {
   // Main search/filter state
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [author, setAuthor] = useState("");
-  const [authorObject, setAuthorObject] = useState(null);
-  const [institution, setInstitution] = useState("");
-  const [institutionObject, setInstitutionObject] = useState(null);
+  // Multi-select for authors and institutions
+  const [selectedAuthors, setSelectedAuthors] = useState([]);
+  const [selectedInstitutions, setSelectedInstitutions] = useState([]);
   // Advanced filters
   const [publicationYear, setPublicationYear] = useState("");
   const [startYear, setStartYear] = useState("");
@@ -29,7 +27,7 @@ const WorldMapPapersPage = () => {
   // UI state
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+
   // Search trigger state
   const [triggerSearch, setTriggerSearch] = useState(false);
   // Search results state
@@ -89,31 +87,19 @@ const WorldMapPapersPage = () => {
   } = useDropdownSearch('https://api.openalex.org/sources?filter=type:journal&search={query}&per_page=20');
 
   // Function to clear all search fields
-  const clearAllFields = () => {
-    setSearchKeyword("");
-    setAuthor("");
-    setAuthorObject(null);
-    setInstitution("");
-    setInstitutionObject(null);
-    setPublicationYear("");
-    setStartYear("");
-    setEndYear("");
-    setSelectedPublicationTypes([]);
-    setSelectedJournals([]);
-    setError(null);
-  };
+
 
   // Search handler
   const handleSearch = async () => {
     setLoading(true);
-    setError(null);
+
     setTriggerSearch(true); // Trigger the search
 
     // Track user inputs for disclaimer
     const inputs = [];
     if (searchKeyword.trim()) inputs.push({ category: 'Keywords', value: searchKeyword.trim() });
-    if (authorObject && authorObject.display_name) inputs.push({ category: 'Author', value: authorObject.display_name });
-    if (institutionObject && institutionObject.display_name) inputs.push({ category: 'Institution', value: institutionObject.display_name });
+    if (selectedAuthors.length > 0) inputs.push({ category: 'Authors', value: selectedAuthors.map(a => a.display_name).join(', ') });
+    if (selectedInstitutions.length > 0) inputs.push({ category: 'Institutions', value: selectedInstitutions.map(i => i.display_name).join(', ') });
     if (selectedPublicationTypes.length > 0) inputs.push({ category: 'Publication Types', value: selectedPublicationTypes.map(pt => pt.display_name).join(', ') });
     if (publicationYear.trim()) inputs.push({ category: 'Publication Year', value: publicationYear.trim() });
     if (startYear.trim() && endYear.trim()) inputs.push({ category: 'Year Range', value: `${startYear.trim()}-${endYear.trim()}` });
@@ -126,13 +112,17 @@ const WorldMapPapersPage = () => {
         const keyword = searchKeyword.trim();
         filters.push(`title_and_abstract.search:${keyword}`);
       }
-      if (authorObject && authorObject.id) {
-        const authorId = authorObject.id.split('/').pop();
-        filters.push(`authorships.author.id:A${authorId}`);
+      if (selectedAuthors.length > 0) {
+        selectedAuthors.forEach(a => {
+          const authorId = a.id.split('/').pop();
+          filters.push(`authorships.author.id:${authorId}`);
+        });
       }
-      if (institutionObject && institutionObject.id) {
-        const instId = institutionObject.id.split('/').pop();
-        filters.push(`authorships.institutions.id:I${instId}`);
+      if (selectedInstitutions.length > 0) {
+        selectedInstitutions.forEach(i => {
+          const institutionId = i.id.split('/').pop();
+          filters.push(`authorships.institutions.id:${institutionId}`);
+        });
       }
       if (selectedPublicationTypes.length > 0) {
         const typeFilters = selectedPublicationTypes.map(pt => `type:${pt.id}`);
@@ -171,7 +161,6 @@ const WorldMapPapersPage = () => {
       setSearchResults(data.results || []);
 
     } catch (e) {
-      setError(e.message || 'Failed to fetch search results');
       setSearchResults([]);
     } finally {
       setLoading(false);
@@ -215,19 +204,17 @@ const WorldMapPapersPage = () => {
               <SearchForm
                 searchKeyword={searchKeyword}
                 setSearchKeyword={setSearchKeyword}
-                author={author}
-                setAuthor={setAuthor}
-                setAuthorObject={setAuthorObject}
-                institution={institution}
-                setInstitution={setInstitution}
-                setInstitutionObject={setInstitutionObject}
+                selectedAuthors={selectedAuthors}
+                setSelectedAuthors={setSelectedAuthors}
+                selectedInstitutions={selectedInstitutions}
+                setSelectedInstitutions={setSelectedInstitutions}
                 onSearch={handleSearch}
                 onOpenAdvancedFilters={() => setShowAdvanced(true)}
-                onAuthorClick={() => {
+                onAuthorsClick={() => {
                   setShowAuthorModal(true);
                   clearAuthorSuggestions();
                 }}
-                onInstitutionClick={() => {
+                onInstitutionsClick={() => {
                   setShowInstitutionModal(true);
                   clearInstitutionSuggestions();
                 }}
@@ -235,6 +222,43 @@ const WorldMapPapersPage = () => {
                 darkMode={true}
                 description="Enter keywords and apply filters to locate research clusters"
               />
+          {/* Authors Multi-Select Modal */}
+          <MultiSelectModalDropdown
+            isOpen={showAuthorModal}
+            onClose={() => setShowAuthorModal(false)}
+            title="Select Authors"
+            placeholder="Type to search authors..."
+            onSearchChange={searchAuthors}
+            suggestions={authorSuggestions}
+            selectedItems={selectedAuthors}
+            onSelect={author => {
+              setSelectedAuthors(prev => prev.some(a => a.id === author.id) ? prev : [...prev, author]);
+            }}
+            onDeselect={author => {
+              setSelectedAuthors(prev => prev.filter(a => a.id !== author.id));
+            }}
+            darkMode={true}
+            loading={authorLoading}
+          />
+
+          {/* Institutions Multi-Select Modal */}
+          <MultiSelectModalDropdown
+            isOpen={showInstitutionModal}
+            onClose={() => setShowInstitutionModal(false)}
+            title="Select Institutions"
+            placeholder="Type to search institutions..."
+            onSearchChange={searchInstitutions}
+            suggestions={institutionSuggestions}
+            selectedItems={selectedInstitutions}
+            onSelect={institution => {
+              setSelectedInstitutions(prev => prev.some(i => i.id === institution.id) ? prev : [...prev, institution]);
+            }}
+            onDeselect={institution => {
+              setSelectedInstitutions(prev => prev.filter(i => i.id !== institution.id));
+            }}
+            darkMode={true}
+            loading={institutionLoading}
+          />
 
               <AdvancedFiltersDrawer
                 open={showAdvanced}
@@ -271,8 +295,6 @@ const WorldMapPapersPage = () => {
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1rem' }}>
           <WorldMapPapers
             searchQuery={searchKeyword}
-            authorObject={authorObject}
-            institutionObject={institutionObject}
             selectedPublicationTypes={selectedPublicationTypes}
             selectedJournals={selectedJournals}
             publicationYear={publicationYear}
@@ -282,37 +304,6 @@ const WorldMapPapersPage = () => {
             searchResults={searchResults}
           />
 
-          {/* Author Modal Dropdown */}
-          <ModalDropdown
-            isOpen={showAuthorModal}
-            onClose={() => setShowAuthorModal(false)}
-            title="Select Author"
-            placeholder="Type to search authors..."
-            onSearchChange={searchAuthors}
-            suggestions={authorSuggestions}
-            onSelect={(author) => {
-              setAuthorObject(author);
-              setAuthor(author.display_name);
-            }}
-            darkMode={true}
-            loading={authorLoading}
-          />
-
-          {/* Institution Modal Dropdown */}
-          <ModalDropdown
-            isOpen={showInstitutionModal}
-            onClose={() => setShowInstitutionModal(false)}
-            title="Select Institution"
-            placeholder="Type to search institutions..."
-            onSearchChange={searchInstitutions}
-            suggestions={institutionSuggestions}
-            onSelect={(institution) => {
-              setInstitutionObject(institution);
-              setInstitution(institution.display_name);
-            }}
-            darkMode={true}
-            loading={institutionLoading}
-          />
 
           {/* Publication Types Multi-Select Modal */}
           <MultiSelectModalDropdown
