@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import DisclaimerBox from "../components/about/DisclaimerBox";
 import PrivacyPolicyBox from "../components/about/PrivacyPolicyBox";
@@ -9,8 +9,12 @@ import graphIcon from "../assets/icons/graph.svg";
 import worldMapIcon from "../assets/icons/world-map.svg";
 import styles from "../assets/styles/landing.module.css";
 import Particles from "../components/animated/SearchBackground/Particles";
+import TextType from "../components/animated/TextType/texttype";
+import Carousel from "../components/animated/Carousel/Carousel";
 
 export const LandingPageLight = () => {
+  const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
+
   const features = [
     {
       title: "Keyword Search & Filtering",
@@ -38,21 +42,30 @@ export const LandingPageLight = () => {
     },
   ];
 
+  // Convert features to carousel items format
+  const carouselItems = features.map((feature, index) => ({
+    title: feature.title,
+    description: feature.description,
+    id: index + 1,
+    icon: <img src={feature.icon} alt={feature.title} style={{ width: '16px', height: '16px' }} />,
+    link: feature.link,
+  }));
+
   return (
     <div style={{ background: '#000', minHeight: '100vh', width: '100vw' }}>
       {/* Particle Background - covers the entire page */}
-      <div style={{ 
-        position: 'fixed', 
-        top: 0, 
-        left: 0, 
-        right: 0, 
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
         bottom: 0,
         zIndex: 1,
         pointerEvents: 'none'
       }}>
         <Particles />
       </div>
-      
+
       {/* Content Layer */}
       <div style={{ position: 'relative', zIndex: 2 }}>
         <div className={styles.landingPageContainer}>
@@ -63,17 +76,30 @@ export const LandingPageLight = () => {
                 <span className={styles.sparkleIcon} role="img" aria-label="sparkles">✨</span>
                 <h1 className={styles.heroTitle}>SPARK</h1>
               </div>
-              <p className={styles.heroSubtitle}>
-                Comprehensive research publication analysis platform for discovering trends, collaborations, and emerging topics in academic literature
-              </p>
+              <TextType
+                text={[
+                  "Comprehensive research publication analysis platform",
+                  "Discovering trends, collaborations, and emerging topics",
+                  "Advanced academic literature analysis platform"
+                ]}
+                as="p"
+                className={styles.heroSubtitle}
+                style={{ fontWeight: 'bold' }}
+                typingSpeed={75}
+                pauseDuration={1500}
+                showCursor={true}
+                cursorCharacter="|"
+                loop={true}
+                startOnVisible={true}
+              />
               <div className={styles.heroButtonsRow} style={{ display: 'flex', gap: 6, marginTop: 24 }}>
-                <Link to="/search" className={styles.startExploringBtnHero} style={{ 
-                  flex: 1, 
-                  minWidth: 180, 
-                  height: 48, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
+                <Link to="/search" className={styles.startExploringBtnHero} style={{
+                  flex: 1,
+                  minWidth: 180,
+                  height: 48,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   fontSize: 18,
                   background: '#4F6AF6',
                   color: '#fff',
@@ -85,13 +111,13 @@ export const LandingPageLight = () => {
                 }}>
                   Start Exploring
                 </Link>
-                <Link to="/about" className={styles.learnMoreBtnHero} style={{ 
-                  flex: 1, 
-                  minWidth: 180, 
-                  height: 48, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
+                <Link to="/about" className={styles.learnMoreBtnHero} style={{
+                  flex: 1,
+                  minWidth: 180,
+                  height: 48,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   fontSize: 18,
                   background: 'transparent',
                   color: '#4F6AF6',
@@ -107,7 +133,7 @@ export const LandingPageLight = () => {
             </div>
           </section>
 
-          {/* Features Grid */}
+          {/* Features Carousel */}
           <section className={styles.featuresSection}>
             <div className={styles.featuresHeader}>
               <h2 className={styles.featuresTitle}>Research Analysis Tools</h2>
@@ -115,26 +141,105 @@ export const LandingPageLight = () => {
                 Powerful features to analyze research publications, track trends, and discover collaborations
               </p>
             </div>
-            <div className={styles.featuresGrid}>
-              {features.map((feature) => (
-                <div key={feature.title} className={styles.featureCard}>
-                  <div className={styles.featureIconWrapper}>
-                    <img src={feature.icon} alt={feature.title} className={styles.featureIcon} />
-                  </div>
-                  <div className={styles.featureCardContent}>
-                    <h3 className={styles.featureCardTitle}>{feature.title}</h3>
-                    <p className={styles.featureCardDescription}>{feature.description}</p>
-                  </div>
-                  <Link to={feature.link} className={styles.featureCardButton + " text-foreground"}>
-                    Explore
-                  </Link>
-                </div>
-              ))}
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '0 80px', position: 'relative' }}>
+              <Carousel
+                items={carouselItems}
+                baseWidth={500}
+                autoplay={true}
+                autoplayDelay={8000}
+                pauseOnHover={true}
+                loop={true}
+                round={false}
+                currentIndex={currentCarouselIndex}
+                onIndexChange={setCurrentCarouselIndex}
+              />
+
+              {/* Left Arrow */}
+              <button
+                onClick={() => {
+                  if (currentCarouselIndex === 0) {
+                    setCurrentCarouselIndex(carouselItems.length - 1);
+                  } else {
+                    setCurrentCarouselIndex(currentCarouselIndex - 1);
+                  }
+                }}
+                style={{
+                  position: 'absolute',
+                  left: '20px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '40px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  fontSize: '18px',
+                  color: '#333',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                  transition: 'all 0.2s ease',
+                  zIndex: 10
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 1)';
+                  e.target.style.transform = 'translateY(-50%) scale(1.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.9)';
+                  e.target.style.transform = 'translateY(-50%) scale(1)';
+                }}
+              >
+                ←
+              </button>
+
+              {/* Right Arrow */}
+              <button
+                onClick={() => {
+                  if (currentCarouselIndex === carouselItems.length - 1) {
+                    setCurrentCarouselIndex(0);
+                  } else {
+                    setCurrentCarouselIndex(currentCarouselIndex + 1);
+                  }
+                }}
+                style={{
+                  position: 'absolute',
+                  right: '20px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '40px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  fontSize: '18px',
+                  color: '#333',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                  transition: 'all 0.2s ease',
+                  zIndex: 10
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 1)';
+                  e.target.style.transform = 'translateY(-50%) scale(1.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.9)';
+                  e.target.style.transform = 'translateY(-50%) scale(1)';
+                }}
+              >
+                →
+              </button>
             </div>
           </section>
         </div>
       </div>
-      
+
       {/* Bottom Section - outside particle area, opaque background */}
       <div style={{ position: 'relative', zIndex: 3 }}>
         <section className={styles.statisticsSection}>
