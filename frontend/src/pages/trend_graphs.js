@@ -6,8 +6,6 @@ import SearchForm from "../components/shared/SearchForm";
 import AdvancedFiltersDrawer from "../components/shared/AdvancedFiltersDrawer";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { useNavigate } from "react-router-dom";
-import DropdownTrigger from "../components/shared/DropdownTrigger";
-import ModalDropdown from "../components/shared/ModalDropdown";
 import MultiSelectModalDropdown from "../components/shared/MultiSelectModalDropdown/MultiSelectModalDropdown";
 import useDropdownSearch from "../hooks/useDropdownSearch";
 import ApiCallInfoBox from "../components/shared/ApiCallInfoBox";
@@ -20,10 +18,9 @@ export const PositionDetailLight = ({ darkMode = true }) => {
   
   // Main search/filter state
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [author, setAuthor] = useState("");
-  const [authorObject, setAuthorObject] = useState(null);
-  const [institution, setInstitution] = useState("");
-  const [institutionObject, setInstitutionObject] = useState(null);
+  // Multi-select authors/institutions
+  const [selectedAuthors, setSelectedAuthors] = useState([]);
+  const [selectedInstitutions, setSelectedInstitutions] = useState([]);
   // Advanced filters
   const [publicationYear, setPublicationYear] = useState("");
   const [startYear, setStartYear] = useState("");
@@ -33,7 +30,6 @@ export const PositionDetailLight = ({ darkMode = true }) => {
   const [selectedJournals, setSelectedJournals] = useState([]);
   // UI state
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   
   // Trend visualization state
@@ -118,21 +114,6 @@ export const PositionDetailLight = ({ darkMode = true }) => {
     }
   }, [trendData]);
 
-  // Function to clear all search fields
-  const clearAllFields = () => {
-    setSearchKeyword("");
-    setAuthor("");
-    setAuthorObject(null);
-    setInstitution("");
-    setInstitutionObject(null);
-    setPublicationYear("");
-    setStartYear("");
-    setEndYear("");
-    setSelectedPublicationTypes([]);
-    setSelectedJournals([]);
-    setError(null);
-  };
-
   // Search handler for trend analysis
   const handleSearch = async () => {
     if (!searchKeyword.trim()) {
@@ -152,8 +133,8 @@ export const PositionDetailLight = ({ darkMode = true }) => {
     // Track user inputs for disclaimer
     const inputs = [];
     if (searchKeyword.trim()) inputs.push({ category: 'Keywords', value: searchKeyword.trim() });
-    if (authorObject && authorObject.display_name) inputs.push({ category: 'Author', value: authorObject.display_name });
-    if (institutionObject && institutionObject.display_name) inputs.push({ category: 'Institution', value: institutionObject.display_name });
+    if (selectedAuthors.length > 0) inputs.push({ category: 'Authors', value: selectedAuthors.map(a => a.display_name).join(', ') });
+    if (selectedInstitutions.length > 0) inputs.push({ category: 'Institutions', value: selectedInstitutions.map(i => i.display_name).join(', ') });
     if (selectedPublicationTypes.length > 0) inputs.push({ category: 'Publication Types', value: selectedPublicationTypes.map(pt => pt.display_name).join(', ') });
     if (publicationYear.trim()) inputs.push({ category: 'Publication Year', value: publicationYear.trim() });
     if (startYear.trim() && endYear.trim()) inputs.push({ category: 'Year Range', value: `${startYear.trim()}-${endYear.trim()}` });
@@ -168,19 +149,26 @@ export const PositionDetailLight = ({ darkMode = true }) => {
         const keyword = searchKeyword.trim();
         filters.push(`title_and_abstract.search:${keyword}`);
       }
-      
-      // Add author filter
-      if (authorObject && authorObject.id) {
-        const authorId = authorObject.id.split('/').pop();
-        filters.push(`authorships.author.id:A${authorId}`);
+
+      // Add author filters (AND logic)
+      if (selectedAuthors.length > 0) {
+        selectedAuthors.forEach(author => {
+          if (author.id) {
+            const authorId = author.id.split('/').pop();
+            filters.push(`authorships.author.id:A${authorId}`);
+          }
+        });
       }
-      
-      // Add institution filter
-      if (institutionObject && institutionObject.id) {
-        const instId = institutionObject.id.split('/').pop();
-        filters.push(`authorships.institutions.id:I${instId}`);
+      // Add institution filters (AND logic)
+      if (selectedInstitutions.length > 0) {
+        selectedInstitutions.forEach(inst => {
+          if (inst.id) {
+            const instId = inst.id.split('/').pop();
+            filters.push(`authorships.institutions.id:I${instId}`);
+          }
+        });
       }
-      
+
       // Add publication types filter
       if (selectedPublicationTypes.length > 0) {
         const typeFilters = selectedPublicationTypes.map(pt => `type:${pt.id}`);
@@ -329,12 +317,6 @@ export const PositionDetailLight = ({ darkMode = true }) => {
     // Add year filter
     searchParams.append('publication_year', data.year);
     
-    // Add institution filter if selected
-    if (institutionObject && institutionObject.id) {
-      const institutionId = institutionObject.id.split('/').pop();
-      searchParams.append('institution_id', institutionId);
-    }
-    
     // Navigate to search page with filters
     navigate(`/search?${searchParams.toString()}`);
   };
@@ -362,16 +344,6 @@ export const PositionDetailLight = ({ darkMode = true }) => {
             <span className={styles.indicatorLabel}>Total Publications:</span>
             <span className={styles.indicatorValue}>{trendData.publication_count}</span>
           </div>
-
-          {institutionObject && (
-            <div className={styles.indicator}>
-              <span className={styles.indicatorLabel}>Institution:</span>
-              <span className={styles.indicatorValue}>
-                {institutionObject.display_name}
-              </span>
-            </div>
-          )}
-
         </div>
       </div>
     );
@@ -425,19 +397,17 @@ export const PositionDetailLight = ({ darkMode = true }) => {
               <SearchForm
                 searchKeyword={searchKeyword}
                 setSearchKeyword={setSearchKeyword}
-                author={author}
-                setAuthor={setAuthor}
-                setAuthorObject={setAuthorObject}
-                institution={institution}
-                setInstitution={setInstitution}
-                setInstitutionObject={setInstitutionObject}
+                selectedAuthors={selectedAuthors}
+                setSelectedAuthors={setSelectedAuthors}
+                selectedInstitutions={selectedInstitutions}
+                setSelectedInstitutions={setSelectedInstitutions}
                 onSearch={handleSearch}
                 onOpenAdvancedFilters={() => setShowAdvanced(true)}
-                onAuthorClick={() => {
+                onAuthorsClick={() => {
                   setShowAuthorModal(true);
                   clearAuthorSuggestions();
                 }}
-                onInstitutionClick={() => {
+                onInstitutionsClick={() => {
                   setShowInstitutionModal(true);
                   clearInstitutionSuggestions();
                 }}
@@ -500,7 +470,7 @@ export const PositionDetailLight = ({ darkMode = true }) => {
                     <div className={styles.chartContainer}>
                       <h3>
                         Publication Count by Year
-                        {institutionObject && ` - ${institutionObject.display_name}`}
+                        {selectedInstitutions.length > 0 && ` - ${selectedInstitutions.map(i => i.display_name).join(', ')}`}
                       </h3>
                       <ResponsiveContainer width="100%" height={400}>
                         <BarChart
@@ -554,33 +524,45 @@ export const PositionDetailLight = ({ darkMode = true }) => {
             </div>
           </div>
 
-          {/* Author Modal Dropdown */}
-          <ModalDropdown
+          {/* Author Multi-Select Modal Dropdown */}
+          <MultiSelectModalDropdown
             isOpen={showAuthorModal}
             onClose={() => setShowAuthorModal(false)}
-            title="Select Author"
+            title="Select Authors"
             placeholder="Type to search authors..."
             onSearchChange={searchAuthors}
             suggestions={authorSuggestions}
+            selectedItems={selectedAuthors}
             onSelect={(author) => {
-              setAuthorObject(author);
-              setAuthor(author.display_name);
+              setSelectedAuthors(prev => {
+                if (prev.some(a => a.id === author.id)) return prev;
+                return [...prev, author];
+              });
+            }}
+            onDeselect={(author) => {
+              setSelectedAuthors(prev => prev.filter(a => a.id !== author.id));
             }}
             darkMode={darkMode}
             loading={authorLoading}
           />
 
-          {/* Institution Modal Dropdown */}
-          <ModalDropdown
+          {/* Institution Multi-Select Modal Dropdown */}
+          <MultiSelectModalDropdown
             isOpen={showInstitutionModal}
             onClose={() => setShowInstitutionModal(false)}
-            title="Select Institution"
+            title="Select Institutions"
             placeholder="Type to search institutions..."
             onSearchChange={searchInstitutions}
             suggestions={institutionSuggestions}
+            selectedItems={selectedInstitutions}
             onSelect={(institution) => {
-              setInstitutionObject(institution);
-              setInstitution(institution.display_name);
+              setSelectedInstitutions(prev => {
+                if (prev.some(i => i.id === institution.id)) return prev;
+                return [...prev, institution];
+              });
+            }}
+            onDeselect={(institution) => {
+              setSelectedInstitutions(prev => prev.filter(i => i.id !== institution.id));
             }}
             darkMode={darkMode}
             loading={institutionLoading}

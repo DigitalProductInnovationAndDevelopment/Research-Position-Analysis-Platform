@@ -1,5 +1,4 @@
 import React from "react";
-import DropdownTrigger from "./DropdownTrigger/DropdownTrigger";
 import searchPublicationsIcon from "../../assets/icons/search-publications.svg";
 import authorIcon from "../../assets/icons/author.svg";
 import institutionIcon from "../../assets/icons/institution.svg";
@@ -7,16 +6,14 @@ import institutionIcon from "../../assets/icons/institution.svg";
 const SearchForm = ({
   searchKeyword,
   setSearchKeyword,
-  author,
-  setAuthor,
-  setAuthorObject,
-  institution,
-  setInstitution,
-  setInstitutionObject,
+  selectedAuthors = [],
+  setSelectedAuthors,
+  selectedInstitutions = [],
+  setSelectedInstitutions,
   onSearch,
   onOpenAdvancedFilters,
-  onAuthorClick,
-  onInstitutionClick,
+  onAuthorsClick,
+  onInstitutionsClick,
   loading,
   darkMode = false,
   description = "Enter keywords and apply filters to find relevant research"
@@ -97,39 +94,120 @@ const SearchForm = ({
               <span style={{ display: 'flex', alignItems: 'center' }}>
                 <img src={authorIcon} alt="Author" style={{ marginRight: 3, width: 18, height: 18 }} />
               </span>
-              Author
+              Authors
             </div>
             <div style={{ width: '100%' }}>
-              <DropdownTrigger
-                value={author}
-                placeholder="Click to search authors..."
-                onClick={onAuthorClick}
-                onClear={author ? () => {
-                  setAuthor("");
-                  if (typeof setAuthorObject === 'function') setAuthorObject(null);
-                } : undefined}
-                darkMode={darkMode}
-              />
+              <div
+                style={{
+                  minHeight: 48,
+                  border: '1px solid #404040',
+                  borderRadius: 8,
+                  background: '#222',
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 6,
+                  padding: '8px 12px',
+                  cursor: 'pointer',
+                  color: '#fff'
+                }}
+                onClick={onAuthorsClick}
+              >
+                {selectedAuthors.length === 0 && (
+                  <span style={{ color: '#888' }}>Click to search authors...</span>
+                )}
+                {selectedAuthors.map(author => (
+                  <span key={author.id} style={{
+                    background: '#4F6AF6',
+                    color: '#fff',
+                    borderRadius: 12,
+                    padding: '2px 10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    fontSize: 14,
+                    marginRight: 4
+                  }}>
+                    {author.display_name}
+                    <button
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#fff',
+                        marginLeft: 6,
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        fontSize: 16
+                      }}
+                      onClick={e => {
+                        e.stopPropagation();
+                        setSelectedAuthors(selectedAuthors.filter(a => a.id !== author.id));
+                      }}
+                      aria-label="Remove author"
+                    >×</button>
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
+          {/* Institutions Multi-Select */}
           <div style={{ flex: 1 }}>
             <div style={subLabelStyle}>
               <span style={{ display: 'flex', alignItems: 'center' }}>
                 <img src={institutionIcon} alt="Institution" style={{ marginRight: 3, width: 18, height: 18 }} />
               </span>
-              Institution
+              Institutions
             </div>
             <div style={{ width: '100%' }}>
-              <DropdownTrigger
-                value={institution}
-                placeholder="Click to search institutions..."
-                onClick={onInstitutionClick}
-                onClear={institution ? () => {
-                  setInstitution("");
-                  if (typeof setInstitutionObject === 'function') setInstitutionObject(null);
-                } : undefined}
-                darkMode={darkMode}
-              />
+              <div
+                style={{
+                  minHeight: 48,
+                  border: '1px solid #404040',
+                  borderRadius: 8,
+                  background: '#222',
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 6,
+                  padding: '8px 12px',
+                  cursor: 'pointer',
+                  color: '#fff'
+                }}
+                onClick={onInstitutionsClick}
+              >
+                {selectedInstitutions.length === 0 && (
+                  <span style={{ color: '#888' }}>Click to search institutions...</span>
+                )}
+                {selectedInstitutions.map(inst => (
+                  <span key={inst.id} style={{
+                    background: '#4F6AF6',
+                    color: '#fff',
+                    borderRadius: 12,
+                    padding: '2px 10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    fontSize: 14,
+                    marginRight: 4
+                  }}>
+                    {inst.display_name}
+                    <button
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#fff',
+                        marginLeft: 6,
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        fontSize: 16
+                      }}
+                      onClick={e => {
+                        e.stopPropagation();
+                        setSelectedInstitutions(selectedInstitutions.filter(i => i.id !== inst.id));
+                      }}
+                      aria-label="Remove institution"
+                    >×</button>
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>

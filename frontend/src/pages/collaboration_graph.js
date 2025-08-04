@@ -6,7 +6,7 @@ import ApiCallInfoBox from '../components/shared/ApiCallInfoBox';
 
 
 const GraphViewLight = ({ darkMode = true }) => {
-  const [selectedInstitution, setSelectedInstitution] = useState(null);
+  const [selectedInstitutions, setSelectedInstitutions] = useState([]);
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -14,7 +14,7 @@ const GraphViewLight = ({ darkMode = true }) => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [triggerSearch, setTriggerSearch] = useState(false);
-  const [selectedAuthor, setSelectedAuthor] = useState(null);
+  const [selectedAuthors, setSelectedAuthors] = useState([]);
   const [authorInput, setAuthorInput] = useState('');
   const [authorSuggestions, setAuthorSuggestions] = useState([]);
   const [showAuthorModal, setShowAuthorModal] = useState(false);
@@ -84,46 +84,52 @@ const GraphViewLight = ({ darkMode = true }) => {
   }, [authorInput]);
 
 
-  // Only generate the graph when triggerSearch changes and selectedInstitution is set
+  // Only generate the graph when triggerSearch changes and at least one institution is selected
   useEffect(() => {
-    if (!selectedInstitution || !triggerSearch) return;
+    if (selectedInstitutions.length === 0 || !triggerSearch) return;
     setLoading(true);
     setError(null);
 
     // Track user inputs for disclaimer
     const inputs = [];
-    if (selectedInstitution && selectedInstitution.display_name) inputs.push({ category: 'Institution', value: selectedInstitution.display_name });
+    if (selectedInstitutions.length > 0) inputs.push({ category: 'Institutions', value: selectedInstitutions.map(i => i.display_name).join(', ') });
     if (searchTerm.trim()) inputs.push({ category: 'Keyword', value: searchTerm.trim() });
-    if (selectedAuthor && selectedAuthor.display_name) inputs.push({ category: 'Author', value: selectedAuthor.display_name });
+    if (selectedAuthors.length > 0) inputs.push({ category: 'Authors', value: selectedAuthors.map(a => a.display_name).join(', ') });
     setUserInputs(inputs);
 
     // Track API calls for disclaimer
     const apiCallUrls = [];
 
-    const fetchInstitutionId = async () => {
-      if (!selectedInstitution) {
+    const fetchInstitutionIds = async () => {
+      if (!selectedInstitutions.length) {
         throw new Error('No institution selected');
       }
-      if (!selectedInstitution.id) {
-        const res = await fetch(`https://api.openalex.org/institutions?search=${encodeURIComponent(selectedInstitution.display_name)}`);
-        const data = await res.json();
-        const id = data.results[0]?.id?.split('/').pop();
-        return id;
-      }
-      const id = selectedInstitution.id.split('/').pop();
-      return id;
+      // Map to OpenAlex IDs
+      const ids = await Promise.all(selectedInstitutions.map(async (inst) => {
+        if (!inst.id) {
+          const res = await fetch(`https://api.openalex.org/institutions?search=${encodeURIComponent(inst.display_name)}`);
+          const data = await res.json();
+          return data.results[0]?.id?.split('/').pop();
+        }
+        return inst.id.split('/').pop();
+      }));
+      return ids.filter(Boolean);
     };
 
     // Fetch top collaborators using group_by
-    const fetchTopCollaborators = async (institutionId) => {
-      const filterParts = [`authorships.institutions.id:${institutionId}`];
+    const fetchTopCollaborators = async (institutionIds) => {
+      const filterParts = [];
+      institutionIds.forEach(id => filterParts.push(`authorships.institutions.id:${id}`));
       if (searchTerm.trim()) {
         filterParts.push(`title_and_abstract.search:${encodeURIComponent(searchTerm.trim())}`);
       }
-      if (selectedAuthor && selectedAuthor.id) {
-        // Use OpenAlex author id for author filter
-        const authorId = selectedAuthor.id.split('/').pop();
-        filterParts.push(`authorships.author.id:${authorId}`);
+      if (selectedAuthors.length > 0) {
+        selectedAuthors.forEach(author => {
+          if (author.id) {
+            const authorId = author.id.split('/').pop();
+            filterParts.push(`authorships.author.id:${authorId}`);
+          }
+        });
       }
       const filterString = filterParts.join(',');
       const url = `https://api.openalex.org/works?filter=${filterString}&group_by=authorships.institutions.id&per_page=200`;
@@ -131,8 +137,8 @@ const GraphViewLight = ({ darkMode = true }) => {
       const res = await fetch(url);
       const data = await res.json();
       // Each group has a key (institution id) and count
-      // Filter out the selected institution itself
-      const groups = (data.group_by || []).filter(g => g.key !== `https://openalex.org/I${institutionId}`);
+      // Filter out the selected institutions themselves
+      const groups = (data.group_by || []).filter(g => !institutionIds.includes(g.key.split('/').pop()));
       // Sort by count and take top 10
       const top10 = groups.sort((a, b) => b.count - a.count).slice(0, 10);
       return top10;
@@ -149,17 +155,22 @@ const GraphViewLight = ({ darkMode = true }) => {
     };
 
     // Fetch all works for the institution (and optionally author filter)
-    const fetchWorks = async (institutionId, collaboratorIds) => {
-      let filterParts = [`authorships.institutions.id:${institutionId}`];
+    const fetchWorks = async (institutionIds, collaboratorIds) => {
+      let filterParts = [];
+      institutionIds.forEach(id => filterParts.push(`authorships.institutions.id:${id}`));
       if (searchTerm.trim()) {
         filterParts.push(`title_and_abstract.search:${encodeURIComponent(searchTerm.trim())}`);
       }
-      if (selectedAuthor && selectedAuthor.id) {
-        const authorId = selectedAuthor.id.split('/').pop();
-        filterParts.push(`authorships.author.id:${authorId}`);
+      if (selectedAuthors.length > 0) {
+        selectedAuthors.forEach(author => {
+          if (author.id) {
+            const authorId = author.id.split('/').pop();
+            filterParts.push(`authorships.author.id:${authorId}`);
+          }
+        });
       }
       // Only fetch works for top collaborators
-      if ((!selectedAuthor || !selectedAuthor.id) && collaboratorIds.length > 0) {
+      if (selectedAuthors.length === 0 && collaboratorIds.length > 0) {
         filterParts.push(`authorships.institutions.id:${collaboratorIds.map(id => id).join('|')}`);
       }
       const filterString = filterParts.join(',');
@@ -181,98 +192,69 @@ const GraphViewLight = ({ darkMode = true }) => {
 
     const fetchAndBuild = async () => {
       try {
-        const institutionId = await fetchInstitutionId();
-        const topCollaborators = await fetchTopCollaborators(institutionId);
+        const institutionIds = await fetchInstitutionIds();
+        const topCollaborators = await fetchTopCollaborators(institutionIds);
         const collaboratorIds = topCollaborators.map(c => c.key.split('/').pop());
         const collaboratorDetails = await fetchInstitutionDetails(collaboratorIds);
 
+        // Multi-institution/author support
         if (showAuthorsInGraph) {
-          // Show top 10 collaborators and authors who co-published with them
-          const works = await fetchWorks(institutionId, collaboratorIds);
-
-          // Store works data globally for consistency
+          const works = await fetchWorks(institutionIds, collaboratorIds);
           setWorksData(works);
-
-          // Collect authors who co-published with the main institution
-          const authorMap = new Map(); // id -> display_name
+          // Collect all authors and institutions
+          const authorMap = new Map();
           works.forEach(work => {
-            // Only include authors if this work involves the main institution
-            const hasMainInstitution = work.authorships?.some(authorship =>
-              authorship.institutions?.some(inst => inst.id.split('/').pop() === institutionId)
-            );
-
-            if (hasMainInstitution) {
-              work.authorships?.forEach(authorship => {
-                if (authorship.author && authorship.author.id && authorship.author.display_name) {
-                  authorMap.set(authorship.author.id, authorship.author.display_name);
-                }
-              });
-            }
+            work.authorships?.forEach(authorship => {
+              if (authorship.author && authorship.author.id && authorship.author.display_name) {
+                authorMap.set(authorship.author.id, authorship.author.display_name);
+              }
+            });
           });
-
-          // Build institution nodes first
+          // Build institution nodes
           const nodes = [
-            { id: institutionId, label: selectedInstitution.display_name, type: 'institution', main: true },
+            ...institutionIds.map((id, idx) => ({ id, label: selectedInstitutions[idx]?.display_name || id, type: 'institution', main: true })),
             ...collaboratorDetails
-              .filter(inst => inst.id.split('/').pop() !== institutionId)
+              .filter(inst => !institutionIds.includes(inst.id.split('/').pop()))
               .map(inst => ({ id: inst.id.split('/').pop(), label: inst.display_name, type: 'institution' }))
           ];
-
-          // Build links: institution-to-institution and institution-to-author
+          // Build links
           const links = [];
-
-          // Add institution-to-institution links with accurate counts
-          for (const collaborator of topCollaborators) {
-            const collaboratorId = collaborator.key.split('/').pop();
-            try {
-              const filterString = `authorships.institutions.lineage:i${institutionId},authorships.institutions.lineage:i${collaboratorId}`;
-              const res = await fetch(
-                `https://api.openalex.org/works?filter=${filterString}&per_page=1`
-              );
-              const data = await res.json();
-              const count = data.meta?.count || 0;
-
-              links.push({
-                source: institutionId,
-                target: collaboratorId,
-                value: count
-              });
-            } catch (e) {
-              console.error(`Error fetching count for institution collaboration ${institutionId}-${collaboratorId}:`, e);
-              // Fallback to the original count
-              links.push({
-                source: institutionId,
-                target: collaboratorId,
-                value: collaborator.count
-              });
+          // Institution-to-institution links
+          for (const mainId of institutionIds) {
+            for (const collaborator of topCollaborators) {
+              const collaboratorId = collaborator.key.split('/').pop();
+              if (collaboratorId === mainId) continue;
+              try {
+                const filterString = `authorships.institutions.lineage:i${mainId},authorships.institutions.lineage:i${collaboratorId}`;
+                const res = await fetch(
+                  `https://api.openalex.org/works?filter=${filterString}&per_page=1`
+                );
+                const data = await res.json();
+                const count = data.meta?.count || 0;
+                links.push({ source: mainId, target: collaboratorId, value: count });
+              } catch (e) {
+                links.push({ source: mainId, target: collaboratorId, value: collaborator.count });
+              }
             }
           }
-
-          // Add institution-to-author links and detect institution-to-institution collaborations
-          const authorInstitutionMap = new Map(); // key: "instId-authorId", value: count
-          const institutionCollaborations = new Map(); // key: "instId1-instId2", value: count
-
-          // Analyze works to find both author-institution and institution-institution collaborations
+          // Author-institution links
+          const authorInstitutionMap = new Map();
+          const institutionCollaborations = new Map();
           works.forEach(work => {
             const workInstitutions = new Set();
-            const workAuthors = new Set();
-
             work.authorships?.forEach(authorship => {
               if (authorship.author && authorship.author.id) {
                 const authorId = authorship.author.id;
-                workAuthors.add(authorId);
-
                 authorship.institutions?.forEach(inst => {
                   const instId = inst.id.split('/').pop();
-                  if (instId === institutionId || collaboratorIds.includes(instId)) {
+                  if (institutionIds.includes(instId) || collaboratorIds.includes(instId)) {
                     workInstitutions.add(instId);
                     authorInstitutionMap.set(`${instId}-${authorId}`, (authorInstitutionMap.get(`${instId}-${authorId}`) || 0) + 1);
                   }
                 });
               }
             });
-
-            // If this work involves multiple institutions, create institution-to-institution collaboration
+            // Institution-to-institution collaborations
             if (workInstitutions.size > 1) {
               const institutions = Array.from(workInstitutions);
               for (let i = 0; i < institutions.length; i++) {
@@ -283,83 +265,44 @@ const GraphViewLight = ({ darkMode = true }) => {
               }
             }
           });
-
-          // Add institution-to-institution links based on actual collaborations found
           for (const [collabKey, count] of institutionCollaborations) {
             const [inst1, inst2] = collabKey.split('-');
-            links.push({
-              source: inst1,
-              target: inst2,
-              value: count
-            });
+            links.push({ source: inst1, target: inst2, value: count });
           }
-
-          // Add institution-to-author links for co-published papers
-          // Only add links for authors who co-published with the main institution
-          const authorsWithEdges = new Set(); // Track authors who have edges
-
+          // Author nodes and links
+          const authorsWithEdges = new Set();
           for (const [pair, count] of authorInstitutionMap) {
             const [instId, authorId] = pair.split('-');
-            // Only include authors who co-published with the main institution
-            if (instId === institutionId || collaboratorIds.includes(instId)) {
-              try {
-                // Check if this author co-published with the main institution
-                const filterString = `authorships.author.id:${authorId},authorships.institutions.lineage:i${institutionId}`;
-                const res = await fetch(
-                  `https://api.openalex.org/works?filter=${filterString}&per_page=1`
-                );
-                const data = await res.json();
-                const apiCount = data.meta?.count || 0;
-
-                if (apiCount > 0) {
-                  links.push({
-                    source: instId,
-                    target: authorId,
-                    value: apiCount,
-                    type: 'co_published_with'
-                  });
-                  authorsWithEdges.add(authorId); // Mark this author as having an edge
-                }
-              } catch (e) {
-                console.error(`Error fetching count for ${pair}:`, e);
-                // Fallback to the count from our analysis
-                if (count > 0) {
-                  links.push({
-                    source: instId,
-                    target: authorId,
-                    value: count,
-                    type: 'co_published_with'
-                  });
-                  authorsWithEdges.add(authorId); // Mark this author as having an edge
-                }
-              }
+            if (institutionIds.includes(instId) || collaboratorIds.includes(instId)) {
+              links.push({ source: instId, target: authorId, value: count, type: 'co_published_with' });
+              authorsWithEdges.add(authorId);
             }
           }
-
-          // Only add author nodes for authors who have edges
           const authorsWithEdgesArray = Array.from(authorsWithEdges).map(authorId => ({
             id: authorId,
             label: authorMap.get(authorId),
             type: 'author'
           }));
-
           nodes.push(...authorsWithEdgesArray);
-
           setGraphData({ nodes, links });
         } else {
-          // Only add institution nodes and institution-to-institution links
+          // Only institution nodes and links
           const nodes = [
-            { id: institutionId, label: selectedInstitution.display_name, type: 'institution', main: true },
+            ...institutionIds.map((id, idx) => ({ id, label: selectedInstitutions[idx]?.display_name || id, type: 'institution', main: true })),
             ...collaboratorDetails
-              .filter(inst => inst.id.split('/').pop() !== institutionId)
+              .filter(inst => !institutionIds.includes(inst.id.split('/').pop()))
               .map(inst => ({ id: inst.id.split('/').pop(), label: inst.display_name, type: 'institution' }))
           ];
-          const links = topCollaborators.map(c => ({ source: institutionId, target: c.key.split('/').pop(), value: c.count }));
+          const links = [];
+          for (const mainId of institutionIds) {
+            for (const collaborator of topCollaborators) {
+              const collaboratorId = collaborator.key.split('/').pop();
+              if (collaboratorId === mainId) continue;
+              links.push({ source: mainId, target: collaboratorId, value: collaborator.count });
+            }
+          }
           setGraphData({ nodes, links });
-          return;
         }
-
-        // Set API calls for disclaimer
         setApiCalls(apiCallUrls);
       } catch (e) {
         setError('Failed to fetch collaborators or build graph.');
@@ -370,7 +313,7 @@ const GraphViewLight = ({ darkMode = true }) => {
 
     fetchAndBuild();
     setTriggerSearch(false);
-  }, [triggerSearch]);
+  }, [triggerSearch, selectedInstitutions, selectedAuthors, searchTerm, showAuthorsInGraph]);
 
   // Handle Enter key in search input
   const handleKeyDown = (e) => {
@@ -531,7 +474,7 @@ const GraphViewLight = ({ darkMode = true }) => {
           }}>
             <div style={{ width: '100%', color: '#fff' }}>
               <div style={{ marginBottom: 8, width: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-                <label style={{ fontWeight: 600, color: '#fff' }}>Select Institution <span style={{ color: '#ff4444' }}>*</span></label>
+                <label style={{ fontWeight: 600, color: '#fff' }}>Select Institutions <span style={{ color: '#ff4444' }}>*</span></label>
                 <div
                   style={{
                     background: '#222',
@@ -543,7 +486,9 @@ const GraphViewLight = ({ darkMode = true }) => {
                     cursor: 'pointer',
                     minHeight: '2.5rem',
                     display: 'flex',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '0.5rem'
                   }}
                   onClick={() => {
                     setShowInstitutionModal(true);
@@ -551,47 +496,41 @@ const GraphViewLight = ({ darkMode = true }) => {
                     setModalInstitutionSuggestions([]);
                   }}
                 >
-                  <span style={{
-                    color: selectedInstitution ? '#fff' : '#888',
-                    fontSize: 16,
-                    flex: 1
-                  }}>
-                    {selectedInstitution ? selectedInstitution.display_name : "Click to search institutions..."}
-                  </span>
-                  {selectedInstitution && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedInstitution(null);
-                      }}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#6b7280',
-                        cursor: 'pointer',
-                        fontSize: '1rem',
-                        padding: 0,
-                        width: '16px',
-                        height: '16px',
+                  {selectedInstitutions.length === 0 ? (
+                    <span style={{ color: '#888', fontSize: 16 }}>
+                      Click to search institutions...
+                    </span>
+                  ) : (
+                    selectedInstitutions.map((inst, idx) => (
+                      <span key={inst.id} style={{
+                        background: '#4F6AF6',
+                        color: '#fff',
+                        borderRadius: '12px',
+                        padding: '0.25rem 0.75rem',
+                        marginRight: 4,
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: '50%',
-                        marginRight: '0.5rem',
-                        transition: 'all 0.2s ease'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.background = '#dc3545';
-                        e.target.style.color = '#fff';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.background = 'none';
-                        e.target.style.color = '#6b7280';
-                      }}
-                      title="Remove institution"
-                    >
-                      ×
-                    </button>
+                        fontSize: 15
+                      }}>
+                        {inst.display_name}
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            setSelectedInstitutions(selectedInstitutions.filter((_, i) => i !== idx));
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#fff',
+                            marginLeft: 6,
+                            cursor: 'pointer',
+                            fontWeight: 700,
+                            fontSize: 16
+                          }}
+                          title="Remove institution"
+                        >×</button>
+                      </span>
+                    ))
                   )}
                   <span style={{ color: '#888', marginLeft: '0.5rem' }}>▼</span>
                 </div>
@@ -599,9 +538,9 @@ const GraphViewLight = ({ darkMode = true }) => {
             </div>
             {/* Author Dropdown */}
             <div style={{ marginBottom: 8, width: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-              <label style={{ fontWeight: 600, color: '#fff' }}>Filter by Author (optional)</label>
+              <label style={{ fontWeight: 600, color: '#fff' }}>Filter by Authors (optional)</label>
               <div style={{ fontSize: '0.8rem', color: '#ccc', marginBottom: 4 }}>
-                Choose author and/or keyword to focus your search
+                Choose authors and/or keyword to focus your search
               </div>
               <div
                 style={{
@@ -614,7 +553,9 @@ const GraphViewLight = ({ darkMode = true }) => {
                   cursor: 'pointer',
                   minHeight: '2.5rem',
                   display: 'flex',
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '0.5rem'
                 }}
                 onClick={() => {
                   setShowAuthorModal(true);
@@ -622,48 +563,41 @@ const GraphViewLight = ({ darkMode = true }) => {
                   setModalAuthorSuggestions([]);
                 }}
               >
-                <span style={{
-                  color: authorInput ? '#fff' : '#888',
-                  fontSize: 16,
-                  flex: 1
-                }}>
-                  {authorInput || "Click to search authors..."}
-                </span>
-                {selectedAuthor && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedAuthor(null);
-                      setAuthorInput('');
-                    }}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#6b7280',
-                      cursor: 'pointer',
-                      fontSize: '1rem',
-                      padding: 0,
-                      width: '16px',
-                      height: '16px',
+                {selectedAuthors.length === 0 ? (
+                  <span style={{ color: '#888', fontSize: 16 }}>
+                    Click to search authors...
+                  </span>
+                ) : (
+                  selectedAuthors.map((author, idx) => (
+                    <span key={author.id} style={{
+                      background: '#8e24aa',
+                      color: '#fff',
+                      borderRadius: '12px',
+                      padding: '0.25rem 0.75rem',
+                      marginRight: 4,
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: '50%',
-                      marginRight: '0.5rem',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = '#dc3545';
-                      e.target.style.color = '#fff';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = 'none';
-                      e.target.style.color = '#6b7280';
-                    }}
-                    title="Remove author"
-                  >
-                    ×
-                  </button>
+                      fontSize: 15
+                    }}>
+                      {author.display_name}
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          setSelectedAuthors(selectedAuthors.filter((_, i) => i !== idx));
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#fff',
+                          marginLeft: 6,
+                          cursor: 'pointer',
+                          fontWeight: 700,
+                          fontSize: 16
+                        }}
+                        title="Remove author"
+                      >×</button>
+                    </span>
+                  ))
                 )}
                 <span style={{ color: '#888', marginLeft: '0.5rem' }}>▼</span>
               </div>
@@ -688,15 +622,15 @@ const GraphViewLight = ({ darkMode = true }) => {
                   setTriggerSearch(s => !s);
                   setHasSearched(true);
                 }}
-                disabled={!selectedInstitution || (!searchTerm.trim() && !selectedAuthor)}
+                disabled={selectedInstitutions.length === 0}
                 style={{
                   padding: '10px 24px',
                   fontSize: 16,
                   borderRadius: 6,
-                  background: (!selectedInstitution || (!searchTerm.trim() && !selectedAuthor)) ? '#ccc' : '#4F6AF6',
+                  background: (selectedInstitutions.length === 0) ? '#ccc' : '#4F6AF6',
                   color: '#fff',
                   border: 'none',
-                  cursor: (!selectedInstitution || (!searchTerm.trim() && !selectedAuthor)) ? 'not-allowed' : 'pointer',
+                  cursor: (selectedInstitutions.length === 0) ? 'not-allowed' : 'pointer',
                   boxShadow: '0 2px 8px rgba(25, 118, 210, 0.08)'
                 }}
               >
@@ -721,15 +655,21 @@ const GraphViewLight = ({ darkMode = true }) => {
             position: 'relative',
           }}>
             {/* Selected Institution in top left */}
-            {selectedInstitution && (
+            {selectedInstitutions.length > 0 && (
               <div style={{
                 position: 'absolute',
                 top: 16,
                 left: 24,
                 color: '#fff',
                 fontWeight: 600,
+                display: 'flex',
+                gap: 8,
+                flexWrap: 'wrap'
               }}>
-                <strong>Selected Institution:</strong> {selectedInstitution.display_name}
+                <strong>Selected Institutions:</strong>
+                {selectedInstitutions.map(inst => (
+                  <span key={inst.id} style={{ background: '#4F6AF6', color: '#fff', borderRadius: '12px', padding: '0.15rem 0.75rem', marginRight: 4, fontSize: 15 }}>{inst.display_name}</span>
+                ))}
               </div>
             )}
 
@@ -921,8 +861,8 @@ const GraphViewLight = ({ darkMode = true }) => {
                 {/* Legend */}
               </div>
             )}
-            {!loading && !error && selectedInstitution && graphData.nodes.length <= 1 && (
-              <div style={{ marginTop: '2rem' }}>No collaborators found for this institution.</div>
+            {!loading && !error && selectedInstitutions.length > 0 && graphData.nodes.length <= 1 && (
+              <div style={{ marginTop: '2rem' }}>No collaborators found for the selected institution(s).</div>
             )}
             {selectedEdge && (
               <div style={{
@@ -1200,7 +1140,7 @@ const GraphViewLight = ({ darkMode = true }) => {
             flexDirection: 'column',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h2 style={{ color: '#fff', margin: 0 }}>Select Author</h2>
+              <h2 style={{ color: '#fff', margin: 0 }}>Select Authors</h2>
               <button
                 onClick={() => setShowAuthorModal(false)}
                 style={{
@@ -1256,51 +1196,38 @@ const GraphViewLight = ({ darkMode = true }) => {
               borderRadius: 4,
               background: '#333'
             }}>
-              {/* Show selected author with delete option */}
-              {selectedAuthor && (
+              {/* Show selected authors with delete option */}
+              {selectedAuthors.length > 0 && (
                 <div style={{
                   padding: '0.75rem 1rem',
-                  background: '#4F6AF6',
+                  background: '#8e24aa',
                   color: '#fff',
                   borderBottom: '1px solid #555',
                   display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
+                  flexWrap: 'wrap',
+                  gap: 8
                 }}>
-                  <span>{selectedAuthor.display_name}</span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedAuthor(null);
-                      setAuthorInput('');
-                    }}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#6b7280',
-                      cursor: 'pointer',
-                      fontSize: '1rem',
-                      padding: 0,
-                      width: '16px',
-                      height: '16px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: '50%',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = '#dc3545';
-                      e.target.style.color = '#fff';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = 'none';
-                      e.target.style.color = '#6b7280';
-                    }}
-                    title="Remove author"
-                  >
-                    ×
-                  </button>
+                  {selectedAuthors.map((author, idx) => (
+                    <span key={author.id} style={{ display: 'flex', alignItems: 'center', background: '#6d28d9', borderRadius: 12, padding: '0.15rem 0.75rem', marginRight: 4, fontSize: 15 }}>
+                      {author.display_name}
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          setSelectedAuthors(selectedAuthors.filter((_, i) => i !== idx));
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#fff',
+                          marginLeft: 6,
+                          cursor: 'pointer',
+                          fontWeight: 700,
+                          fontSize: 16
+                        }}
+                        title="Remove author"
+                      >×</button>
+                    </span>
+                  ))}
                 </div>
               )}
 
@@ -1309,8 +1236,10 @@ const GraphViewLight = ({ darkMode = true }) => {
                 <div
                   key={author.id}
                   onClick={() => {
-                    setSelectedAuthor(author);
-                    setAuthorInput(author.display_name);
+                    // Only add if not already selected
+                    if (!selectedAuthors.some(a => a.id === author.id)) {
+                      setSelectedAuthors([...selectedAuthors, author]);
+                    }
                     setShowAuthorModal(false);
                   }}
                   style={{
@@ -1371,7 +1300,7 @@ const GraphViewLight = ({ darkMode = true }) => {
             flexDirection: 'column',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h2 style={{ color: '#fff', margin: 0 }}>Select Institution</h2>
+              <h2 style={{ color: '#fff', margin: 0 }}>Select Institutions</h2>
               <button
                 onClick={() => setShowInstitutionModal(false)}
                 style={{
@@ -1427,50 +1356,38 @@ const GraphViewLight = ({ darkMode = true }) => {
               borderRadius: 4,
               background: '#333'
             }}>
-              {/* Show selected institution with delete option */}
-              {selectedInstitution && (
+              {/* Show selected institutions with delete option */}
+              {selectedInstitutions.length > 0 && (
                 <div style={{
                   padding: '0.75rem 1rem',
                   background: '#4F6AF6',
                   color: '#fff',
                   borderBottom: '1px solid #555',
                   display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
+                  flexWrap: 'wrap',
+                  gap: 8
                 }}>
-                  <span>{selectedInstitution.display_name}</span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedInstitution(null);
-                    }}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#6b7280',
-                      cursor: 'pointer',
-                      fontSize: '1rem',
-                      padding: 0,
-                      width: '16px',
-                      height: '16px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: '50%',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = '#dc3545';
-                      e.target.style.color = '#fff';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = 'none';
-                      e.target.style.color = '#6b7280';
-                    }}
-                    title="Remove institution"
-                  >
-                    ×
-                  </button>
+                  {selectedInstitutions.map((inst, idx) => (
+                    <span key={inst.id} style={{ display: 'flex', alignItems: 'center', background: '#1976d2', borderRadius: 12, padding: '0.15rem 0.75rem', marginRight: 4, fontSize: 15 }}>
+                      {inst.display_name}
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          setSelectedInstitutions(selectedInstitutions.filter((_, i) => i !== idx));
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#fff',
+                          marginLeft: 6,
+                          cursor: 'pointer',
+                          fontWeight: 700,
+                          fontSize: 16
+                        }}
+                        title="Remove institution"
+                      >×</button>
+                    </span>
+                  ))}
                 </div>
               )}
 
@@ -1479,7 +1396,10 @@ const GraphViewLight = ({ darkMode = true }) => {
                 <div
                   key={institution.id}
                   onClick={() => {
-                    setSelectedInstitution(institution);
+                    // Only add if not already selected
+                    if (!selectedInstitutions.some(i => i.id === institution.id)) {
+                      setSelectedInstitutions([...selectedInstitutions, institution]);
+                    }
                     setShowInstitutionModal(false);
                   }}
                   style={{

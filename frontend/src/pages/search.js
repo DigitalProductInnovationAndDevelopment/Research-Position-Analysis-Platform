@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import TopBar from '../components/shared/TopBar';
 import SearchHeader from '../components/shared/SearchHeader';
 import SearchForm from '../components/shared/SearchForm';
 import AdvancedFiltersDrawer from '../components/shared/AdvancedFiltersDrawer';
 import SearchResultsList from '../components/shared/SearchResultsList';
-import ModalDropdown from '../components/shared/ModalDropdown';
 import MultiSelectModalDropdown from '../components/shared/MultiSelectModalDropdown/MultiSelectModalDropdown';
 import useDropdownSearch from '../hooks/useDropdownSearch';
 import ApiCallInfoBox from '../components/shared/ApiCallInfoBox';
@@ -17,10 +16,9 @@ const SearchPageLight = ({ darkMode = true }) => {
   const location = useLocation();
   // Main search/filter state
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [author, setAuthor] = useState("");
-  const [authorObject, setAuthorObject] = useState(null);
-  const [institution, setInstitution] = useState("");
-  const [institutionObject, setInstitutionObject] = useState(null);
+  // Multi-select for authors and institutions
+  const [selectedAuthors, setSelectedAuthors] = useState([]);
+  const [selectedInstitutions, setSelectedInstitutions] = useState([]);
   // Advanced filters
   const [publicationYear, setPublicationYear] = useState("");
   const [startYear, setStartYear] = useState("");
@@ -135,10 +133,8 @@ const SearchPageLight = ({ darkMode = true }) => {
   // Function to clear all search fields
   const clearAllFields = () => {
     setSearchKeyword("");
-    setAuthor("");
-    setAuthorObject(null);
-    setInstitution("");
-    setInstitutionObject(null);
+    setSelectedAuthors([]);
+    setSelectedInstitutions([]);
     setPublicationYear("");
     setStartYear("");
     setEndYear("");
@@ -210,17 +206,13 @@ const SearchPageLight = ({ darkMode = true }) => {
     }
   };
 
-  // Fetch institution details by ID
+  // Fetch institution details by ID (for URL param support)
   const fetchInstitutionById = async (institutionId) => {
     try {
       const response = await fetch(`${OPENALEX_API_BASE}/institutions/I${institutionId}`);
       if (response.ok) {
         const institutionData = await response.json();
-        setInstitution(institutionData.display_name);
-        setInstitutionObject({
-          id: institutionData.id,
-          display_name: institutionData.display_name
-        });
+        setSelectedInstitutions([{ id: institutionData.id, display_name: institutionData.display_name }]);
       }
     } catch (error) {
       console.error('Failed to fetch institution details:', error);
@@ -239,8 +231,8 @@ const SearchPageLight = ({ darkMode = true }) => {
     // Track user inputs for disclaimer
     const inputs = [];
     if (searchKeyword.trim()) inputs.push({ category: 'Keywords', value: searchKeyword.trim() });
-    if (authorObject && authorObject.display_name) inputs.push({ category: 'Author', value: authorObject.display_name });
-    if (institutionObject && institutionObject.display_name) inputs.push({ category: 'Institution', value: institutionObject.display_name });
+    if (selectedAuthors.length > 0) inputs.push({ category: 'Authors', value: selectedAuthors.map(a => a.display_name).join(', ') });
+    if (selectedInstitutions.length > 0) inputs.push({ category: 'Institutions', value: selectedInstitutions.map(i => i.display_name).join(', ') });
     if (selectedPublicationTypes.length > 0) inputs.push({ category: 'Publication Types', value: selectedPublicationTypes.map(pt => pt.display_name).join(', ') });
     if (publicationYear.trim()) inputs.push({ category: 'Publication Year', value: publicationYear.trim() });
     if (startYear.trim() && endYear.trim()) inputs.push({ category: 'Year Range', value: `${startYear.trim()}-${endYear.trim()}` });
@@ -254,15 +246,17 @@ const SearchPageLight = ({ darkMode = true }) => {
         // Format: title_and_abstract.search:keyword (OpenAlex handles multi-word automatically)
         filters.push(`title_and_abstract.search:${keyword}`);
       }
-      if (authorObject && authorObject.id) {
-        // Use the author object if available (from dropdown)
-        const authorId = authorObject.id.split('/').pop();
-        filters.push(`authorships.author.id:A${authorId}`);
+      if (selectedAuthors.length > 0) {
+        selectedAuthors.forEach(a => {
+          const authorId = 'A' + a.id.split('/').pop();
+          filters.push(`authorships.author.id:${authorId}`);
+        });
       }
-      if (institutionObject && institutionObject.id) {
-        // Use the institution object if available (from URL params or dropdown)
-        const instId = institutionObject.id.split('/').pop();
-        filters.push(`authorships.institutions.id:I${instId}`);
+      if (selectedInstitutions.length > 0) {
+        selectedInstitutions.forEach(i => {
+          const institutionId = 'I' + i.id.split('/').pop();
+          filters.push(`authorships.institutions.id:${institutionId}`);
+        });
       }
       if (selectedPublicationTypes.length > 0) {
         // Handle multiple publication types
@@ -368,19 +362,17 @@ const SearchPageLight = ({ darkMode = true }) => {
               <SearchForm
                 searchKeyword={searchKeyword}
                 setSearchKeyword={setSearchKeyword}
-                author={author}
-                setAuthor={setAuthor}
-                setAuthorObject={setAuthorObject}
-                institution={institution}
-                setInstitution={setInstitution}
-                setInstitutionObject={setInstitutionObject}
+                selectedAuthors={selectedAuthors}
+                setSelectedAuthors={setSelectedAuthors}
+                selectedInstitutions={selectedInstitutions}
+                setSelectedInstitutions={setSelectedInstitutions}
                 onSearch={handleSearch}
                 onOpenAdvancedFilters={() => setShowAdvanced(true)}
-                onAuthorClick={() => {
+                onAuthorsClick={() => {
                   setShowAuthorModal(true);
                   clearAuthorSuggestions();
                 }}
-                onInstitutionClick={() => {
+                onInstitutionsClick={() => {
                   setShowInstitutionModal(true);
                   clearInstitutionSuggestions();
                 }}
@@ -515,33 +507,39 @@ const SearchPageLight = ({ darkMode = true }) => {
             </div>
           )}
 
-          {/* Author Modal Dropdown */}
-          <ModalDropdown
+          {/* Authors Multi-Select Modal */}
+          <MultiSelectModalDropdown
             isOpen={showAuthorModal}
             onClose={() => setShowAuthorModal(false)}
-            title="Select Author"
+            title="Select Authors"
             placeholder="Type to search authors..."
             onSearchChange={searchAuthors}
             suggestions={authorSuggestions}
-            onSelect={(author) => {
-              setAuthorObject(author);
-              setAuthor(author.display_name);
+            selectedItems={selectedAuthors}
+            onSelect={author => {
+              setSelectedAuthors(prev => prev.some(a => a.id === author.id) ? prev : [...prev, author]);
+            }}
+            onDeselect={author => {
+              setSelectedAuthors(prev => prev.filter(a => a.id !== author.id));
             }}
             darkMode={darkMode}
             loading={authorLoading}
           />
 
-          {/* Institution Modal Dropdown */}
-          <ModalDropdown
+          {/* Institutions Multi-Select Modal */}
+          <MultiSelectModalDropdown
             isOpen={showInstitutionModal}
             onClose={() => setShowInstitutionModal(false)}
-            title="Select Institution"
+            title="Select Institutions"
             placeholder="Type to search institutions..."
             onSearchChange={searchInstitutions}
             suggestions={institutionSuggestions}
-            onSelect={(institution) => {
-              setInstitutionObject(institution);
-              setInstitution(institution.display_name);
+            selectedItems={selectedInstitutions}
+            onSelect={institution => {
+              setSelectedInstitutions(prev => prev.some(i => i.id === institution.id) ? prev : [...prev, institution]);
+            }}
+            onDeselect={institution => {
+              setSelectedInstitutions(prev => prev.filter(i => i.id !== institution.id));
             }}
             darkMode={darkMode}
             loading={institutionLoading}
