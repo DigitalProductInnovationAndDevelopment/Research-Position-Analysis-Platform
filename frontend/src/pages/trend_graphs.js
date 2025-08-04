@@ -150,23 +150,32 @@ export const PositionDetailLight = ({ darkMode = true }) => {
         filters.push(`title_and_abstract.search:${keyword}`);
       }
 
-      // Add author filters (AND logic)
+      // Add author filters (OR logic for multiple authors)
       if (selectedAuthors.length > 0) {
-        selectedAuthors.forEach(author => {
+        const authorFilters = selectedAuthors.map(author => {
           if (author.id) {
             const authorId = author.id.split('/').pop();
-            filters.push(`authorships.author.id:A${authorId}`);
+            return `authorships.author.id:A${authorId}`;
           }
-        });
+          return null;
+        }).filter(Boolean);
+        if (authorFilters.length > 0) {
+          filters.push(authorFilters.join('|'));
+        }
       }
-      // Add institution filters (AND logic)
+
+      // Add institution filters (OR logic for multiple institutions)
       if (selectedInstitutions.length > 0) {
-        selectedInstitutions.forEach(inst => {
+        const institutionFilters = selectedInstitutions.map(inst => {
           if (inst.id) {
             const instId = inst.id.split('/').pop();
-            filters.push(`authorships.institutions.id:I${instId}`);
+            return `authorships.institutions.id:I${instId}`;
           }
-        });
+          return null;
+        }).filter(Boolean);
+        if (institutionFilters.length > 0) {
+          filters.push(institutionFilters.join('|'));
+        }
       }
 
       // Add publication types filter
@@ -197,81 +206,170 @@ export const PositionDetailLight = ({ darkMode = true }) => {
       const filterString = filters.join(',');
       const params = new URLSearchParams();
       if (filterString) params.append('filter', filterString);
-      params.append('group_by', 'publication_year');
-      params.append('per_page', '200');
       
-      const apiUrl = `https://api.openalex.org/works?${params.toString()}`;
-      
-      // Track API call for disclaimer
-      setApiCalls([apiUrl]);
-      
-      const response = await fetch(apiUrl);
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.details || `HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      // Check if we have any results
-      if (!data.group_by || data.group_by.length === 0) {
-        setError("No publications found for the given keyword and filters.");
-        return;
-      }
-
-      // Process group_by data to create trend analysis
-      const yearlyDistribution = {};
-      let totalPublications = 0;
-      
-      // Process group_by results
-      data.group_by.forEach(group => {
-        const year = group.key;
-        const count = group.count;
-        if (year && count > 0) {
-          yearlyDistribution[year] = count;
-          totalPublications += count;
-        }
-      });
-
-      // Calculate growth rates
-      const years = Object.keys(yearlyDistribution).sort((a, b) => parseInt(a) - parseInt(b));
-      const yearOverYearGrowth = [];
-      
-      for (let i = 1; i < years.length; i++) {
-        const currentYear = parseInt(years[i]);
-        const previousYear = parseInt(years[i - 1]);
-        const currentCount = yearlyDistribution[currentYear];
-        const previousCount = yearlyDistribution[previousYear];
+      // Use different API approach based on whether authors are selected
+      if (selectedAuthors.length > 0) {
+        // When authors are selected, fetch individual papers and process them
+        params.append('per_page', '200'); // Get more papers for better trend analysis
+        params.append('sort', 'cited_by_count:desc');
         
-        if (previousCount > 0) {
-          const growthRate = ((currentCount - previousCount) / previousCount) * 100;
-          yearOverYearGrowth.push({
-            year: currentYear,
-            rate: Math.round(growthRate * 100) / 100
+        const apiUrl = `https://api.openalex.org/works?${params.toString()}`;
+        setApiCalls([apiUrl]);
+        
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.details || `HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Deduplicate results based on work ID and title
+        const uniqueResults = [];
+        const seenIds = new Set();
+        const seenTitles = new Set();
+        
+        if (data.results && Array.isArray(data.results)) {
+          data.results.forEach(result => {
+            const title = result.title || result.display_name || '';
+            const normalizedTitle = title.toLowerCase().trim();
+            
+            // Check both ID and title for duplicates
+            if (result.id && !seenIds.has(result.id) && !seenTitles.has(normalizedTitle)) {
+              seenIds.add(result.id);
+              seenTitles.add(normalizedTitle);
+              uniqueResults.push(result);
+            }
           });
         }
-      }
-
-      // Calculate average growth rate
-      const averageGrowthRate = yearOverYearGrowth.length > 0 
-        ? Math.round((yearOverYearGrowth.reduce((sum, item) => sum + item.rate, 0) / yearOverYearGrowth.length) * 100) / 100
-        : 0;
-
-      // Create trend data structure
-      const trendData = {
-        publication_count: totalPublications,
-        yearly_distribution: yearlyDistribution,
-        meta: {
-          trend_factors: {
-            average_growth_rate: averageGrowthRate,
-            year_over_year_growth: yearOverYearGrowth,
-            relative_popularity: Math.round((totalPublications / 1000) * 100) / 100 // Simple popularity metric
+        
+        // Process individual papers to create trend data
+        const yearlyDistribution = {};
+        let totalPublications = 0;
+        
+        uniqueResults.forEach(paper => {
+          const year = paper.publication_year;
+          if (year) {
+            yearlyDistribution[year] = (yearlyDistribution[year] || 0) + 1;
+            totalPublications++;
+          }
+        });
+        
+        // Calculate growth rates
+        const years = Object.keys(yearlyDistribution).sort((a, b) => parseInt(a) - parseInt(b));
+        const yearOverYearGrowth = [];
+        
+        for (let i = 1; i < years.length; i++) {
+          const currentYear = parseInt(years[i]);
+          const previousYear = parseInt(years[i - 1]);
+          const currentCount = yearlyDistribution[currentYear];
+          const previousCount = yearlyDistribution[previousYear];
+          
+          if (previousCount > 0) {
+            const growthRate = ((currentCount - previousCount) / previousCount) * 100;
+            yearOverYearGrowth.push({
+              year: currentYear,
+              rate: Math.round(growthRate * 100) / 100
+            });
           }
         }
-      };
-
-      setTrendData(trendData);
+        
+        // Calculate average growth rate
+        const averageGrowthRate = yearOverYearGrowth.length > 0 
+          ? Math.round((yearOverYearGrowth.reduce((sum, item) => sum + item.rate, 0) / yearOverYearGrowth.length) * 100) / 100
+          : 0;
+        
+        // Create trend data structure
+        const trendData = {
+          publication_count: totalPublications,
+          yearly_distribution: yearlyDistribution,
+          meta: {
+            trend_factors: {
+              average_growth_rate: averageGrowthRate,
+              year_over_year_growth: yearOverYearGrowth,
+              relative_popularity: Math.round((totalPublications / 1000) * 100) / 100
+            }
+          }
+        };
+        
+        setTrendData(trendData);
+        
+      } else {
+        // When no authors are selected, use the original group_by approach
+        params.append('group_by', 'publication_year');
+        params.append('per_page', '200');
+        
+        const apiUrl = `https://api.openalex.org/works?${params.toString()}`;
+        setApiCalls([apiUrl]);
+        
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.details || `HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Check if we have any results
+        if (!data.group_by || data.group_by.length === 0) {
+          setError("No publications found for the given keyword and filters.");
+          return;
+        }
+        
+        // Process group_by data to create trend analysis
+        const yearlyDistribution = {};
+        let totalPublications = 0;
+        
+        // Process group_by results
+        data.group_by.forEach(group => {
+          const year = group.key;
+          const count = group.count;
+          if (year && count > 0) {
+            yearlyDistribution[year] = count;
+            totalPublications += count;
+          }
+        });
+        
+        // Calculate growth rates
+        const years = Object.keys(yearlyDistribution).sort((a, b) => parseInt(a) - parseInt(b));
+        const yearOverYearGrowth = [];
+        
+        for (let i = 1; i < years.length; i++) {
+          const currentYear = parseInt(years[i]);
+          const previousYear = parseInt(years[i - 1]);
+          const currentCount = yearlyDistribution[currentYear];
+          const previousCount = yearlyDistribution[previousYear];
+          
+          if (previousCount > 0) {
+            const growthRate = ((currentCount - previousCount) / previousCount) * 100;
+            yearOverYearGrowth.push({
+              year: currentYear,
+              rate: Math.round(growthRate * 100) / 100
+            });
+          }
+        }
+        
+        // Calculate average growth rate
+        const averageGrowthRate = yearOverYearGrowth.length > 0 
+          ? Math.round((yearOverYearGrowth.reduce((sum, item) => sum + item.rate, 0) / yearOverYearGrowth.length) * 100) / 100
+          : 0;
+        
+        // Create trend data structure
+        const trendData = {
+          publication_count: totalPublications,
+          yearly_distribution: yearlyDistribution,
+          meta: {
+            trend_factors: {
+              average_growth_rate: averageGrowthRate,
+              year_over_year_growth: yearOverYearGrowth,
+              relative_popularity: Math.round((totalPublications / 1000) * 100) / 100
+            }
+          }
+        };
+        
+        setTrendData(trendData);
+      }
+      
     } catch (e) {
       setError("Failed to fetch publication trend. Please try again with a different keyword or date range.");
       console.error("Keyword trend fetch error:", e);
@@ -314,11 +412,66 @@ export const PositionDetailLight = ({ darkMode = true }) => {
     // Add keyword search
     searchParams.append('search', searchKeyword.trim());
     
-    // Add year filter
+    // Add year filter (override any existing year range with the clicked year)
     searchParams.append('publication_year', data.year);
     
-    // Navigate to search page with filters
-    navigate(`/search?${searchParams.toString()}`);
+    // Add selected authors
+    if (selectedAuthors.length > 0) {
+      selectedAuthors.forEach(author => {
+        if (author.id) {
+          const authorId = author.id.split('/').pop();
+          searchParams.append('author_id', authorId);
+          // Also pass the display name as a string
+          if (author.display_name) {
+            searchParams.append('author_name', author.display_name);
+            console.log('Adding author to URL:', authorId, author.display_name);
+          }
+        }
+      });
+    }
+    
+    // Add selected institutions
+    if (selectedInstitutions.length > 0) {
+      selectedInstitutions.forEach(institution => {
+        if (institution.id) {
+          const institutionId = institution.id.split('/').pop();
+          searchParams.append('institution_id', institutionId);
+          // Also pass the display name as a string
+          if (institution.display_name) {
+            searchParams.append('institution_name', institution.display_name);
+            console.log('Adding institution to URL:', institutionId, institution.display_name);
+          }
+        }
+      });
+    }
+    
+    // Add publication types
+    if (selectedPublicationTypes.length > 0) {
+      selectedPublicationTypes.forEach(type => {
+        searchParams.append('publication_type', type.id);
+      });
+    }
+    
+    // Add journals
+    if (selectedJournals.length > 0) {
+      selectedJournals.forEach(journal => {
+        if (journal.id) {
+          const journalId = journal.id.split('/').pop();
+          searchParams.append('journal_id', journalId);
+        }
+      });
+    }
+    
+    // Add year range (if specified, will be overridden by the clicked year)
+    if (startYear.trim() && endYear.trim()) {
+      searchParams.append('start_year', startYear.trim());
+      searchParams.append('end_year', endYear.trim());
+    }
+    
+    // Navigate to search page with all filters
+    const finalUrl = `/search?${searchParams.toString()}`;
+    console.log('Navigating to search page with URL:', finalUrl);
+    navigate(finalUrl);
   };
 
   const renderTrendIndicators = () => {

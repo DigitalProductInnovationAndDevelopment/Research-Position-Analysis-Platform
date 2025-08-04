@@ -96,13 +96,25 @@ const SearchPageLight = ({ darkMode = true }) => {
     const searchParam = urlParams.get('search');
     const yearParam = urlParams.get('publication_year');
     const institutionIdParam = urlParams.get('institution_id');
+    const authorIdParams = urlParams.getAll('author_id');
+    const institutionIdParams = urlParams.getAll('institution_id');
+    const publicationTypeParams = urlParams.getAll('publication_type');
+    const journalIdParams = urlParams.getAll('journal_id');
+    const startYearParam = urlParams.get('start_year');
+    const endYearParam = urlParams.get('end_year');
 
     // Check if we have any chart-related parameters (coming from graph click)
-    const hasChartParams = searchParam || yearParam || institutionIdParam;
+    const hasChartParams = searchParam || yearParam || institutionIdParam || authorIdParams.length > 0 || 
+                          institutionIdParams.length > 0 || publicationTypeParams.length > 0 || 
+                          journalIdParams.length > 0 || startYearParam || endYearParam;
 
     if (hasChartParams) {
       // Has URL parameters - came from graph click, auto-search
-      console.log('Graph navigation detected - auto-searching with params:', { searchParam, yearParam, institutionIdParam });
+      console.log('Graph navigation detected - auto-searching with params:', { 
+        searchParam, yearParam, institutionIdParam, authorIdParams, 
+        institutionIdParams, publicationTypeParams, journalIdParams, 
+        startYearParam, endYearParam 
+      });
 
       // Set search keyword if provided
       if (searchParam) {
@@ -114,15 +126,91 @@ const SearchPageLight = ({ darkMode = true }) => {
         setPublicationYear(yearParam);
       }
 
-      // Handle institution if provided
-      if (institutionIdParam) {
-        fetchInstitutionById(institutionIdParam);
+      // Set year range if provided
+      if (startYearParam) {
+        setStartYear(startYearParam);
+      }
+      if (endYearParam) {
+        setEndYear(endYearParam);
+      }
+
+      // Handle authors if provided
+      if (authorIdParams.length > 0) {
+        console.log('Setting author details for:', authorIdParams);
+        
+        // Get author names from URL parameters if available
+        const authorNameParams = urlParams.getAll('author_name');
+        console.log('Author name params received:', authorNameParams);
+        
+        // Create author objects with real names if available, otherwise use IDs
+        const authors = authorIdParams.map((id, index) => {
+          const displayName = authorNameParams[index] || `Author ${id}`;
+          console.log(`Author ${id}: using display name "${displayName}"`);
+          return { 
+            id: `A${id}`, 
+            display_name: displayName 
+          };
+        });
+        
+        console.log('Setting selected authors:', authors);
+        setSelectedAuthors(authors);
+      }
+
+      // Handle institutions if provided
+      if (institutionIdParams.length > 0) {
+        console.log('Setting institution details for:', institutionIdParams);
+        
+        // Get institution names from URL parameters if available
+        const institutionNameParams = urlParams.getAll('institution_name');
+        console.log('Institution name params received:', institutionNameParams);
+        
+        // Create institution objects with real names if available, otherwise use IDs
+        const institutions = institutionIdParams.map((id, index) => {
+          const displayName = institutionNameParams[index] || `Institution ${id}`;
+          console.log(`Institution ${id}: using display name "${displayName}"`);
+          return { 
+            id: `I${id}`, 
+            display_name: displayName 
+          };
+        });
+        
+        console.log('Setting selected institutions:', institutions);
+        setSelectedInstitutions(institutions);
+      }
+
+      // Handle publication types if provided
+      if (publicationTypeParams.length > 0) {
+        const selectedTypes = publicationTypes.filter(pt => 
+          publicationTypeParams.includes(pt.id)
+        );
+        setSelectedPublicationTypes(selectedTypes);
+      }
+
+      // Handle journals if provided
+      if (journalIdParams.length > 0) {
+        // Fetch journal details for each journal ID
+        Promise.all(journalIdParams.map(async (journalId) => {
+          try {
+            const response = await fetch(`${OPENALEX_API_BASE}/sources/S${journalId}`);
+            if (response.ok) {
+              const journalData = await response.json();
+              return { id: journalData.id, display_name: journalData.display_name };
+            }
+          } catch (error) {
+            console.error('Failed to fetch journal details:', error);
+          }
+        })).then(journals => {
+          const validJournals = journals.filter(journal => journal);
+          setSelectedJournals(validJournals);
+        });
       }
 
       // Auto-search with URL parameters
       setTimeout(() => {
-        performAutoSearchWithParams(searchParam, yearParam, institutionIdParam);
-      }, 200);
+        performAutoSearchWithParams(searchParam, yearParam, institutionIdParam, authorIdParams, 
+                                  institutionIdParams, publicationTypeParams, journalIdParams,
+                                  startYearParam, endYearParam);
+      }, 1000); // Increased timeout to allow for author/institution fetching
     } else {
       // No URL parameters - any other navigation, just clear fields
       console.log('Direct navigation - clearing fields, no auto-search');
@@ -145,8 +233,14 @@ const SearchPageLight = ({ darkMode = true }) => {
   };
 
   // Separate function for auto-search with URL parameters
-  const performAutoSearchWithParams = async (searchParam, yearParam, institutionIdParam, page = 1) => {
-    console.log('performAutoSearchWithParams called with:', { searchParam, yearParam, institutionIdParam, page });
+  const performAutoSearchWithParams = async (searchParam, yearParam, institutionIdParam, authorIdParams, 
+                                  institutionIdParams, publicationTypeParams, journalIdParams,
+                                  startYearParam, endYearParam, page = 1) => {
+    console.log('performAutoSearchWithParams called with:', { 
+      searchParam, yearParam, institutionIdParam, authorIdParams, 
+      institutionIdParams, publicationTypeParams, journalIdParams,
+      startYearParam, endYearParam, page 
+    });
 
     setLoading(true);
     setError(null);
@@ -161,7 +255,6 @@ const SearchPageLight = ({ darkMode = true }) => {
       // Use search parameter directly from URL
       if (searchParam && searchParam.trim()) {
         const keyword = searchParam.trim();
-        // Format: title_and_abstract.search:keyword (spaces become + in URL)
         filters.push(`title_and_abstract.search:${keyword}`);
       }
 
@@ -170,9 +263,33 @@ const SearchPageLight = ({ darkMode = true }) => {
         filters.push(`publication_year:${yearParam.trim()}`);
       }
 
-      // Use institution parameter directly from URL
-      if (institutionIdParam && institutionIdParam.trim()) {
-        filters.push(`authorships.institutions.id:I${institutionIdParam.trim()}`);
+      // Use year range parameters directly from URL
+      if (startYearParam && endYearParam && startYearParam.trim() && endYearParam.trim()) {
+        filters.push(`publication_year:${startYearParam.trim()}-${endYearParam.trim()}`);
+      }
+
+      // Use institution parameters directly from URL
+      if (institutionIdParams && institutionIdParams.length > 0) {
+        const institutionFilters = institutionIdParams.map(id => `authorships.institutions.id:I${id.trim()}`);
+        filters.push(institutionFilters.join('|'));
+      }
+
+      // Use author parameters directly from URL
+      if (authorIdParams && authorIdParams.length > 0) {
+        const authorFilters = authorIdParams.map(id => `authorships.author.id:A${id.trim()}`);
+        filters.push(authorFilters.join('|'));
+      }
+
+      // Use publication type parameters directly from URL
+      if (publicationTypeParams && publicationTypeParams.length > 0) {
+        const typeFilters = publicationTypeParams.map(type => `type:${type}`);
+        filters.push(typeFilters.join('|'));
+      }
+
+      // Use journal parameters directly from URL
+      if (journalIdParams && journalIdParams.length > 0) {
+        const journalFilters = journalIdParams.map(id => `primary_location.source.id:S${id.trim()}`);
+        filters.push(journalFilters.join('|'));
       }
 
       const filterString = filters.join(',');
@@ -182,20 +299,35 @@ const SearchPageLight = ({ darkMode = true }) => {
       params.append('page', page.toString());
       params.append('sort', 'cited_by_count:desc');
 
-      const finalUrl = `${OPENALEX_API_BASE}/works?${params.toString()}`;
-      console.log('Auto-search URL:', finalUrl);
-      console.log('Search filters:', filters);
-      console.log('URL matches format: https://openalex.org/works?page=X&filter=...&sort=cited_by_count:desc');
+      const url = `${OPENALEX_API_BASE}/works?${params.toString()}`;
 
       // Track API call for disclaimer
-      setApiCalls([finalUrl]);
+      setApiCalls([url]);
 
-      const url = `${OPENALEX_API_BASE}/works?${params.toString()}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch search results');
       const data = await response.json();
 
-      setResults(data.results || []);
+      // Deduplicate results based on work ID and title to prevent duplicates
+      const uniqueResults = [];
+      const seenIds = new Set();
+      const seenTitles = new Set();
+      
+      if (data.results && Array.isArray(data.results)) {
+        data.results.forEach(result => {
+          const title = result.title || result.display_name || '';
+          const normalizedTitle = title.toLowerCase().trim();
+          
+          // Check both ID and title for duplicates
+          if (result.id && !seenIds.has(result.id) && !seenTitles.has(normalizedTitle)) {
+            seenIds.add(result.id);
+            seenTitles.add(normalizedTitle);
+            uniqueResults.push(result);
+          }
+        });
+      }
+
+      setResults(uniqueResults);
       setTotalResults(data.meta?.count || 0);
       setTotalPages(Math.ceil((data.meta?.count || 0) / resultsPerPage));
       setCurrentPage(page);
@@ -293,7 +425,26 @@ const SearchPageLight = ({ darkMode = true }) => {
       if (!response.ok) throw new Error('Failed to fetch search results');
       const data = await response.json();
 
-      setResults(data.results || []);
+      // Deduplicate results based on work ID and title to prevent duplicates
+      const uniqueResults = [];
+      const seenIds = new Set();
+      const seenTitles = new Set();
+      
+      if (data.results && Array.isArray(data.results)) {
+        data.results.forEach(result => {
+          const title = result.title || result.display_name || '';
+          const normalizedTitle = title.toLowerCase().trim();
+          
+          // Check both ID and title for duplicates
+          if (result.id && !seenIds.has(result.id) && !seenTitles.has(normalizedTitle)) {
+            seenIds.add(result.id);
+            seenTitles.add(normalizedTitle);
+            uniqueResults.push(result);
+          }
+        });
+      }
+
+      setResults(uniqueResults);
       setTotalResults(data.meta?.count || 0);
       setTotalPages(Math.ceil((data.meta?.count || 0) / resultsPerPage));
       setCurrentPage(page);
@@ -318,10 +469,20 @@ const SearchPageLight = ({ darkMode = true }) => {
       const searchParam = urlParams.get('search');
       const yearParam = urlParams.get('publication_year');
       const institutionIdParam = urlParams.get('institution_id');
+      const authorIdParams = urlParams.getAll('author_id');
+      const institutionIdParams = urlParams.getAll('institution_id');
+      const publicationTypeParams = urlParams.getAll('publication_type');
+      const journalIdParams = urlParams.getAll('journal_id');
+      const startYearParam = urlParams.get('start_year');
+      const endYearParam = urlParams.get('end_year');
 
-      if (searchParam || yearParam || institutionIdParam) {
+      if (searchParam || yearParam || institutionIdParam || authorIdParams.length > 0 || 
+          institutionIdParams.length > 0 || publicationTypeParams.length > 0 || 
+          journalIdParams.length > 0 || startYearParam || endYearParam) {
         // Use auto-search with parameters
-        performAutoSearchWithParams(searchParam, yearParam, institutionIdParam, newPage);
+        performAutoSearchWithParams(searchParam, yearParam, institutionIdParam, authorIdParams, 
+                                  institutionIdParams, publicationTypeParams, journalIdParams,
+                                  startYearParam, endYearParam, newPage);
       } else {
         // Use regular search
         handleSearch(newPage);
