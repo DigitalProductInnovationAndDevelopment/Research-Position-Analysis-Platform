@@ -7,6 +7,7 @@ import {
   Marker
 } from 'react-simple-maps';
 import ResearchLeadershipAnalysis from '../ResearchLeadershipAnalysis/ResearchLeadershipAnalysis';
+import ElasticSlider from '../../animated/Slider/Slider';
 import styles from './WorldMapPapers.module.css';
 
 // Helper: country name to coordinates (centroids)
@@ -261,13 +262,152 @@ const getCountryCentroid = (countryCode) => {
 
 const OPENALEX_API_BASE = 'https://api.openalex.org';
 
-const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerSearch = false, searchResults = null }) => {
+const WorldMapPapers = ({ 
+  searchQuery, 
+  onPaperSelect, 
+  onApiCallsUpdate, 
+  triggerSearch = false, 
+  searchResults = null,
+  papersPerCountry = 50,
+  totalPapers = 100,
+  onTotalPapersChange = null,
+  onPapersPerCountryChange = null
+}) => {
   const [papers, setPapers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState(null);
   const [mapError, setMapError] = useState(false);
   const [tooltipContent, setTooltipContent] = useState(null);
   const [zoom, setZoom] = useState(1);
+  
+  // Local state for slider values (for dynamic display without API calls)
+  const [localTotalPapers, setLocalTotalPapers] = useState(totalPapers);
+  const [localPapersPerCountry, setLocalPapersPerCountry] = useState(papersPerCountry);
+
+  // Update local state when props change
+  useEffect(() => {
+    setLocalTotalPapers(totalPapers);
+  }, [totalPapers]);
+
+  useEffect(() => {
+    setLocalPapersPerCountry(papersPerCountry);
+  }, [papersPerCountry]);
+
+  // Local handlers for sliders (no API calls)
+  const handleLocalTotalPapersChange = (value) => {
+    setLocalTotalPapers(value);
+    // Ensure papers per country doesn't exceed total papers
+    if (localPapersPerCountry > value) {
+      setLocalPapersPerCountry(value);
+    }
+  };
+
+  const handleLocalPapersPerCountryChange = (value) => {
+    setLocalPapersPerCountry(Math.min(value, localTotalPapers));
+  };
+
+  // Re-process papers when local slider values change
+  useEffect(() => {
+    if (searchResults && searchResults.length > 0) {
+      // Re-process the existing search results with new slider values
+      const mapped = searchResults.map((work, idx) => {
+        // Try to get first author institution country and coordinates
+        let country = null;
+        let coordinates = null;
+        let institution = null;
+        if (work.authorships && work.authorships.length > 0) {
+          const firstAuth = work.authorships[0];
+          if (firstAuth.institutions && firstAuth.institutions.length > 0) {
+            const inst = firstAuth.institutions[0];
+            country = inst.country_code || inst.country || null;
+            institution = inst.display_name || null;
+            // If OpenAlex provides lat/lon, use it (not always available)
+            if (inst.latitude && inst.longitude) {
+              coordinates = [inst.longitude, inst.latitude];
+            } else if (country) {
+              coordinates = getCountryCentroid(country);
+            }
+          }
+        }
+        // Fallback: use country from work if available
+        if (!coordinates && work.country_code) {
+          coordinates = getCountryCentroid(work.country_code);
+          country = work.country_code;
+        }
+        // Fallback: skip if no coordinates
+        if (!coordinates) return null;
+        return {
+          id: work.id || idx,
+          title: work.title || work.display_name || 'Untitled',
+          authors: work.authorships ? work.authorships.map(a => a.author?.display_name || '').filter(Boolean) : [],
+          citations: work.citation_count || work.cited_by_count || 0,
+          country,
+          coordinates,
+          year: work.publication_year || null,
+          institution: institution || null
+        };
+      }).filter(Boolean);
+
+      // Ensure all countries from leadership analysis have markers
+      const countriesWithMarkers = new Set(mapped.map(p => p.country));
+      const additionalMarkers = [];
+
+      // Get all unique countries from the search results
+      const allCountriesInData = new Set();
+      searchResults.forEach((work) => {
+        let country = null;
+        if (work.authorships && work.authorships.length > 0) {
+          const firstAuth = work.authorships[0];
+          if (firstAuth.institutions && firstAuth.institutions.length > 0) {
+            const inst = firstAuth.institutions[0];
+            country = inst.country_code || inst.country || null;
+          }
+        }
+        if (!country && work.country_code) {
+          country = work.country_code;
+        }
+        if (country) {
+          allCountriesInData.add(country);
+        }
+      });
+
+      // Limit papers per country
+      const countryPaperCounts = {};
+      const limitedMapped = mapped.filter(paper => {
+        const country = paper.country;
+        if (!country) return false;
+        
+        countryPaperCounts[country] = (countryPaperCounts[country] || 0) + 1;
+        return countryPaperCounts[country] <= localPapersPerCountry;
+      });
+
+      // Create markers for ALL countries that appear in the data
+      allCountriesInData.forEach((country) => {
+        const coordinates = getCountryCentroid(country);
+        if (coordinates) {
+          // If country doesn't have any markers yet, create one
+          if (!countriesWithMarkers.has(country)) {
+            additionalMarkers.push({
+              id: `additional-${country}`,
+              title: `Research papers from ${country}`,
+              authors: [],
+              citations: 0,
+              country,
+              coordinates,
+              year: null,
+              institution: null,
+              isAdditional: true
+            });
+            countriesWithMarkers.add(country);
+          }
+        }
+      });
+
+      setPapers([...limitedMapped, ...additionalMarkers]);
+      setLoading(false);
+      setFetchError(null);
+    }
+  }, [searchResults, localTotalPapers, localPapersPerCountry]);
 
   useEffect(() => {
     if (searchResults && searchResults.length > 0) {
@@ -333,6 +473,16 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerS
         }
       });
 
+      // Limit papers per country
+      const countryPaperCounts = {};
+      const limitedMapped = mapped.filter(paper => {
+        const country = paper.country;
+        if (!country) return false;
+        
+        countryPaperCounts[country] = (countryPaperCounts[country] || 0) + 1;
+        return countryPaperCounts[country] <= localPapersPerCountry;
+      });
+
       // Create markers for ALL countries that appear in the data
       allCountriesInData.forEach((country) => {
         const coordinates = getCountryCentroid(country);
@@ -354,7 +504,7 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerS
           }
         }
       });
-      const allMarkers = [...mapped, ...additionalMarkers];
+      const allMarkers = [...limitedMapped, ...additionalMarkers];
       setPapers(allMarkers);
     } else if (triggerSearch && searchQuery) {
       fetchPapersByQuery(searchQuery);
@@ -477,13 +627,15 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerS
 
   // Helper to offset markers with the same coordinates
   function offsetMarkers(papers) {
+    // First, limit total papers to display
+    const limitedPapers = papers.slice(0, localTotalPapers);
     
     // Group by coordinates as string
     const groups = {};
-    papers.forEach((paper) => {
+    limitedPapers.forEach((paper) => {
       const key = paper.coordinates.join(',');
       if (!groups[key]) groups[key] = [];
-      if (groups[key].length < 5) { // Only allow up to 5 papers per country
+      if (groups[key].length < localPapersPerCountry) { // Use local slider value for papers per country
         groups[key].push(paper);
       }
     });
@@ -710,7 +862,7 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerS
                 }}
               </Geographies>
               {(() => {
-                const markersToRender = offsetMarkers(papers.slice(0, 100));
+                const markersToRender = offsetMarkers(papers);
                 
                 return markersToRender.map((paper) => {
                   return (
@@ -738,31 +890,106 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerS
       )}
       
       {papers.length > 0 && (
-        <div className={styles.legend}>
-          <h4>Citation Impact Legend</h4>
-          <div className={styles.legendItems}>
-            <div className={styles.legendItem}>
-              <div className={styles.legendDot} style={{ backgroundColor: '#ff4444', width: '12px', height: '12px' }}></div>
-              <span>20,000+ citations</span>
+        <>
+          {/* Sliders Section - positioned above legend */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            gap: '3rem', 
+            margin: '2rem 0',
+            padding: '1rem',
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.1)'
+          }}>
+            {/* Total Papers Slider */}
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              gap: '0.5rem',
+              color: '#fff'
+            }}>
+              <label style={{ 
+                fontSize: '0.9rem', 
+                fontWeight: '600', 
+                marginBottom: '0.5rem',
+                color: '#ccc'
+              }}>
+                Total Papers to Display
+              </label>
+              <ElasticSlider
+                defaultValue={localTotalPapers}
+                startingValue={10}
+                maxValue={200}
+                isStepped={true}
+                stepSize={10}
+                leftIcon={<span style={{ color: '#888', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>10</span>}
+                rightIcon={<span style={{ color: '#888', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>200</span>}
+                className="dark"
+                onChange={handleLocalTotalPapersChange}
+              />
+              <span style={{ fontSize: '0.8rem', color: '#888' }}>{localTotalPapers} papers</span>
             </div>
-            <div className={styles.legendItem}>
-              <div className={styles.legendDot} style={{ backgroundColor: '#ff8800', width: '10px', height: '10px' }}></div>
-              <span>15,000+ citations</span>
-            </div>
-            <div className={styles.legendItem}>
-              <div className={styles.legendDot} style={{ backgroundColor: '#ffcc00', width: '8px', height: '8px' }}></div>
-              <span>10,000+ citations</span>
-            </div>
-            <div className={styles.legendItem}>
-              <div className={styles.legendDot} style={{ backgroundColor: '#88ff00', width: '6px', height: '6px' }}></div>
-              <span>5,000+ citations</span>
-            </div>
-            <div className={styles.legendItem}>
-              <div className={styles.legendDot} style={{ backgroundColor: '#44ff44', width: '4px', height: '4px' }}></div>
-              <span>&lt; 5,000 citations</span>
+
+            {/* Papers Per Country Slider */}
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              gap: '0.5rem',
+              color: '#fff'
+            }}>
+              <label style={{ 
+                fontSize: '0.9rem', 
+                fontWeight: '600', 
+                marginBottom: '0.5rem',
+                color: '#ccc'
+              }}>
+                Papers Per Country
+              </label>
+              <ElasticSlider
+                defaultValue={localPapersPerCountry}
+                startingValue={1}
+                maxValue={Math.min(localTotalPapers, 100)}
+                isStepped={true}
+                stepSize={1}
+                leftIcon={<span style={{ color: '#888', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>1</span>}
+                rightIcon={<span style={{ color: '#888', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>{Math.min(localTotalPapers, 100)}</span>}
+                className="dark"
+                onChange={handleLocalPapersPerCountryChange}
+              />
+              <span style={{ fontSize: '0.8rem', color: '#888' }}>{localPapersPerCountry} per country</span>
             </div>
           </div>
-        </div>
+
+          <div className={styles.legend}>
+            <h4>Citation Impact Legend</h4>
+            <div className={styles.legendItems}>
+              <div className={styles.legendItem}>
+                <div className={styles.legendDot} style={{ backgroundColor: '#ff4444', width: '12px', height: '12px' }}></div>
+                <span>20,000+ citations</span>
+              </div>
+              <div className={styles.legendItem}>
+                <div className={styles.legendDot} style={{ backgroundColor: '#ff8800', width: '10px', height: '10px' }}></div>
+                <span>15,000+ citations</span>
+              </div>
+              <div className={styles.legendItem}>
+                <div className={styles.legendDot} style={{ backgroundColor: '#ffcc00', width: '8px', height: '8px' }}></div>
+                <span>10,000+ citations</span>
+              </div>
+              <div className={styles.legendItem}>
+                <div className={styles.legendDot} style={{ backgroundColor: '#88ff00', width: '6px', height: '6px' }}></div>
+                <span>5,000+ citations</span>
+              </div>
+              <div className={styles.legendItem}>
+                <div className={styles.legendDot} style={{ backgroundColor: '#44ff44', width: '4px', height: '4px' }}></div>
+                <span>&lt; 5,000 citations</span>
+              </div>
+            </div>
+          </div>
+        </>
       )}
       
       {/* Research Leadership Analysis */}
