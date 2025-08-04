@@ -1,0 +1,106 @@
+.sliderContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    width: 12rem;
+    position: relative;
+  }
+  
+  .sliderWrapper {
+    display: flex;
+    width: 100%;
+    touch-action: none;
+    user-select: none;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+  
+  .sliderRoot {
+    position: relative;
+    display: flex;
+    width: 100%;
+    max-width: 200px;
+    flex-grow: 1;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    align-items: center;
+    padding: 1rem 0;
+  }
+  
+  .sliderRoot:active {
+    cursor: grabbing;
+  }
+  
+  .sliderTrackWrapper {
+    display: flex;
+    flex-grow: 1;
+  }
+  
+  .sliderTrack {
+    position: relative;
+    height: 6px;
+    flex-grow: 1;
+    overflow: hidden;
+    border-radius: 9999px;
+    background-color: rgba(128, 128, 128, 0.4);
+  }
+  
+  .sliderRange {
+    position: absolute;
+    height: 100%;
+    background-color: #4F6AF6;
+    border-radius: 9999px;
+    transition: width 0.1s ease;
+  }
+  
+
+  
+  .icon {
+    width: 24px;
+    height: 24px;
+    color: #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .icon:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+  }
+  
+  /* Dark mode styles */
+  .sliderContainer.dark .sliderTrack {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .sliderContainer.dark .sliderRange {
+    background-color: #4F6AF6;
+  }
+  
+  .sliderContainer.dark .valueIndicator {
+    color: #fff;
+    background: rgba(0, 0, 0, 0.9);
+  }
+  
+  .sliderContainer.dark .icon {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+  
+  .sliderContainer.dark .icon:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  

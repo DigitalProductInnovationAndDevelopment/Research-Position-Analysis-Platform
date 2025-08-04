@@ -10,6 +10,7 @@ import useDropdownSearch from "../hooks/useDropdownSearch";
 import ApiCallInfoBox from "../components/shared/ApiCallInfoBox";
 import Particles from "../components/animated/SearchBackground/Particles";
 
+
 // TODO: explain how page works (how many results are shown in total, how many per country etc.)
 
 const WorldMapPapersPage = () => {
@@ -34,6 +35,9 @@ const WorldMapPapersPage = () => {
   const [triggerSearch, setTriggerSearch] = useState(false);
   // Search results state
   const [searchResults, setSearchResults] = useState([]);
+  // Slider state
+  const [totalPapers, setTotalPapers] = useState(100);
+  const [papersPerCountry, setPapersPerCountry] = useState(50);
 
   // Disclaimer state
   const [userInputs, setUserInputs] = useState([]);
@@ -155,7 +159,7 @@ const WorldMapPapersPage = () => {
       const filterString = filters.join(',');
       const params = new URLSearchParams();
       if (filterString) params.append('filter', filterString);
-      params.append('per_page', 200); // Get more results for world map
+      params.append('per_page', totalPapers); // Use slider value for total papers
       params.append('sort', 'cited_by_count:desc');
       
       const url = `https://api.openalex.org/works?${params.toString()}`;
@@ -184,6 +188,20 @@ const WorldMapPapersPage = () => {
   const handleApplyAdvanced = () => {
     setShowAdvanced(false);
     handleSearch();
+  };
+
+  // Handle total papers slider change
+  const handleTotalPapersChange = (value) => {
+    setTotalPapers(value);
+    // Ensure papers per country doesn't exceed total papers
+    if (papersPerCountry > value) {
+      setPapersPerCountry(value);
+    }
+  };
+
+  // Handle papers per country slider change
+  const handlePapersPerCountryChange = (value) => {
+    setPapersPerCountry(Math.min(value, totalPapers));
   };
 
   return (
@@ -280,6 +298,10 @@ const WorldMapPapersPage = () => {
             endYear={endYear}
             triggerSearch={triggerSearch}
             searchResults={searchResults}
+            papersPerCountry={papersPerCountry}
+            totalPapers={totalPapers}
+            onTotalPapersChange={handleTotalPapersChange}
+            onPapersPerCountryChange={handlePapersPerCountryChange}
           />
 
           {/* Author Modal Dropdown */}

@@ -7,6 +7,7 @@ import {
   Marker
 } from 'react-simple-maps';
 import ResearchLeadershipAnalysis from '../ResearchLeadershipAnalysis/ResearchLeadershipAnalysis';
+import ElasticSlider from '../../animated/Slider/Slider';
 import styles from './WorldMapPapers.module.css';
 
 // Helper: country name to coordinates (centroids)
@@ -261,7 +262,17 @@ const getCountryCentroid = (countryCode) => {
 
 const OPENALEX_API_BASE = 'https://api.openalex.org';
 
-const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerSearch = false, searchResults = null }) => {
+const WorldMapPapers = ({ 
+  searchQuery, 
+  onPaperSelect, 
+  onApiCallsUpdate, 
+  triggerSearch = false, 
+  searchResults = null,
+  papersPerCountry = 50,
+  totalPapers = 100,
+  onTotalPapersChange = null,
+  onPapersPerCountryChange = null
+}) => {
   const [papers, setPapers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState(null);
@@ -333,6 +344,16 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerS
         }
       });
 
+      // Limit papers per country
+      const countryPaperCounts = {};
+      const limitedMapped = mapped.filter(paper => {
+        const country = paper.country;
+        if (!country) return false;
+        
+        countryPaperCounts[country] = (countryPaperCounts[country] || 0) + 1;
+        return countryPaperCounts[country] <= papersPerCountry;
+      });
+
       // Create markers for ALL countries that appear in the data
       allCountriesInData.forEach((country) => {
         const coordinates = getCountryCentroid(country);
@@ -354,7 +375,7 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerS
           }
         }
       });
-      const allMarkers = [...mapped, ...additionalMarkers];
+      const allMarkers = [...limitedMapped, ...additionalMarkers];
       setPapers(allMarkers);
     } else if (triggerSearch && searchQuery) {
       fetchPapersByQuery(searchQuery);
@@ -738,31 +759,106 @@ const WorldMapPapers = ({ searchQuery, onPaperSelect, onApiCallsUpdate, triggerS
       )}
       
       {papers.length > 0 && (
-        <div className={styles.legend}>
-          <h4>Citation Impact Legend</h4>
-          <div className={styles.legendItems}>
-            <div className={styles.legendItem}>
-              <div className={styles.legendDot} style={{ backgroundColor: '#ff4444', width: '12px', height: '12px' }}></div>
-              <span>20,000+ citations</span>
+        <>
+          {/* Sliders Section - positioned above legend */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            gap: '3rem', 
+            margin: '2rem 0',
+            padding: '1rem',
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.1)'
+          }}>
+            {/* Total Papers Slider */}
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              gap: '0.5rem',
+              color: '#fff'
+            }}>
+              <label style={{ 
+                fontSize: '0.9rem', 
+                fontWeight: '600', 
+                marginBottom: '0.5rem',
+                color: '#ccc'
+              }}>
+                Total Papers to Display
+              </label>
+              <ElasticSlider
+                defaultValue={totalPapers}
+                startingValue={10}
+                maxValue={200}
+                isStepped={true}
+                stepSize={10}
+                leftIcon={<span style={{ color: '#888', fontSize: '0.8rem' }}>10</span>}
+                rightIcon={<span style={{ color: '#888', fontSize: '0.8rem' }}>200</span>}
+                className="dark"
+                onChange={onTotalPapersChange}
+              />
+              <span style={{ fontSize: '0.8rem', color: '#888' }}>{totalPapers} papers</span>
             </div>
-            <div className={styles.legendItem}>
-              <div className={styles.legendDot} style={{ backgroundColor: '#ff8800', width: '10px', height: '10px' }}></div>
-              <span>15,000+ citations</span>
-            </div>
-            <div className={styles.legendItem}>
-              <div className={styles.legendDot} style={{ backgroundColor: '#ffcc00', width: '8px', height: '8px' }}></div>
-              <span>10,000+ citations</span>
-            </div>
-            <div className={styles.legendItem}>
-              <div className={styles.legendDot} style={{ backgroundColor: '#88ff00', width: '6px', height: '6px' }}></div>
-              <span>5,000+ citations</span>
-            </div>
-            <div className={styles.legendItem}>
-              <div className={styles.legendDot} style={{ backgroundColor: '#44ff44', width: '4px', height: '4px' }}></div>
-              <span>&lt; 5,000 citations</span>
+
+            {/* Papers Per Country Slider */}
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              gap: '0.5rem',
+              color: '#fff'
+            }}>
+              <label style={{ 
+                fontSize: '0.9rem', 
+                fontWeight: '600', 
+                marginBottom: '0.5rem',
+                color: '#ccc'
+              }}>
+                Papers Per Country
+              </label>
+              <ElasticSlider
+                defaultValue={papersPerCountry}
+                startingValue={1}
+                maxValue={Math.min(totalPapers, 100)}
+                isStepped={true}
+                stepSize={1}
+                leftIcon={<span style={{ color: '#888', fontSize: '0.8rem' }}>1</span>}
+                rightIcon={<span style={{ color: '#888', fontSize: '0.8rem' }}>{Math.min(totalPapers, 100)}</span>}
+                className="dark"
+                onChange={onPapersPerCountryChange}
+              />
+              <span style={{ fontSize: '0.8rem', color: '#888' }}>{papersPerCountry} per country</span>
             </div>
           </div>
-        </div>
+
+          <div className={styles.legend}>
+            <h4>Citation Impact Legend</h4>
+            <div className={styles.legendItems}>
+              <div className={styles.legendItem}>
+                <div className={styles.legendDot} style={{ backgroundColor: '#ff4444', width: '12px', height: '12px' }}></div>
+                <span>20,000+ citations</span>
+              </div>
+              <div className={styles.legendItem}>
+                <div className={styles.legendDot} style={{ backgroundColor: '#ff8800', width: '10px', height: '10px' }}></div>
+                <span>15,000+ citations</span>
+              </div>
+              <div className={styles.legendItem}>
+                <div className={styles.legendDot} style={{ backgroundColor: '#ffcc00', width: '8px', height: '8px' }}></div>
+                <span>10,000+ citations</span>
+              </div>
+              <div className={styles.legendItem}>
+                <div className={styles.legendDot} style={{ backgroundColor: '#88ff00', width: '6px', height: '6px' }}></div>
+                <span>5,000+ citations</span>
+              </div>
+              <div className={styles.legendItem}>
+                <div className={styles.legendDot} style={{ backgroundColor: '#44ff44', width: '4px', height: '4px' }}></div>
+                <span>&lt; 5,000 citations</span>
+              </div>
+            </div>
+          </div>
+        </>
       )}
       
       {/* Research Leadership Analysis */}
