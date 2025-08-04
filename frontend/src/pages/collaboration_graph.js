@@ -48,6 +48,23 @@ const GraphViewLight = ({ darkMode = true }) => {
     }
   }, [graphData]);
 
+  // Global keyboard listener for Enter key to generate graph (multi-select logic)
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      // Only trigger if Enter is pressed and we're not in a modal input
+      if (e.key === 'Enter' && !showAuthorModal && !showInstitutionModal) {
+        // Trigger if at least one institution is selected
+        if (selectedInstitutions.length > 0) {
+          setTriggerSearch(s => !s);
+          setHasSearched(true);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    return () => document.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [selectedInstitutions, showAuthorModal, showInstitutionModal]);
+
   // Author autocomplete suggestions
   useEffect(() => {
     const fetchAuthors = async () => {
@@ -302,6 +319,28 @@ const GraphViewLight = ({ darkMode = true }) => {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       setTriggerSearch(s => !s);
+      setHasSearched(true);
+    }
+  };
+
+  // Handle Enter key in modal inputs for multi-select
+  const handleModalKeyDown = (e, modalType) => {
+    if (e.key === 'Enter') {
+      if (modalType === 'author' && modalAuthorSuggestions.length > 0) {
+        // Add the first author suggestion if not already selected
+        const firstAuthor = modalAuthorSuggestions[0];
+        if (!selectedAuthors.some(a => a.id === firstAuthor.id)) {
+          setSelectedAuthors([...selectedAuthors, firstAuthor]);
+        }
+        setShowAuthorModal(false);
+      } else if (modalType === 'institution' && modalInstitutionSuggestions.length > 0) {
+        // Add the first institution suggestion if not already selected
+        const firstInstitution = modalInstitutionSuggestions[0];
+        if (!selectedInstitutions.some(i => i.id === firstInstitution.id)) {
+          setSelectedInstitutions([...selectedInstitutions, firstInstitution]);
+        }
+        setShowInstitutionModal(false);
+      }
     }
   };
 
@@ -1138,7 +1177,8 @@ const GraphViewLight = ({ darkMode = true }) => {
                   setModalAuthorSuggestions([]);
                 }
               }}
-              placeholder="Type to search authors..."
+              onKeyDown={(e) => handleModalKeyDown(e, 'author')}
+              placeholder="Type to search authors... (Press Enter to select first result)"
               style={{
                 width: '100%',
                 padding: '0.75rem',
@@ -1297,7 +1337,8 @@ const GraphViewLight = ({ darkMode = true }) => {
                   setModalInstitutionSuggestions([]);
                 }
               }}
-              placeholder="Type to search institutions..."
+              onKeyDown={(e) => handleModalKeyDown(e, 'institution')}
+              placeholder="Type to search institutions... (Press Enter to select first result)"
               style={{
                 width: '100%',
                 padding: '0.75rem',
