@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router-dom';
-import { LandingPageLight } from '../pages/light_mode/landing_light';
+import { LandingPageLight } from '../pages/home';
 
 describe('LandingPageLight', () => {
   test('renders the DisclaimerBox, PrivacyPolicyBox, and ImpressumBox', () => {
