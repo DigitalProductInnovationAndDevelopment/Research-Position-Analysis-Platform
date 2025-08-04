@@ -20,8 +20,8 @@ const TopBar = () => {
   return (
     <div style={{
       width: '100%',
-      background: '#2a2a2a',
-      borderBottom: '1px solid #404040',
+      background: '#000000',
+      borderBottom: '1px solid #000000',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',

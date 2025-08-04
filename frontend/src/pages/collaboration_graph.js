@@ -170,29 +170,35 @@ const GraphViewLight = ({ darkMode = true }) => {
         const collaboratorDetails = await fetchInstitutionDetails(collaboratorIds);
 
         if (showAuthorsInGraph) {
-          // Show top 10 collaborators and all unique authors as nodes
+          // Show top 10 collaborators and authors who co-published with them
           const works = await fetchWorks(institutionId, collaboratorIds);
 
           // Store works data globally for consistency
           setWorksData(works);
 
-          // Collect all unique authors from works
+          // Collect authors who co-published with the main institution
           const authorMap = new Map(); // id -> display_name
           works.forEach(work => {
-            work.authorships?.forEach(authorship => {
-              if (authorship.author && authorship.author.id && authorship.author.display_name) {
-                authorMap.set(authorship.author.id, authorship.author.display_name);
-              }
-            });
+            // Only include authors if this work involves the main institution
+            const hasMainInstitution = work.authorships?.some(authorship =>
+              authorship.institutions?.some(inst => inst.id.split('/').pop() === institutionId)
+            );
+
+            if (hasMainInstitution) {
+              work.authorships?.forEach(authorship => {
+                if (authorship.author && authorship.author.id && authorship.author.display_name) {
+                  authorMap.set(authorship.author.id, authorship.author.display_name);
+                }
+              });
+            }
           });
 
-          // Build institution nodes
+          // Build institution nodes first
           const nodes = [
             { id: institutionId, label: selectedInstitution.display_name, type: 'institution', main: true },
             ...collaboratorDetails
               .filter(inst => inst.id.split('/').pop() !== institutionId)
-              .map(inst => ({ id: inst.id.split('/').pop(), label: inst.display_name, type: 'institution' })),
-            ...Array.from(authorMap.entries()).map(([id, label]) => ({ id, label, type: 'author' }))
+              .map(inst => ({ id: inst.id.split('/').pop(), label: inst.display_name, type: 'institution' }))
           ];
 
           // Build links: institution-to-institution and institution-to-author
@@ -271,34 +277,56 @@ const GraphViewLight = ({ darkMode = true }) => {
             });
           }
 
-          // Add institution-to-author links using API calls for accurate counts
+          // Add institution-to-author links for co-published papers
+          // Only add links for authors who co-published with the main institution
+          const authorsWithEdges = new Set(); // Track authors who have edges
+
           for (const [pair, count] of authorInstitutionMap) {
             const [instId, authorId] = pair.split('-');
-            try {
-              const filterString = `authorships.author.id:${authorId},authorships.institutions.lineage:i${instId}`;
-              const res = await fetch(
-                `https://api.openalex.org/works?filter=${filterString}&per_page=1`
-              );
-              const data = await res.json();
-              const apiCount = data.meta?.count || 0;
+            // Only include authors who co-published with the main institution
+            if (instId === institutionId || collaboratorIds.includes(instId)) {
+              try {
+                // Check if this author co-published with the main institution
+                const filterString = `authorships.author.id:${authorId},authorships.institutions.lineage:i${institutionId}`;
+                const res = await fetch(
+                  `https://api.openalex.org/works?filter=${filterString}&per_page=1`
+                );
+                const data = await res.json();
+                const apiCount = data.meta?.count || 0;
 
-              links.push({
-                source: instId,
-                target: authorId,
-                value: apiCount,
-                type: 'published_by'
-              });
-            } catch (e) {
-              console.error(`Error fetching count for ${pair}:`, e);
-              // Fallback to the count from our analysis
-              links.push({
-                source: instId,
-                target: authorId,
-                value: count,
-                type: 'published_by'
-              });
+                if (apiCount > 0) {
+                  links.push({
+                    source: instId,
+                    target: authorId,
+                    value: apiCount,
+                    type: 'co_published_with'
+                  });
+                  authorsWithEdges.add(authorId); // Mark this author as having an edge
+                }
+              } catch (e) {
+                console.error(`Error fetching count for ${pair}:`, e);
+                // Fallback to the count from our analysis
+                if (count > 0) {
+                  links.push({
+                    source: instId,
+                    target: authorId,
+                    value: count,
+                    type: 'co_published_with'
+                  });
+                  authorsWithEdges.add(authorId); // Mark this author as having an edge
+                }
+              }
             }
           }
+
+          // Only add author nodes for authors who have edges
+          const authorsWithEdgesArray = Array.from(authorsWithEdges).map(authorId => ({
+            id: authorId,
+            label: authorMap.get(authorId),
+            type: 'author'
+          }));
+
+          nodes.push(...authorsWithEdgesArray);
 
           setGraphData({ nodes, links });
         } else {
@@ -439,9 +467,9 @@ const GraphViewLight = ({ darkMode = true }) => {
           <p
             style={{
               color: '#fff',
-              fontSize: '1rem',
+              fontSize: '0.9rem',
               textAlign: 'center',
-              maxWidth: 400,
+              maxWidth: 500,
               margin: '0 auto',
               lineHeight: 1.5,
               fontWeight: 700,
@@ -449,7 +477,8 @@ const GraphViewLight = ({ darkMode = true }) => {
               textShadow: '0 2px 16px #000',
             }}
           >
-            Show insights into collaborative networks formed through scholarly publications.
+            Select an institution to view its top 10 collaborating institutions and authors who co-published with them.
+            Add either an author filter or keyword to focus on specific collaborations.
           </p>
 
           {/* Search/filter controls */}
@@ -466,7 +495,7 @@ const GraphViewLight = ({ darkMode = true }) => {
           }}>
             <div style={{ width: '100%', color: '#fff' }}>
               <div style={{ marginBottom: 8, width: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-                <label style={{ fontWeight: 600, color: '#fff' }}>Select Institution</label>
+                <label style={{ fontWeight: 600, color: '#fff' }}>Select Institution <span style={{ color: '#ff4444' }}>*</span></label>
                 <div
                   style={{
                     background: '#222',
@@ -500,18 +529,28 @@ const GraphViewLight = ({ darkMode = true }) => {
                         setSelectedInstitution(null);
                       }}
                       style={{
-                        background: '#dc3545',
-                        color: '#fff',
+                        background: 'none',
                         border: 'none',
-                        borderRadius: '50%',
-                        width: '20px',
-                        height: '20px',
+                        color: '#6b7280',
                         cursor: 'pointer',
-                        fontSize: '12px',
+                        fontSize: '1rem',
+                        padding: 0,
+                        width: '16px',
+                        height: '16px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        marginRight: '0.5rem'
+                        borderRadius: '50%',
+                        marginRight: '0.5rem',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = '#dc3545';
+                        e.target.style.color = '#fff';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = 'none';
+                        e.target.style.color = '#6b7280';
                       }}
                       title="Remove institution"
                     >
@@ -525,6 +564,9 @@ const GraphViewLight = ({ darkMode = true }) => {
             {/* Author Dropdown */}
             <div style={{ marginBottom: 8, width: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
               <label style={{ fontWeight: 600, color: '#fff' }}>Filter by Author (optional)</label>
+              <div style={{ fontSize: '0.8rem', color: '#ccc', marginBottom: 4 }}>
+                Choose author and/or keyword to focus your search
+              </div>
               <div
                 style={{
                   background: '#222',
@@ -559,18 +601,28 @@ const GraphViewLight = ({ darkMode = true }) => {
                       setAuthorInput('');
                     }}
                     style={{
-                      background: '#dc3545',
-                      color: '#fff',
+                      background: 'none',
                       border: 'none',
-                      borderRadius: '50%',
-                      width: '20px',
-                      height: '20px',
+                      color: '#6b7280',
                       cursor: 'pointer',
-                      fontSize: '12px',
+                      fontSize: '1rem',
+                      padding: 0,
+                      width: '16px',
+                      height: '16px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      marginRight: '0.5rem'
+                      borderRadius: '50%',
+                      marginRight: '0.5rem',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = '#dc3545';
+                      e.target.style.color = '#fff';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = 'none';
+                      e.target.style.color = '#6b7280';
                     }}
                     title="Remove author"
                   >
@@ -582,7 +634,10 @@ const GraphViewLight = ({ darkMode = true }) => {
             </div>
             {/* Keyword input and search button */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
-              <label style={{ fontWeight: 600, marginBottom: 4, display: 'block', color: '#fff' }}>Search by Keyword</label>
+              <label style={{ fontWeight: 600, marginBottom: 4, display: 'block', color: '#fff' }}>Search by Keyword (optional)</label>
+              <div style={{ fontSize: '0.8rem', color: '#ccc', marginBottom: 4 }}>
+                Choose author and/or keyword to focus your search
+              </div>
               <input
                 ref={inputRef}
                 type="text"
@@ -597,15 +652,15 @@ const GraphViewLight = ({ darkMode = true }) => {
                   setTriggerSearch(s => !s);
                   setHasSearched(true);
                 }}
-                disabled={!selectedInstitution}
+                disabled={!selectedInstitution || (!searchTerm.trim() && !selectedAuthor)}
                 style={{
                   padding: '10px 24px',
                   fontSize: 16,
                   borderRadius: 6,
-                  background: !selectedInstitution ? '#ccc' : '#4F6AF6',
+                  background: (!selectedInstitution || (!searchTerm.trim() && !selectedAuthor)) ? '#ccc' : '#4F6AF6',
                   color: '#fff',
                   border: 'none',
-                  cursor: !selectedInstitution ? 'not-allowed' : 'pointer',
+                  cursor: (!selectedInstitution || (!searchTerm.trim() && !selectedAuthor)) ? 'not-allowed' : 'pointer',
                   boxShadow: '0 2px 8px rgba(25, 118, 210, 0.08)'
                 }}
               >
@@ -735,7 +790,11 @@ const GraphViewLight = ({ darkMode = true }) => {
                   linkWidth={link => Math.max(2, Math.log2(link.value + 1))}
                   linkColor={() => '#90caf9'}
                   onLinkHover={setHoverLink}
-
+                  onNodeDragEnd={(node) => {
+                    // Fix the node position after dragging
+                    node.fx = node.x;
+                    node.fy = node.y;
+                  }}
                   onLinkClick={async (link) => {
                     setSelectedEdge(link);
                     setPapersLoading(true);
@@ -744,12 +803,12 @@ const GraphViewLight = ({ darkMode = true }) => {
                     try {
                       let filterParts = [];
 
-                      if (link.type === 'published_by') {
-                        // Institution to Author link - use the exact format from your example
+                      if (link.type === 'co_published_with') {
+                        // Institution to Author link - show papers where this author co-published with the main institution
                         const institutionId = typeof link.source === 'object' ? link.source.id : link.source;
                         const authorId = typeof link.target === 'object' ? link.target.id : link.target;
 
-                        // Use lineage filter for institution and direct author ID
+                        // Show papers where this author co-published with the main institution
                         filterParts = [
                           `authorships.author.id:${authorId}`,
                           `authorships.institutions.lineage:i${institutionId}`
@@ -765,6 +824,7 @@ const GraphViewLight = ({ darkMode = true }) => {
                         ];
                       }
 
+                      // Always include the keyword filter if it was applied to the graph
                       if (searchTerm.trim()) {
                         filterParts.push(`title_and_abstract.search:${encodeURIComponent(searchTerm.trim())}`);
                       }
@@ -816,7 +876,7 @@ const GraphViewLight = ({ darkMode = true }) => {
                     color: '#222',
                     boxShadow: '0 2px 8px rgba(25, 118, 210, 0.10)'
                   }}>
-                    <div><strong>Edge Type:</strong> {hoverLink.type === 'published_by' ? 'Institution → Author' : 'Institution → Institution'}</div>
+                    <div><strong>Edge Type:</strong> {hoverLink.type === 'co_published_with' ? 'Institution → Author (Co-published)' : 'Institution → Institution'}</div>
                     <div><strong>From:</strong> {getNodeLabel(hoverLink.source)}</div>
                     <div><strong>To:</strong> {getNodeLabel(hoverLink.target)}</div>
                   </div>
@@ -839,15 +899,15 @@ const GraphViewLight = ({ darkMode = true }) => {
                 color: '#fff',
               }}>
                 <h3 style={{ color: '#fff', marginTop: 0 }}>
-                  {selectedEdge.type === 'published_by' ? (
+                  {selectedEdge.type === 'co_published_with' ? (
                     <>
-                      Papers by
+                      Papers where
                       {' '}
                       <span style={{ color: '#4F6AF6' }}>
                         {getNodeLabel(selectedEdge.target)}
                       </span>
                       {' '}
-                      at
+                      co-published with
                       {' '}
                       <span style={{ color: '#4F6AF6' }}>
                         {getNodeLabel(selectedEdge.source)}
@@ -1178,17 +1238,27 @@ const GraphViewLight = ({ darkMode = true }) => {
                       setAuthorInput('');
                     }}
                     style={{
-                      background: '#dc3545',
-                      color: '#fff',
+                      background: 'none',
                       border: 'none',
-                      borderRadius: '50%',
-                      width: '24px',
-                      height: '24px',
+                      color: '#6b7280',
                       cursor: 'pointer',
-                      fontSize: '12px',
+                      fontSize: '1rem',
+                      padding: 0,
+                      width: '16px',
+                      height: '16px',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      borderRadius: '50%',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = '#dc3545';
+                      e.target.style.color = '#fff';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = 'none';
+                      e.target.style.color = '#6b7280';
                     }}
                     title="Remove author"
                   >
@@ -1337,17 +1407,27 @@ const GraphViewLight = ({ darkMode = true }) => {
                       setSelectedInstitution(null);
                     }}
                     style={{
-                      background: '#dc3545',
-                      color: '#fff',
+                      background: 'none',
                       border: 'none',
-                      borderRadius: '50%',
-                      width: '24px',
-                      height: '24px',
+                      color: '#6b7280',
                       cursor: 'pointer',
-                      fontSize: '12px',
+                      fontSize: '1rem',
+                      padding: 0,
+                      width: '16px',
+                      height: '16px',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      borderRadius: '50%',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = '#dc3545';
+                      e.target.style.color = '#fff';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = 'none';
+                      e.target.style.color = '#6b7280';
                     }}
                     title="Remove institution"
                   >

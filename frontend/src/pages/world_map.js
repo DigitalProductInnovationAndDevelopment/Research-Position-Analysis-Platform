@@ -30,6 +30,10 @@ const WorldMapPapersPage = () => {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  // Search trigger state
+  const [triggerSearch, setTriggerSearch] = useState(false);
+  // Search results state
+  const [searchResults, setSearchResults] = useState([]);
 
   // Disclaimer state
   const [userInputs, setUserInputs] = useState([]);
@@ -103,7 +107,8 @@ const WorldMapPapersPage = () => {
   const handleSearch = async () => {
     setLoading(true);
     setError(null);
-    
+    setTriggerSearch(true); // Trigger the search
+
     // Track user inputs for disclaimer
     const inputs = [];
     if (searchKeyword.trim()) inputs.push({ category: 'Keywords', value: searchKeyword.trim() });
@@ -114,7 +119,7 @@ const WorldMapPapersPage = () => {
     if (startYear.trim() && endYear.trim()) inputs.push({ category: 'Year Range', value: `${startYear.trim()}-${endYear.trim()}` });
     if (selectedJournals.length > 0) inputs.push({ category: 'Journals', value: selectedJournals.map(j => j.display_name).join(', ') });
     setUserInputs(inputs);
-    
+
     try {
       const filters = [];
       if (searchKeyword.trim()) {
@@ -146,29 +151,32 @@ const WorldMapPapersPage = () => {
         });
         filters.push(journalFilters.join('|'));
       }
-      
+
       const filterString = filters.join(',');
       const params = new URLSearchParams();
       if (filterString) params.append('filter', filterString);
       params.append('per_page', 200); // Get more results for world map
       params.append('sort', 'cited_by_count:desc');
-      
+
       const url = `https://api.openalex.org/works?${params.toString()}`;
-      
+
       // Track API call for disclaimer
       setApiCalls([url]);
-      
+
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch search results');
       const data = await response.json();
-      
-      // Pass the search results to WorldMapPapers component
-      // You might need to update the WorldMapPapers component to accept these results
-      
+
+      // Store the search results for the world map
+      setSearchResults(data.results || []);
+
     } catch (e) {
       setError(e.message || 'Failed to fetch search results');
+      setSearchResults([]);
     } finally {
       setLoading(false);
+      // Reset trigger after a short delay to allow the component to process
+      setTimeout(() => setTriggerSearch(false), 100);
     }
   };
 
@@ -181,26 +189,26 @@ const WorldMapPapersPage = () => {
   return (
     <>
       <TopBar />
-      <div style={{ background: '#1a1a1a', minHeight: '100vh', paddingBottom: 40 }}>
+      <div style={{ background: '#000', minHeight: '100vh', paddingBottom: 40 }}>
         {/* Search Background - covers the search interface area */}
         <div style={{ position: 'relative' }}>
-          <div style={{ 
-            position: 'absolute', 
-            top: 0, 
-            left: 0, 
-            right: 0, 
-            height: '600px', 
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '600px',
             zIndex: 1,
             pointerEvents: 'none'
           }}>
             <Particles />
           </div>
-          
+
           {/* Search Interface Content */}
           <div style={{ position: 'relative', zIndex: 2 }}>
             <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem 1rem' }}>
-              <SearchHeader 
-                darkMode={true} 
+              <SearchHeader
+                darkMode={true}
                 title="Global Research Impact Localization"
                 subtitle="Find research clusters around the world"
               />
@@ -250,18 +258,18 @@ const WorldMapPapersPage = () => {
                 darkMode={true}
               />
               {/* Disclaimer Box */}
-              <ApiCallInfoBox 
-                userInputs={userInputs} 
-                apiCalls={apiCalls} 
-                darkMode={true} 
+              <ApiCallInfoBox
+                userInputs={userInputs}
+                apiCalls={apiCalls}
+                darkMode={true}
               />
             </div>
           </div>
         </div>
-        
+
         {/* World Map - outside the background area */}
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1rem' }}>
-          <WorldMapPapers 
+          <WorldMapPapers
             searchQuery={searchKeyword}
             authorObject={authorObject}
             institutionObject={institutionObject}
@@ -270,6 +278,8 @@ const WorldMapPapersPage = () => {
             publicationYear={publicationYear}
             startYear={startYear}
             endYear={endYear}
+            triggerSearch={triggerSearch}
+            searchResults={searchResults}
           />
 
           {/* Author Modal Dropdown */}
@@ -311,7 +321,7 @@ const WorldMapPapersPage = () => {
             title="Select Publication Types"
             placeholder="Type to search publication types..."
             onSearchChange={(query) => {
-              const filtered = publicationTypes.filter(pt => 
+              const filtered = publicationTypes.filter(pt =>
                 pt.display_name.toLowerCase().includes(query.toLowerCase())
               );
               return Promise.resolve(filtered);
@@ -327,7 +337,7 @@ const WorldMapPapersPage = () => {
               });
             }}
             onDeselect={(publicationType) => {
-              setSelectedPublicationTypes(prev => 
+              setSelectedPublicationTypes(prev =>
                 prev.filter(pt => pt.id !== publicationType.id)
               );
             }}
@@ -353,7 +363,7 @@ const WorldMapPapersPage = () => {
               });
             }}
             onDeselect={(journal) => {
-              setSelectedJournals(prev => 
+              setSelectedJournals(prev =>
                 prev.filter(j => j.id !== journal.id)
               );
             }}
