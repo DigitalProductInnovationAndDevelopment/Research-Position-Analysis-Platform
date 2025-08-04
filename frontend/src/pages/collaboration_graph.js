@@ -48,13 +48,13 @@ const GraphViewLight = ({ darkMode = true }) => {
     }
   }, [graphData]);
 
-  // Global keyboard listener for Enter key to generate graph
+  // Global keyboard listener for Enter key to generate graph (multi-select logic)
   useEffect(() => {
     const handleGlobalKeyDown = (e) => {
       // Only trigger if Enter is pressed and we're not in a modal input
       if (e.key === 'Enter' && !showAuthorModal && !showInstitutionModal) {
-        // Check if we have the required fields to generate the graph
-        if (selectedInstitution && (searchTerm.trim() || selectedAuthor)) {
+        // Trigger if at least one institution is selected
+        if (selectedInstitutions.length > 0) {
           setTriggerSearch(s => !s);
           setHasSearched(true);
         }
@@ -63,7 +63,7 @@ const GraphViewLight = ({ darkMode = true }) => {
 
     document.addEventListener('keydown', handleGlobalKeyDown);
     return () => document.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [selectedInstitution, searchTerm, selectedAuthor, showAuthorModal, showInstitutionModal]);
+  }, [selectedInstitutions, showAuthorModal, showInstitutionModal]);
 
   // Author autocomplete suggestions
   useEffect(() => {
@@ -323,19 +323,22 @@ const GraphViewLight = ({ darkMode = true }) => {
     }
   };
 
-  // Handle Enter key in modal inputs
+  // Handle Enter key in modal inputs for multi-select
   const handleModalKeyDown = (e, modalType) => {
     if (e.key === 'Enter') {
       if (modalType === 'author' && modalAuthorSuggestions.length > 0) {
-        // Select the first author suggestion
+        // Add the first author suggestion if not already selected
         const firstAuthor = modalAuthorSuggestions[0];
-        setSelectedAuthor(firstAuthor);
-        setAuthorInput(firstAuthor.display_name);
+        if (!selectedAuthors.some(a => a.id === firstAuthor.id)) {
+          setSelectedAuthors([...selectedAuthors, firstAuthor]);
+        }
         setShowAuthorModal(false);
       } else if (modalType === 'institution' && modalInstitutionSuggestions.length > 0) {
-        // Select the first institution suggestion
+        // Add the first institution suggestion if not already selected
         const firstInstitution = modalInstitutionSuggestions[0];
-        setSelectedInstitution(firstInstitution);
+        if (!selectedInstitutions.some(i => i.id === firstInstitution.id)) {
+          setSelectedInstitutions([...selectedInstitutions, firstInstitution]);
+        }
         setShowInstitutionModal(false);
       }
     }
