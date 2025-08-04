@@ -157,8 +157,27 @@ const WorldMapPapersPage = () => {
       if (!response.ok) throw new Error('Failed to fetch search results');
       const data = await response.json();
 
+      // Deduplicate results based on work ID and title to prevent duplicates
+      const uniqueResults = [];
+      const seenIds = new Set();
+      const seenTitles = new Set();
+      
+      if (data.results && Array.isArray(data.results)) {
+        data.results.forEach(result => {
+          const title = result.title || result.display_name || '';
+          const normalizedTitle = title.toLowerCase().trim();
+          
+          // Check both ID and title for duplicates
+          if (result.id && !seenIds.has(result.id) && !seenTitles.has(normalizedTitle)) {
+            seenIds.add(result.id);
+            seenTitles.add(normalizedTitle);
+            uniqueResults.push(result);
+          }
+        });
+      }
+
       // Store the search results for the world map
-      setSearchResults(data.results || []);
+      setSearchResults(uniqueResults);
 
     } catch (e) {
       setSearchResults([]);
