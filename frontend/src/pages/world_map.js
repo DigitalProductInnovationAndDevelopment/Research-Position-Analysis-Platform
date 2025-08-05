@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import TopBar from "../components/shared/TopBar";
 import SearchHeader from "../components/shared/SearchHeader";
 import SearchForm from "../components/shared/SearchForm";
@@ -165,12 +165,12 @@ const WorldMapPapersPage = () => {
       const uniqueResults = [];
       const seenIds = new Set();
       const seenTitles = new Set();
-      
+
       if (data.results && Array.isArray(data.results)) {
         data.results.forEach(result => {
           const title = result.title || result.display_name || '';
           const normalizedTitle = title.toLowerCase().trim();
-          
+
           // Check both ID and title for duplicates
           if (result.id && !seenIds.has(result.id) && !seenTitles.has(normalizedTitle)) {
             seenIds.add(result.id);
@@ -199,18 +199,18 @@ const WorldMapPapersPage = () => {
   };
 
   // Handle total papers slider change
-  const handleTotalPapersChange = (value) => {
+  const handleTotalPapersChange = useCallback((value) => {
     setTotalPapers(value);
     // Ensure papers per country doesn't exceed total papers
     if (papersPerCountry > value) {
       setPapersPerCountry(value);
     }
-  };
+  }, [papersPerCountry]);
 
   // Handle papers per country slider change
-  const handlePapersPerCountryChange = (value) => {
+  const handlePapersPerCountryChange = useCallback((value) => {
     setPapersPerCountry(Math.min(value, totalPapers));
-  };
+  }, [totalPapers]);
 
   return (
     <>
@@ -259,43 +259,43 @@ const WorldMapPapersPage = () => {
                 darkMode={true}
                 description="Enter keywords and apply filters to locate research clusters"
               />
-          {/* Authors Multi-Select Modal */}
-          <MultiSelectModalDropdown
-            isOpen={showAuthorModal}
-            onClose={() => setShowAuthorModal(false)}
-            title="Select Authors"
-            placeholder="Type to search authors..."
-            onSearchChange={searchAuthors}
-            suggestions={authorSuggestions}
-            selectedItems={selectedAuthors}
-            onSelect={author => {
-              setSelectedAuthors(prev => prev.some(a => a.id === author.id) ? prev : [...prev, author]);
-            }}
-            onDeselect={author => {
-              setSelectedAuthors(prev => prev.filter(a => a.id !== author.id));
-            }}
-            darkMode={true}
-            loading={authorLoading}
-          />
+              {/* Authors Multi-Select Modal */}
+              <MultiSelectModalDropdown
+                isOpen={showAuthorModal}
+                onClose={() => setShowAuthorModal(false)}
+                title="Select Authors"
+                placeholder="Type to search authors..."
+                onSearchChange={searchAuthors}
+                suggestions={authorSuggestions}
+                selectedItems={selectedAuthors}
+                onSelect={author => {
+                  setSelectedAuthors(prev => prev.some(a => a.id === author.id) ? prev : [...prev, author]);
+                }}
+                onDeselect={author => {
+                  setSelectedAuthors(prev => prev.filter(a => a.id !== author.id));
+                }}
+                darkMode={true}
+                loading={authorLoading}
+              />
 
-          {/* Institutions Multi-Select Modal */}
-          <MultiSelectModalDropdown
-            isOpen={showInstitutionModal}
-            onClose={() => setShowInstitutionModal(false)}
-            title="Select Institutions"
-            placeholder="Type to search institutions..."
-            onSearchChange={searchInstitutions}
-            suggestions={institutionSuggestions}
-            selectedItems={selectedInstitutions}
-            onSelect={institution => {
-              setSelectedInstitutions(prev => prev.some(i => i.id === institution.id) ? prev : [...prev, institution]);
-            }}
-            onDeselect={institution => {
-              setSelectedInstitutions(prev => prev.filter(i => i.id !== institution.id));
-            }}
-            darkMode={true}
-            loading={institutionLoading}
-          />
+              {/* Institutions Multi-Select Modal */}
+              <MultiSelectModalDropdown
+                isOpen={showInstitutionModal}
+                onClose={() => setShowInstitutionModal(false)}
+                title="Select Institutions"
+                placeholder="Type to search institutions..."
+                onSearchChange={searchInstitutions}
+                suggestions={institutionSuggestions}
+                selectedItems={selectedInstitutions}
+                onSelect={institution => {
+                  setSelectedInstitutions(prev => prev.some(i => i.id === institution.id) ? prev : [...prev, institution]);
+                }}
+                onDeselect={institution => {
+                  setSelectedInstitutions(prev => prev.filter(i => i.id !== institution.id));
+                }}
+                darkMode={true}
+                loading={institutionLoading}
+              />
 
               <AdvancedFiltersDrawer
                 open={showAdvanced}

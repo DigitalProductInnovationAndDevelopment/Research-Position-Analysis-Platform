@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   ComposableMap,
   Geographies,
@@ -16,7 +16,7 @@ const countryCentroids = {
   US: [-95.7129, 37.0902],    // United States
   CA: [-106.3468, 56.1304],   // Canada
   MX: [-102.5528, 23.6345],   // Mexico
-  
+
   // Europe
   GB: [-0.1278, 51.5074],     // United Kingdom
   DE: [10.4515, 51.1657],     // Germany
@@ -51,7 +51,7 @@ const countryCentroids = {
   MT: [14.3754, 35.9375],     // Malta
   CY: [33.4297, 35.1264],     // Cyprus
   IS: [-18.1059, 64.9631],    // Iceland
-  
+
   // Asia
   CN: [104.1954, 35.8617],    // China
   JP: [138.2529, 36.2048],    // Japan
@@ -98,7 +98,7 @@ const countryCentroids = {
   BT: [90.4336, 27.5142],     // Bhutan
   HK: [114.1694, 22.3193],    // Hong Kong
   MO: [113.5439, 22.1987],    // Macau
-  
+
   // Oceania
   AU: [133.7751, -25.2744],   // Australia
   NZ: [174.8859, -40.9006],   // New Zealand
@@ -108,7 +108,7 @@ const countryCentroids = {
   VU: [166.9591, -15.3767],   // Vanuatu
   SB: [160.1564, -9.6457],    // Solomon Islands
   PF: [-149.4068, -17.6797],  // French Polynesia
-  
+
   // Africa
   ZA: [22.9375, -30.5595],    // South Africa
   EG: [30.8025, 26.8206],     // Egypt
@@ -161,7 +161,7 @@ const countryCentroids = {
   CV: [-23.6052, 16.5388],    // Cape Verde
   ST: [6.6133, 0.1864],       // Sao Tome and Principe
   GQ: [10.2679, 1.6508],      // Equatorial Guinea
-  
+
   // South America
   BR: [-51.9253, -14.2350],   // Brazil
   AR: [-63.6167, -38.4161],   // Argentina
@@ -177,7 +177,7 @@ const countryCentroids = {
   SR: [-56.0278, 3.9193],     // Suriname
   GF: [-53.1258, 3.9339],     // French Guiana
   FK: [-59.5236, -51.7963],   // Falkland Islands
-  
+
   // Central America & Caribbean
   GT: [-90.2308, 15.7835],    // Guatemala
   BZ: [-88.4976, 17.1899],    // Belize
@@ -200,7 +200,7 @@ const countryCentroids = {
   DM: [-61.3709, 15.4150],    // Dominica
   KN: [-62.7829, 17.3578],    // Saint Kitts and Nevis
   BS: [-77.3963, 25.0343],    // Bahamas
-  
+
   // Other territories
   GL: [-42.6043, 71.7069],    // Greenland
   IS: [-18.1059, 64.9631],    // Iceland
@@ -216,15 +216,15 @@ const countryCentroids = {
 
 const getCountryCentroid = (countryCode) => {
   if (!countryCode) return null;
-  
+
   // Normalize country code to uppercase
   const normalizedCode = countryCode.toUpperCase();
-  
+
   // Direct lookup
   if (countryCentroids[normalizedCode]) {
     return countryCentroids[normalizedCode];
   }
-  
+
   // Handle common variations
   const codeVariations = {
     'GERMANY': 'DE',
@@ -244,29 +244,29 @@ const getCountryCentroid = (countryCode) => {
     'CANADA': 'CA',
     'AUSTRALIA': 'AU'
   };
-  
+
   // Try variations
   if (codeVariations[normalizedCode]) {
     return countryCentroids[codeVariations[normalizedCode]];
   }
-  
+
   // Try partial matches
   for (const [variation, code] of Object.entries(codeVariations)) {
     if (normalizedCode.includes(variation) || variation.includes(normalizedCode)) {
       return countryCentroids[code];
     }
   }
-  
+
   return null;
 };
 
 const OPENALEX_API_BASE = 'https://api.openalex.org';
 
-const WorldMapPapers = ({ 
-  searchQuery, 
-  onPaperSelect, 
-  onApiCallsUpdate, 
-  triggerSearch = false, 
+const WorldMapPapers = ({
+  searchQuery,
+  onPaperSelect,
+  onApiCallsUpdate,
+  triggerSearch = false,
   searchResults = null,
   papersPerCountry = 50,
   totalPapers = 100,
@@ -279,32 +279,45 @@ const WorldMapPapers = ({
   const [mapError, setMapError] = useState(false);
   const [tooltipContent, setTooltipContent] = useState(null);
   const [zoom, setZoom] = useState(1);
-  
+
   // Local state for slider values (for dynamic display without API calls)
   const [localTotalPapers, setLocalTotalPapers] = useState(totalPapers);
   const [localPapersPerCountry, setLocalPapersPerCountry] = useState(papersPerCountry);
 
   // Update local state when props change
   useEffect(() => {
-    setLocalTotalPapers(totalPapers);
-  }, [totalPapers]);
+    if (totalPapers !== localTotalPapers) {
+      setLocalTotalPapers(totalPapers);
+    }
+  }, [totalPapers, localTotalPapers]);
 
   useEffect(() => {
-    setLocalPapersPerCountry(papersPerCountry);
-  }, [papersPerCountry]);
+    if (papersPerCountry !== localPapersPerCountry) {
+      setLocalPapersPerCountry(papersPerCountry);
+    }
+  }, [papersPerCountry, localPapersPerCountry]);
 
   // Local handlers for sliders (no API calls)
-  const handleLocalTotalPapersChange = (value) => {
+  const handleLocalTotalPapersChange = useCallback((value) => {
     setLocalTotalPapers(value);
     // Ensure papers per country doesn't exceed total papers
     if (localPapersPerCountry > value) {
       setLocalPapersPerCountry(value);
     }
-  };
+    // Call parent callback if provided
+    if (onTotalPapersChange) {
+      onTotalPapersChange(value);
+    }
+  }, [localPapersPerCountry, onTotalPapersChange]);
 
-  const handleLocalPapersPerCountryChange = (value) => {
-    setLocalPapersPerCountry(Math.min(value, localTotalPapers));
-  };
+  const handleLocalPapersPerCountryChange = useCallback((value) => {
+    const newValue = Math.min(value, localTotalPapers);
+    setLocalPapersPerCountry(newValue);
+    // Call parent callback if provided
+    if (onPapersPerCountryChange) {
+      onPapersPerCountryChange(newValue);
+    }
+  }, [localTotalPapers, onPapersPerCountryChange]);
 
   // Re-process papers when local slider values change
   useEffect(() => {
@@ -376,7 +389,7 @@ const WorldMapPapers = ({
       const limitedMapped = mapped.filter(paper => {
         const country = paper.country;
         if (!country) return false;
-        
+
         countryPaperCounts[country] = (countryPaperCounts[country] || 0) + 1;
         return countryPaperCounts[country] <= localPapersPerCountry;
       });
@@ -478,7 +491,7 @@ const WorldMapPapers = ({
       const limitedMapped = mapped.filter(paper => {
         const country = paper.country;
         if (!country) return false;
-        
+
         countryPaperCounts[country] = (countryPaperCounts[country] || 0) + 1;
         return countryPaperCounts[country] <= localPapersPerCountry;
       });
@@ -559,12 +572,12 @@ const WorldMapPapers = ({
         per_page: 100
       });
       const apiUrl = `${OPENALEX_API_BASE}/works?${params.toString()}`;
-      
+
       // Update API calls for disclaimer
       if (onApiCallsUpdate) {
         onApiCallsUpdate([apiUrl]);
       }
-      
+
       const response = await fetch(apiUrl);
       if (!response.ok) throw new Error('API error');
       const data = await response.json();
@@ -629,7 +642,7 @@ const WorldMapPapers = ({
   function offsetMarkers(papers) {
     // First, limit total papers to display
     const limitedPapers = papers.slice(0, localTotalPapers);
-    
+
     // Group by coordinates as string
     const groups = {};
     limitedPapers.forEach((paper) => {
@@ -639,7 +652,7 @@ const WorldMapPapers = ({
         groups[key].push(paper);
       }
     });
-    
+
     // Offset each group
     const R = 2.5; // increased degrees offset radius
     const result = [];
@@ -658,7 +671,7 @@ const WorldMapPapers = ({
         });
       }
     });
-    
+
     return result;
   }
 
@@ -793,34 +806,34 @@ const WorldMapPapers = ({
           </button>
         </div>
       ) : papers.length > 0 && (
-        <div 
+        <div
           className={styles.mapContainer}
         >
           {/* Zoom Controls */}
           <div className={styles.zoomControls}>
-            <button 
-              className={styles.zoomButton} 
+            <button
+              className={styles.zoomButton}
               onClick={handleZoomIn}
               title="Zoom In"
             >
               +
             </button>
-            <button 
-              className={styles.zoomButton} 
+            <button
+              className={styles.zoomButton}
               onClick={handleZoomOut}
               title="Zoom Out"
             >
               −
             </button>
-            <button 
-              className={styles.zoomButton} 
+            <button
+              className={styles.zoomButton}
               onClick={handleZoomReset}
               title="Reset Zoom"
             >
               ⌂
             </button>
           </div>
-          
+
           <ComposableMap
             projection="geoEqualEarth"
             projectionConfig={{
@@ -840,7 +853,7 @@ const WorldMapPapers = ({
               disablePanning={false}
               disableZooming={true}
             >
-              <Geographies 
+              <Geographies
                 geography="https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson"
                 onError={handleMapError}
               >
@@ -863,7 +876,7 @@ const WorldMapPapers = ({
               </Geographies>
               {(() => {
                 const markersToRender = offsetMarkers(papers);
-                
+
                 return markersToRender.map((paper) => {
                   return (
                     <Marker
@@ -888,15 +901,15 @@ const WorldMapPapers = ({
           </ComposableMap>
         </div>
       )}
-      
+
       {papers.length > 0 && (
         <>
           {/* Sliders Section - positioned above legend */}
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            gap: '3rem', 
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '3rem',
             margin: '2rem 0',
             padding: '1rem',
             background: 'rgba(255, 255, 255, 0.05)',
@@ -904,22 +917,23 @@ const WorldMapPapers = ({
             border: '1px solid rgba(255, 255, 255, 0.1)'
           }}>
             {/* Total Papers Slider */}
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
               gap: '0.5rem',
               color: '#fff'
             }}>
-              <label style={{ 
-                fontSize: '0.9rem', 
-                fontWeight: '600', 
+              <label style={{
+                fontSize: '0.9rem',
+                fontWeight: '600',
                 marginBottom: '0.5rem',
                 color: '#ccc'
               }}>
                 Total Papers to Display
               </label>
               <ElasticSlider
+                key="total-papers-slider"
                 defaultValue={localTotalPapers}
                 startingValue={10}
                 maxValue={200}
@@ -934,22 +948,23 @@ const WorldMapPapers = ({
             </div>
 
             {/* Papers Per Country Slider */}
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
               gap: '0.5rem',
               color: '#fff'
             }}>
-              <label style={{ 
-                fontSize: '0.9rem', 
-                fontWeight: '600', 
+              <label style={{
+                fontSize: '0.9rem',
+                fontWeight: '600',
                 marginBottom: '0.5rem',
                 color: '#ccc'
               }}>
                 Papers Per Country
               </label>
               <ElasticSlider
+                key={`papers-per-country-${localTotalPapers}`}
                 defaultValue={localPapersPerCountry}
                 startingValue={1}
                 maxValue={Math.min(localTotalPapers, 100)}
@@ -991,15 +1006,15 @@ const WorldMapPapers = ({
           </div>
         </>
       )}
-      
+
       {/* Research Leadership Analysis */}
       {papers.length > 0 && !loading && (
-        <ResearchLeadershipAnalysis 
-          papers={papers} 
-          searchQuery={searchQuery || 'research'} 
+        <ResearchLeadershipAnalysis
+          papers={papers}
+          searchQuery={searchQuery || 'research'}
         />
       )}
-      
+
       {tooltipContent && (
         <div
           className={styles.tooltip}
