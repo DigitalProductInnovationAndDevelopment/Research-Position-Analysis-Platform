@@ -62,6 +62,7 @@ const AdvancedFiltersDrawer = ({
 
   const inputStyle = {
     width: '100%',
+    maxWidth: '100%',
     padding: '10px 14px',
     borderRadius: 6,
     border: darkMode ? '1px solid #404040' : '1px solid #ddd',
@@ -107,18 +108,22 @@ const AdvancedFiltersDrawer = ({
 
   const yearRangeStyle = {
     display: 'flex',
-    gap: 8
+    gap: 8,
+    width: '100%'
   };
 
   const yearInputStyle = {
     flex: 1,
+    minWidth: 0, // Allow flex items to shrink below their content size
+    maxWidth: '50%', // Ensure each input takes at most half the container width
     padding: 10,
     borderRadius: 6,
     border: darkMode ? '1px solid #404040' : '1px solid #ddd',
     background: darkMode ? '#2a2a2a' : '#fafbfc',
     color: darkMode ? '#fff' : '#000',
     outline: 'none',
-    transition: 'all 0.2s ease'
+    transition: 'all 0.2s ease',
+    boxSizing: 'border-box'
   };
 
   // Helper function to get display text for multi-select dropdowns

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import TopBar from "../components/shared/TopBar";
 import SearchHeader from "../components/shared/SearchHeader";
 import SearchForm from "../components/shared/SearchForm";
@@ -8,6 +8,7 @@ import MultiSelectModalDropdown from "../components/shared/MultiSelectModalDropd
 import useDropdownSearch from "../hooks/useDropdownSearch";
 import ApiCallInfoBox from "../components/shared/ApiCallInfoBox";
 import Particles from "../components/animated/SearchBackground/Particles";
+
 
 // TODO: explain how page works (how many results are shown in total, how many per country etc.)
 
@@ -32,6 +33,9 @@ const WorldMapPapersPage = () => {
   const [triggerSearch, setTriggerSearch] = useState(false);
   // Search results state
   const [searchResults, setSearchResults] = useState([]);
+  // Slider state
+  const [totalPapers, setTotalPapers] = useState(100);
+  const [papersPerCountry, setPapersPerCountry] = useState(50);
 
   // Disclaimer state
   const [userInputs, setUserInputs] = useState([]);
@@ -145,7 +149,7 @@ const WorldMapPapersPage = () => {
       const filterString = filters.join(',');
       const params = new URLSearchParams();
       if (filterString) params.append('filter', filterString);
-      params.append('per_page', 200); // Get more results for world map
+      params.append('per_page', totalPapers); // Use slider value for total papers
       params.append('sort', 'cited_by_count:desc');
 
       const url = `https://api.openalex.org/works?${params.toString()}`;
@@ -161,12 +165,12 @@ const WorldMapPapersPage = () => {
       const uniqueResults = [];
       const seenIds = new Set();
       const seenTitles = new Set();
-      
+
       if (data.results && Array.isArray(data.results)) {
         data.results.forEach(result => {
           const title = result.title || result.display_name || '';
           const normalizedTitle = title.toLowerCase().trim();
-          
+
           // Check both ID and title for duplicates
           if (result.id && !seenIds.has(result.id) && !seenTitles.has(normalizedTitle)) {
             seenIds.add(result.id);
@@ -193,6 +197,20 @@ const WorldMapPapersPage = () => {
     setShowAdvanced(false);
     handleSearch();
   };
+
+  // Handle total papers slider change
+  const handleTotalPapersChange = useCallback((value) => {
+    setTotalPapers(value);
+    // Ensure papers per country doesn't exceed total papers
+    if (papersPerCountry > value) {
+      setPapersPerCountry(value);
+    }
+  }, [papersPerCountry]);
+
+  // Handle papers per country slider change
+  const handlePapersPerCountryChange = useCallback((value) => {
+    setPapersPerCountry(Math.min(value, totalPapers));
+  }, [totalPapers]);
 
   return (
     <>
@@ -241,43 +259,43 @@ const WorldMapPapersPage = () => {
                 darkMode={true}
                 description="Enter keywords and apply filters to locate research clusters"
               />
-          {/* Authors Multi-Select Modal */}
-          <MultiSelectModalDropdown
-            isOpen={showAuthorModal}
-            onClose={() => setShowAuthorModal(false)}
-            title="Select Authors"
-            placeholder="Type to search authors..."
-            onSearchChange={searchAuthors}
-            suggestions={authorSuggestions}
-            selectedItems={selectedAuthors}
-            onSelect={author => {
-              setSelectedAuthors(prev => prev.some(a => a.id === author.id) ? prev : [...prev, author]);
-            }}
-            onDeselect={author => {
-              setSelectedAuthors(prev => prev.filter(a => a.id !== author.id));
-            }}
-            darkMode={true}
-            loading={authorLoading}
-          />
+              {/* Authors Multi-Select Modal */}
+              <MultiSelectModalDropdown
+                isOpen={showAuthorModal}
+                onClose={() => setShowAuthorModal(false)}
+                title="Select Authors"
+                placeholder="Type to search authors..."
+                onSearchChange={searchAuthors}
+                suggestions={authorSuggestions}
+                selectedItems={selectedAuthors}
+                onSelect={author => {
+                  setSelectedAuthors(prev => prev.some(a => a.id === author.id) ? prev : [...prev, author]);
+                }}
+                onDeselect={author => {
+                  setSelectedAuthors(prev => prev.filter(a => a.id !== author.id));
+                }}
+                darkMode={true}
+                loading={authorLoading}
+              />
 
-          {/* Institutions Multi-Select Modal */}
-          <MultiSelectModalDropdown
-            isOpen={showInstitutionModal}
-            onClose={() => setShowInstitutionModal(false)}
-            title="Select Institutions"
-            placeholder="Type to search institutions..."
-            onSearchChange={searchInstitutions}
-            suggestions={institutionSuggestions}
-            selectedItems={selectedInstitutions}
-            onSelect={institution => {
-              setSelectedInstitutions(prev => prev.some(i => i.id === institution.id) ? prev : [...prev, institution]);
-            }}
-            onDeselect={institution => {
-              setSelectedInstitutions(prev => prev.filter(i => i.id !== institution.id));
-            }}
-            darkMode={true}
-            loading={institutionLoading}
-          />
+              {/* Institutions Multi-Select Modal */}
+              <MultiSelectModalDropdown
+                isOpen={showInstitutionModal}
+                onClose={() => setShowInstitutionModal(false)}
+                title="Select Institutions"
+                placeholder="Type to search institutions..."
+                onSearchChange={searchInstitutions}
+                suggestions={institutionSuggestions}
+                selectedItems={selectedInstitutions}
+                onSelect={institution => {
+                  setSelectedInstitutions(prev => prev.some(i => i.id === institution.id) ? prev : [...prev, institution]);
+                }}
+                onDeselect={institution => {
+                  setSelectedInstitutions(prev => prev.filter(i => i.id !== institution.id));
+                }}
+                darkMode={true}
+                loading={institutionLoading}
+              />
 
               <AdvancedFiltersDrawer
                 open={showAdvanced}
@@ -321,6 +339,10 @@ const WorldMapPapersPage = () => {
             endYear={endYear}
             triggerSearch={triggerSearch}
             searchResults={searchResults}
+            papersPerCountry={papersPerCountry}
+            totalPapers={totalPapers}
+            onTotalPapersChange={handleTotalPapersChange}
+            onPapersPerCountryChange={handlePapersPerCountryChange}
           />
 
 

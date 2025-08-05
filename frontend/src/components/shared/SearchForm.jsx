@@ -78,7 +78,7 @@ const SearchForm = ({
         </div>
         <input
           type="text"
-          placeholder="Enter keywords..."
+          placeholder="Enter keywords to search in title and abstract..."
           value={searchKeyword}
           onChange={e => setSearchKeyword(e.target.value)}
           style={{ 

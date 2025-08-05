@@ -108,9 +108,9 @@ const GraphViewLight = ({ darkMode = true }) => {
       const ids = await Promise.all(selectedInstitutions.map(async (inst) => {
         if (!inst.id) {
           const res = await fetch(`https://api.openalex.org/institutions?search=${encodeURIComponent(inst.display_name)}`);
-          const data = await res.json();
+        const data = await res.json();
           return data.results[0]?.id?.split('/').pop();
-        }
+      }
         return inst.id.split('/').pop();
       }));
       return ids.filter(Boolean);
@@ -406,12 +406,12 @@ const GraphViewLight = ({ darkMode = true }) => {
           width: '100%',
           height: '100%',
         }}>
-          <Orb
-            hoverIntensity={0.5}
-            rotateOnHover={true}
-            hue={0}
-            forceHoverState={false}
-          />
+        <Orb
+          hoverIntensity={0.5}
+          rotateOnHover={true}
+          hue={0}
+          forceHoverState={false}
+        />
         </div>
       </div>
 
@@ -532,7 +532,7 @@ const GraphViewLight = ({ darkMode = true }) => {
                           }}
                           title="Remove institution"
                         >×</button>
-                      </span>
+                  </span>
                     ))
                   )}
                   <span style={{ color: '#888', marginLeft: '0.5rem' }}>▼</span>
@@ -599,7 +599,7 @@ const GraphViewLight = ({ darkMode = true }) => {
                         }}
                         title="Remove author"
                       >×</button>
-                    </span>
+                </span>
                   ))
                 )}
                 <span style={{ color: '#888', marginLeft: '0.5rem' }}>▼</span>
@@ -894,17 +894,17 @@ const GraphViewLight = ({ darkMode = true }) => {
                     </>
                   ) : (
                     <>
-                      Papers co-authored by
-                      {' '}
-                      <span style={{ color: '#4F6AF6' }}>
-                        {getNodeLabel(selectedEdge.source)}
-                      </span>
-                      {' '}
-                      and
-                      {' '}
-                      <span style={{ color: '#4F6AF6' }}>
-                        {getNodeLabel(selectedEdge.target)}
-                      </span>
+                  Papers co-authored by
+                  {' '}
+                  <span style={{ color: '#4F6AF6' }}>
+                    {getNodeLabel(selectedEdge.source)}
+                  </span>
+                  {' '}
+                  and
+                  {' '}
+                  <span style={{ color: '#4F6AF6' }}>
+                    {getNodeLabel(selectedEdge.target)}
+                  </span>
                     </>
                   )}
                 </h3>
@@ -941,14 +941,14 @@ const GraphViewLight = ({ darkMode = true }) => {
                             fontSize: '1.2rem',
                             color: '#fff'
                           }}>
-                            <a
-                              href={paper.id}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                        <a
+                          href={paper.id}
+                          target="_blank"
+                          rel="noopener noreferrer"
                               style={{ color: '#fff', textDecoration: 'none' }}
-                            >
-                              {paper.display_name}
-                            </a>
+                        >
+                          {paper.display_name}
+                        </a>
                           </h3>
                           {authorString && (
                             <div style={{
@@ -1110,12 +1110,12 @@ const GraphViewLight = ({ darkMode = true }) => {
           </div>
         )}
       </div>
-
+      
       {/* Disclaimer Box */}
-      <ApiCallInfoBox
-        userInputs={userInputs}
-        apiCalls={apiCalls}
-        darkMode={darkMode}
+      <ApiCallInfoBox 
+        userInputs={userInputs} 
+        apiCalls={apiCalls} 
+        darkMode={darkMode} 
       />
       {showAuthorModal && (
         <div style={{

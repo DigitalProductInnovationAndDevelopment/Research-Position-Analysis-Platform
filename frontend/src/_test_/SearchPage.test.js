@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom'; 
-import SearchPageLight from '../pages/light_mode/search_light';
+import SearchPageLight from '../pages/search';
 
 // Mock the global fetch function
 global.fetch = jest.fn();
