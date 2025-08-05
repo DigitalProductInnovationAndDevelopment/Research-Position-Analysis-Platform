@@ -1,8 +1,5 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import DisclaimerBox from "../components/about/DisclaimerBox";
-import PrivacyPolicyBox from "../components/about/PrivacyPolicyBox";
-import ImpressumBox from "../components/about/ImpressumBox";
 import searchIcon from "../assets/icons/search.svg";
 import trendIcon from "../assets/icons/trend.svg";
 import graphIcon from "../assets/icons/graph.svg";
@@ -14,6 +11,19 @@ import Carousel from "../components/animated/Carousel/Carousel";
 
 export const LandingPageLight = () => {
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
+
+  // Handle responsive behavior
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsLargeScreen(window.innerWidth > 1920);
+    };
+    
+    handleResize(); // Set initial value
+    window.addEventListener('resize', handleResize);
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const features = [
     {
@@ -30,7 +40,7 @@ export const LandingPageLight = () => {
     },
     {
       title: "Collaboration Graph",
-      description: "Analyze institutional research networks and partnerships",
+      description: "Analyze institutional research networks and partnerships with a Collaboration Graph",
       icon: graphIcon,
       link: "/graph-view",
     },
@@ -240,18 +250,116 @@ export const LandingPageLight = () => {
         </div>
       </div>
 
-      {/* Bottom Section - outside particle area, opaque background */}
-      <div style={{ position: 'relative', zIndex: 3 }}>
-        <section className={styles.statisticsSection}>
-          <div className={styles.statisticsGrid}>
-            <DisclaimerBox />
-            <PrivacyPolicyBox />
-            <div className={styles.impressumBoxLanding}>
-              <ImpressumBox />
-            </div>
-          </div>
-        </section>
-      </div>
+      {/* Bottom Section - Legal Links */}
+      {isLargeScreen ? (
+        // Fixed position for large screens
+        <div style={{ 
+          position: 'fixed', 
+          bottom: '20px', 
+          left: '20px', 
+          zIndex: 10,
+          display: 'flex',
+          gap: '20px',
+          flexDirection: 'row'
+        }}>
+          <Link to="/about" style={{
+            color: '#4F6AF6',
+            textDecoration: 'underline',
+            fontSize: '14px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'color 0.2s ease',
+            whiteSpace: 'nowrap'
+          }}
+          onMouseEnter={(e) => e.target.style.color = '#3d5ae8'}
+          onMouseLeave={(e) => e.target.style.color = '#4F6AF6'}
+          >
+            Disclaimer
+          </Link>
+          <Link to="/about" style={{
+            color: '#4F6AF6',
+            textDecoration: 'underline',
+            fontSize: '14px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'color 0.2s ease',
+            whiteSpace: 'nowrap'
+          }}
+          onMouseEnter={(e) => e.target.style.color = '#3d5ae8'}
+          onMouseLeave={(e) => e.target.style.color = '#4F6AF6'}
+          >
+            Privacy Policy
+          </Link>
+          <Link to="/about" style={{
+            color: '#4F6AF6',
+            textDecoration: 'underline',
+            fontSize: '14px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'color 0.2s ease',
+            whiteSpace: 'nowrap'
+          }}
+          onMouseEnter={(e) => e.target.style.color = '#3d5ae8'}
+          onMouseLeave={(e) => e.target.style.color = '#4F6AF6'}
+          >
+            Impressum
+          </Link>
+        </div>
+      ) : (
+        // Bottom of page content for normal screens
+        <div style={{ 
+          position: 'relative', 
+          zIndex: 3,
+          padding: '40px 20px 20px 20px',
+          display: 'flex',
+          gap: '20px',
+          flexDirection: 'row',
+          alignItems: 'flex-start'
+        }}>
+          <Link to="/about" style={{
+            color: '#4F6AF6',
+            textDecoration: 'underline',
+            fontSize: '14px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'color 0.2s ease',
+            whiteSpace: 'nowrap'
+          }}
+          onMouseEnter={(e) => e.target.style.color = '#3d5ae8'}
+          onMouseLeave={(e) => e.target.style.color = '#4F6AF6'}
+          >
+            Disclaimer
+          </Link>
+          <Link to="/about" style={{
+            color: '#4F6AF6',
+            textDecoration: 'underline',
+            fontSize: '14px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'color 0.2s ease',
+            whiteSpace: 'nowrap'
+          }}
+          onMouseEnter={(e) => e.target.style.color = '#3d5ae8'}
+          onMouseLeave={(e) => e.target.style.color = '#4F6AF6'}
+          >
+            Privacy Policy
+          </Link>
+          <Link to="/about" style={{
+            color: '#4F6AF6',
+            textDecoration: 'underline',
+            fontSize: '14px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'color 0.2s ease',
+            whiteSpace: 'nowrap'
+          }}
+          onMouseEnter={(e) => e.target.style.color = '#3d5ae8'}
+          onMouseLeave={(e) => e.target.style.color = '#4F6AF6'}
+          >
+            Impressum
+          </Link>
+        </div>
+      )}
     </div>
   );
 };

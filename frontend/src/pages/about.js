@@ -42,10 +42,10 @@ export const AboutPage = ({ darkMode = true }) => {
           
           {/* Search Interface Content */}
           <div style={{ position: 'relative', zIndex: 2 }}>
-            <div style={{ maxWidth: 900, margin: '0 auto', textAlign: 'left', paddingLeft: 2, marginTop: 32 }}>
-              <h1 style={{ color: '#4F6AF6', fontWeight: 700, fontSize: '2.5rem', marginBottom: '0.5rem', lineHeight: 1.1 }}>Learn more</h1>
-            </div>
-        {/* Toggle Tabs for Main Content */}
+      <div style={{ maxWidth: 900, margin: '0 auto', textAlign: 'left', paddingLeft: 2, marginTop: 32 }}>
+        <h1 style={{ color: '#4F6AF6', fontWeight: 700, fontSize: '2.5rem', marginBottom: '0.5rem', lineHeight: 1.1 }}>Learn more</h1>
+      </div>
+      {/* Toggle Tabs for Main Content */}
         <section style={{ 
           /* background: 'rgba(0,0,0,0.7)', */ // removed for transparency
           padding: '2.5rem 1.5rem',
@@ -54,44 +54,44 @@ export const AboutPage = ({ darkMode = true }) => {
           justifyContent: 'center',
           alignItems: 'center'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
-            <button
-              onClick={() => setTab("what")}
-              style={{
-                padding: '12px 32px',
-                borderRadius: 24,
-                border: 'none',
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+          <button
+            onClick={() => setTab("what")}
+            style={{
+              padding: '12px 32px',
+              borderRadius: 24,
+              border: 'none',
                 background: tab === "what" ? '#4F6AF6' : '#333',
                 color: tab === "what" ? '#fff' : '#fff',
-                fontWeight: 600,
-                fontSize: 18,
-                marginRight: 8,
-                boxShadow: tab === "what" ? '0 2px 8px rgba(79,70,229,0.12)' : 'none',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              What SPARK Does
-            </button>
-            <button
-              onClick={() => setTab("how")}
-              style={{
-                padding: '12px 32px',
-                borderRadius: 24,
-                border: 'none',
+              fontWeight: 600,
+              fontSize: 18,
+              marginRight: 8,
+              boxShadow: tab === "what" ? '0 2px 8px rgba(79,70,229,0.12)' : 'none',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+          >
+            What SPARK Does
+          </button>
+          <button
+            onClick={() => setTab("how")}
+            style={{
+              padding: '12px 32px',
+              borderRadius: 24,
+              border: 'none',
                 background: tab === "how" ? '#4F6AF6' : '#333',
                 color: tab === "how" ? '#fff' : '#fff',
-                fontWeight: 600,
-                fontSize: 18,
-                marginLeft: 8,
-                boxShadow: tab === "how" ? '0 2px 8px rgba(79,70,229,0.12)' : 'none',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              How to use SPARK
-            </button>
-          </div>
+              fontWeight: 600,
+              fontSize: 18,
+              marginLeft: 8,
+              boxShadow: tab === "how" ? '0 2px 8px rgba(79,70,229,0.12)' : 'none',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+          >
+            How to use SPARK
+          </button>
+        </div>
           <div style={{ display: 'flex', alignItems: 'stretch', justifyContent: 'center', minHeight: '40vh', width: '100%' }}>
             <div style={{ 
               border: '2px solid #a259ff',
@@ -104,10 +104,10 @@ export const AboutPage = ({ darkMode = true }) => {
               display: 'flex',
               flexDirection: 'column'
             }}>
-              {tab === "what" ? <WhatSparkDoesBox /> : <HowToUseSparkBox />}
-            </div>
+            {tab === "what" ? <WhatSparkDoesBox /> : <HowToUseSparkBox />}
           </div>
-        </section>
+        </div>
+      </section>
         </div>
         </div>
         
@@ -129,28 +129,25 @@ export const AboutPage = ({ darkMode = true }) => {
             }}>
               <div style={{ 
                 background: '#000', 
-                border: '2px solid #a259ff',
                 borderRadius: '18px',
                 padding: '2rem 1.5rem 1.5rem 1.5rem',
                 color: '#fff'
               }}><DisclaimerBox /></div>
               <div style={{ 
                 background: '#000', 
-                border: '2px solid #a259ff',
                 borderRadius: '18px',
                 padding: '2rem 1.5rem 1.5rem 1.5rem',
                 color: '#fff'
               }}><PrivacyPolicyBox /></div>
               <div style={{ 
                 background: '#000', 
-                border: '2px solid #a259ff',
                 borderRadius: '18px',
                 padding: '2rem 1.5rem 1.5rem 1.5rem',
                 color: '#fff'
               }}><ImpressumBox /></div>
-            </div>
-          </section>
         </div>
+      </section>
+    </div>
       </div>
     </>
   );

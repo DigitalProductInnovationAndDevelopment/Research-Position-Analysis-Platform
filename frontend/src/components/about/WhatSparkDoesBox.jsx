@@ -4,29 +4,31 @@ import styles from "../../assets/styles/about.module.css";
 const WhatSparkDoesBox = () => {
   return (
     <div style={{borderRadius: '20px', height: '100%', display: 'flex', flexDirection: 'column'}}>
-      <h2 className={styles.boxTitle}>What SPARK Does:</h2>
+      <h2 className={styles.boxTitle}>What SPARK Does</h2>
       <p>
-        SPARK (Siemens Publications and Research Knowledgebase) is a web-based analytics
-        platform designed to automate and accelerate literature reviews.
+        SPARK (Search Publications and Research Knowledgebase) is a comprehensive research publication analytics platform designed to automate and enhance the analysis of academic and industrial research output.
       </p>
-      <p>By integrating structured and unstructured publication data, SPARK:</p>
+      <p>With SPARK, users can:</p>
       <ol style={{ paddingLeft: '2rem', marginTop: '0.5rem', marginBottom: '1rem' }}>
         <li style={{ marginBottom: '0.5rem', listStylePosition: 'outside' }}>
-          <strong>Identifies Institutional Outputs</strong> – Filters and tags publications by author affiliation to highlight Siemens-relevant research.
+          <strong>Search Publications with Precision</strong> – Use advanced filters including publication year, year range, author, affiliation, institution, keywords, journals, and publication type to find relevant research.
         </li>
         <li style={{ marginBottom: '0.5rem', listStylePosition: 'outside' }}>
-          <strong>Analyzes Trend Dynamics</strong> – Generates time-series charts of keyword popularity and research activity over time.
+          <strong>Track Topic Trends</strong> – Analyze the evolution of research topics over time, filtered by keywords, institutions, authors, journals, and publication types.
         </li>
         <li style={{ marginBottom: '0.5rem', listStylePosition: 'outside' }}>
-          <strong>Maps Collaborations</strong> – Builds and visualizes co-authorship networks to reveal top university and industry partners.
+          <strong>Discover Collaboration Networks</strong> – Visualize co-authorship and institutional collaboration networks based on selected authors, institutions, or research domains.
         </li>
         <li style={{ marginBottom: '0.5rem', listStylePosition: 'outside' }}>
-          <strong>Benchmarks Performance</strong> – Compares your institution's contributions and citation metrics against peers.
+          <strong>Identify Global Research Clusters</strong> – Explore a world map of research activity localized by keyword, author, or institution, with tools to assess global research impact.
         </li>
         <li style={{ marginBottom: '0.5rem', listStylePosition: 'outside' }}>
-          <strong>Reports Impact</strong> – Displays patent citation rates and funding distributions as clear KPI cards.
+          <strong>Analyze Research Leadership</strong> – Examine country and institutional leadership, and emerging research trends.
         </li>
       </ol>
+      <p>
+        SPARK empowers users to explore, benchmark, and strategize around research activity with data-driven insights.
+      </p>
     </div>
   );
 };

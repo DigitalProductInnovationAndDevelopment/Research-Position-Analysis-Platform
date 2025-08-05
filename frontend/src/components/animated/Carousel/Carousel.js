@@ -39,7 +39,7 @@ const DEFAULT_ITEMS = [
 
 const DRAG_BUFFER = 0;
 const VELOCITY_THRESHOLD = 500;
-const GAP = 16;
+const GAP = 8;
 const SPRING_OPTIONS = { type: "spring", stiffness: 300, damping: 30 };
 
 export default function Carousel({
@@ -187,30 +187,37 @@ export default function Carousel({
                                 height: round ? itemWidth : "100%",
                                 rotateY: rotateY,
                                 ...(round && { borderRadius: "50%" }),
+                                position: 'relative'
                             }}
                             transition={effectiveTransition}
                         >
-                            <div className={`carousel-item-header ${round ? "round" : ""}`}>
-                                <span className="carousel-icon-container">
-                                    {item.icon}
-                                </span>
-                            </div>
                             <div className="carousel-item-content">
-                                <div className="carousel-item-title">{item.title}</div>
+                                <div className="carousel-item-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span className="carousel-icon-container" style={{ margin: 0, flexShrink: 0 }}>
+                                        {item.icon}
+                                    </span>
+                                    {item.title}
+                                </div>
                                 <p className="carousel-item-description">{item.description}</p>
-                                {item.link && (
+                            </div>
+                            {item.link && (
+                                <div style={{ 
+                                    position: 'absolute', 
+                                    bottom: '16px', 
+                                    right: '16px',
+                                    zIndex: 10
+                                }}>
                                     <Link
                                         to={item.link}
                                         className="carousel-explore-button"
                                         style={{
                                             display: 'inline-block',
-                                            marginTop: '12px',
-                                            padding: '8px 16px',
+                                            padding: '6px 12px',
                                             background: '#4F6AF6',
                                             color: '#fff',
                                             textDecoration: 'none',
                                             borderRadius: '6px',
-                                            fontSize: '14px',
+                                            fontSize: '12px',
                                             fontWeight: '600',
                                             transition: 'background 0.2s'
                                         }}
@@ -219,8 +226,8 @@ export default function Carousel({
                                     >
                                         Explore
                                     </Link>
-                                )}
-                            </div>
+                                </div>
+                            )}
                         </motion.div>
                     );
                 })}
