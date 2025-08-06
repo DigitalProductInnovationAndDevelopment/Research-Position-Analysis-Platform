@@ -286,8 +286,7 @@ export const PositionDetailLight = ({ darkMode = true }) => {
           meta: {
             trend_factors: {
               average_growth_rate: averageGrowthRate,
-              year_over_year_growth: yearOverYearGrowth,
-              relative_popularity: Math.round((totalPublications / 1000) * 100) / 100
+              year_over_year_growth: yearOverYearGrowth
             }
           }
         };
@@ -361,8 +360,7 @@ export const PositionDetailLight = ({ darkMode = true }) => {
           meta: {
             trend_factors: {
               average_growth_rate: averageGrowthRate,
-              year_over_year_growth: yearOverYearGrowth,
-              relative_popularity: Math.round((totalPublications / 1000) * 100) / 100
+              year_over_year_growth: yearOverYearGrowth
             }
           }
         };
@@ -477,7 +475,7 @@ export const PositionDetailLight = ({ darkMode = true }) => {
   const renderTrendIndicators = () => {
     if (!trendData?.meta?.trend_factors) return null;
 
-    const { average_growth_rate, relative_popularity } = trendData.meta.trend_factors;
+    const { average_growth_rate } = trendData.meta.trend_factors;
 
     return (
       <div className={styles.trendIndicators}>
@@ -488,10 +486,6 @@ export const PositionDetailLight = ({ darkMode = true }) => {
             <span className={`${styles.indicatorValue} ${average_growth_rate > 0 ? styles.positive : styles.negative}`}>
               {average_growth_rate > 0 ? '+' : ''}{average_growth_rate}%
             </span>
-          </div>
-          <div className={styles.indicator}>
-            <span className={styles.indicatorLabel}>Popularity Score:</span>
-            <span className={styles.indicatorValue}>{relative_popularity}</span>
           </div>
           <div className={styles.indicator}>
             <span className={styles.indicatorLabel}>Total Publications:</span>

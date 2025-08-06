@@ -211,20 +211,27 @@
 
 .indicatorGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .indicator {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
 }
 
-.indicator:last-child {
-  border-bottom: none;
+.indicator:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .indicatorLabel {
@@ -405,7 +412,14 @@
 }
 
 :global(.dark) .indicator {
-  border-bottom: 1px solid #404040;
+  background: #1a1a1a;
+  border: 1px solid #404040;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+:global(.dark) .indicator:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 :global(.dark) .indicatorLabel {
