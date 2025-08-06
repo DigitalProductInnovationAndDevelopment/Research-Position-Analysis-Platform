@@ -459,8 +459,7 @@ const GraphViewLight = ({ darkMode = true }) => {
               textShadow: '0 2px 16px #000',
             }}
           >
-            Select an institution to view its top 10 collaborating institutions and authors who co-published with them.
-            Add either an author filter or keyword to focus on specific collaborations.
+            Select an institution and either choose authors or enter a keyword to view its top 10 collaborating institutions and authors who co-published with them.
           </p>
 
           {/* Search/filter controls */}
@@ -609,7 +608,7 @@ const GraphViewLight = ({ darkMode = true }) => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
               <label style={{ fontWeight: 600, marginBottom: 4, display: 'block', color: '#fff' }}>Search by Keyword (optional)</label>
               <div style={{ fontSize: '0.8rem', color: '#ccc', marginBottom: 4 }}>
-                Choose author and/or keyword to focus your search
+                Choose authors and/or keyword to focus your search
               </div>
               <input
                 ref={inputRef}
@@ -1130,324 +1129,322 @@ const GraphViewLight = ({ darkMode = true }) => {
                 </div>
               )}
             </div>
-          )}
-
-            {showAuthorModal && (
-              <div style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                background: 'rgba(0,0,0,0.9)',
-                zIndex: 9999,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                <div style={{
-                  background: '#222',
-                  border: '1px solid #ccc',
-                  borderRadius: 8,
-                  padding: '2rem',
-                  width: '90%',
-                  maxWidth: 600,
-                  maxHeight: '80vh',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h2 style={{ color: '#fff', margin: 0 }}>Select Authors</h2>
-                    <button
-                      onClick={() => setShowAuthorModal(false)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#fff',
-                        fontSize: '1.5rem',
-                        cursor: 'pointer',
-                        padding: '0.5rem'
-                      }}
-                    >
-                      ×
-                    </button>
-                  </div>
-
-                  <input
-                    type="text"
-                    value={modalAuthorInput}
-                    onChange={async (e) => {
-                      const value = e.target.value;
-                      setModalAuthorInput(value);
-                      if (value.length >= 2) {
-                        try {
-                          const res = await fetch(`https://api.openalex.org/authors?search=${encodeURIComponent(value)}&per_page=20`);
-                          const data = await res.json();
-                          setModalAuthorSuggestions(data.results || []);
-                        } catch {
-                          setModalAuthorSuggestions([]);
-                        }
-                      } else {
-                        setModalAuthorSuggestions([]);
-                      }
-                    }}
-                    onKeyDown={(e) => handleModalKeyDown(e, 'author')}
-                    placeholder="Type to search authors... (Press Enter to select first result)"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      fontSize: 16,
-                      border: '1px solid #ccc',
-                      borderRadius: 4,
-                      background: '#333',
-                      color: '#fff',
-                      marginBottom: '1rem'
-                    }}
-                    autoFocus
-                  />
-
-                  <div style={{
-                    flex: 1,
-                    overflowY: 'auto',
-                    border: '1px solid #ccc',
-                    borderRadius: 4,
-                    background: '#333'
-                  }}>
-                    {/* Show selected authors with delete option */}
-                    {selectedAuthors.length > 0 && (
-                      <div style={{
-                        padding: '0.75rem 1rem',
-                        background: '#8e24aa',
-                        color: '#fff',
-                        borderBottom: '1px solid #555',
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: 8
-                      }}>
-                        {selectedAuthors.map((author, idx) => (
-                          <span key={author.id} style={{ display: 'flex', alignItems: 'center', background: '#6d28d9', borderRadius: 12, padding: '0.15rem 0.75rem', marginRight: 4, fontSize: 15 }}>
-                            {author.display_name}
-                            <button
-                              onClick={e => {
-                                e.stopPropagation();
-                                setSelectedAuthors(selectedAuthors.filter((_, i) => i !== idx));
-                              }}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                color: '#fff',
-                                marginLeft: 6,
-                                cursor: 'pointer',
-                                fontWeight: 700,
-                                fontSize: 16
-                              }}
-                              title="Remove author"
-                            >×</button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Show author suggestions */}
-                    {modalAuthorSuggestions.map((author) => (
-                      <div
-                        key={author.id}
-                        onClick={() => {
-                          // Only add if not already selected
-                          if (!selectedAuthors.some(a => a.id === author.id)) {
-                            setSelectedAuthors([...selectedAuthors, author]);
-                          }
-                          setShowAuthorModal(false);
-                        }}
-                        style={{
-                          padding: '0.75rem 1rem',
-                          cursor: 'pointer',
-                          color: '#fff',
-                          borderBottom: '1px solid #444',
-                          transition: 'background 0.15s'
-                        }}
-                        onMouseEnter={(e) => e.target.style.background = '#444'}
-                        onMouseLeave={(e) => e.target.style.background = 'transparent'}
-                      >
-                        {author.display_name}
-                        {author.h_index && (
-                          <span style={{ color: '#888', marginLeft: '0.5rem' }}>
-                            (H-index: {author.h_index})
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                    {modalAuthorSuggestions.length === 0 && modalAuthorInput.length >= 2 && (
-                      <div style={{ padding: '1rem', color: '#888', textAlign: 'center' }}>
-                        No authors found
-                      </div>
-                    )}
-                    {modalAuthorInput.length < 2 && (
-                      <div style={{ padding: '1rem', color: '#888', textAlign: 'center' }}>
-                        Type at least 2 characters to search
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-            {showInstitutionModal && (
-              <div style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                background: 'rgba(0,0,0,0.9)',
-                zIndex: 9999,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                <div style={{
-                  background: '#222',
-                  border: '1px solid #ccc',
-                  borderRadius: 8,
-                  padding: '2rem',
-                  width: '90%',
-                  maxWidth: 600,
-                  maxHeight: '80vh',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h2 style={{ color: '#fff', margin: 0 }}>Select Institutions</h2>
-                    <button
-                      onClick={() => setShowInstitutionModal(false)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#fff',
-                        fontSize: '1.5rem',
-                        cursor: 'pointer',
-                        padding: '0.5rem'
-                      }}
-                    >
-                      ×
-                    </button>
-                  </div>
-
-                  <input
-                    type="text"
-                    value={modalInstitutionInput}
-                    onChange={async (e) => {
-                      const value = e.target.value;
-                      setModalInstitutionInput(value);
-                      if (value.length >= 2) {
-                        try {
-                          const res = await fetch(`https://api.openalex.org/institutions?search=${encodeURIComponent(value)}&per_page=20`);
-                          const data = await res.json();
-                          setModalInstitutionSuggestions(data.results || []);
-                        } catch {
-                          setModalInstitutionSuggestions([]);
-                        }
-                      } else {
-                        setModalInstitutionSuggestions([]);
-                      }
-                    }}
-                    onKeyDown={(e) => handleModalKeyDown(e, 'institution')}
-                    placeholder="Type to search institutions... (Press Enter to select first result)"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      fontSize: 16,
-                      border: '1px solid #ccc',
-                      borderRadius: 4,
-                      background: '#333',
-                      color: '#fff',
-                      marginBottom: '1rem'
-                    }}
-                    autoFocus
-                  />
-
-                  <div style={{
-                    flex: 1,
-                    overflowY: 'auto',
-                    border: '1px solid #ccc',
-                    borderRadius: 4,
-                    background: '#333'
-                  }}>
-                    {/* Show selected institutions with delete option */}
-                    {selectedInstitutions.length > 0 && (
-                      <div style={{
-                        padding: '0.75rem 1rem',
-                        background: '#4F6AF6',
-                        color: '#fff',
-                        borderBottom: '1px solid #555',
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: 8
-                      }}>
-                        {selectedInstitutions.map((inst, idx) => (
-                          <span key={inst.id} style={{ display: 'flex', alignItems: 'center', background: '#1976d2', borderRadius: 12, padding: '0.15rem 0.75rem', marginRight: 4, fontSize: 15 }}>
-                            {inst.display_name}
-                            <button
-                              onClick={e => {
-                                e.stopPropagation();
-                                setSelectedInstitutions(selectedInstitutions.filter((_, i) => i !== idx));
-                              }}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                color: '#fff',
-                                marginLeft: 6,
-                                cursor: 'pointer',
-                                fontWeight: 700,
-                                fontSize: 16
-                              }}
-                              title="Remove institution"
-                            >×</button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Show institution suggestions */}
-                    {modalInstitutionSuggestions.map((institution) => (
-                      <div
-                        key={institution.id}
-                        onClick={() => {
-                          // Only add if not already selected
-                          if (!selectedInstitutions.some(i => i.id === institution.id)) {
-                            setSelectedInstitutions([...selectedInstitutions, institution]);
-                          }
-                          setShowInstitutionModal(false);
-                        }}
-                        style={{
-                          padding: '0.75rem 1rem',
-                          cursor: 'pointer',
-                          color: '#fff',
-                          borderBottom: '1px solid #444',
-                          transition: 'background 0.15s'
-                        }}
-                        onMouseEnter={(e) => e.target.style.background = '#444'}
-                        onMouseLeave={(e) => e.target.style.background = 'transparent'}
-                      >
-                        {institution.display_name}
-                      </div>
-                    ))}
-                    {modalInstitutionSuggestions.length === 0 && modalInstitutionInput.length >= 2 && (
-                      <div style={{ padding: '1rem', color: '#888', textAlign: 'center' }}>
-                        No institutions found
-                      </div>
-                    )}
-                    {modalInstitutionInput.length < 2 && (
-                      <div style={{ padding: '1rem', color: '#888', textAlign: 'center' }}>
-                        Type at least 2 characters to search
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
           </>
+        )}
+        {showAuthorModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0,0,0,0.9)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <div style={{
+              background: '#222',
+              border: '1px solid #ccc',
+              borderRadius: 8,
+              padding: '2rem',
+              width: '90%',
+              maxWidth: 600,
+              maxHeight: '80vh',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h2 style={{ color: '#fff', margin: 0 }}>Select Authors</h2>
+                <button
+                  onClick={() => setShowAuthorModal(false)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#fff',
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    padding: '0.5rem'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+
+              <input
+                type="text"
+                value={modalAuthorInput}
+                onChange={async (e) => {
+                  const value = e.target.value;
+                  setModalAuthorInput(value);
+                  if (value.length >= 2) {
+                    try {
+                      const res = await fetch(`https://api.openalex.org/authors?search=${encodeURIComponent(value)}&per_page=20`);
+                      const data = await res.json();
+                      setModalAuthorSuggestions(data.results || []);
+                    } catch {
+                      setModalAuthorSuggestions([]);
+                    }
+                  } else {
+                    setModalAuthorSuggestions([]);
+                  }
+                }}
+                onKeyDown={(e) => handleModalKeyDown(e, 'author')}
+                placeholder="Type to search authors... (Press Enter to select first result)"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  fontSize: 16,
+                  border: '1px solid #ccc',
+                  borderRadius: 4,
+                  background: '#333',
+                  color: '#fff',
+                  marginBottom: '1rem'
+                }}
+                autoFocus
+              />
+
+              <div style={{
+                flex: 1,
+                overflowY: 'auto',
+                border: '1px solid #ccc',
+                borderRadius: 4,
+                background: '#333'
+              }}>
+                {/* Show selected authors with delete option */}
+                {selectedAuthors.length > 0 && (
+                  <div style={{
+                    padding: '0.75rem 1rem',
+                    background: '#8e24aa',
+                    color: '#fff',
+                    borderBottom: '1px solid #555',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 8
+                  }}>
+                    {selectedAuthors.map((author, idx) => (
+                      <span key={author.id} style={{ display: 'flex', alignItems: 'center', background: '#6d28d9', borderRadius: 12, padding: '0.15rem 0.75rem', marginRight: 4, fontSize: 15 }}>
+                        {author.display_name}
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            setSelectedAuthors(selectedAuthors.filter((_, i) => i !== idx));
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#fff',
+                            marginLeft: 6,
+                            cursor: 'pointer',
+                            fontWeight: 700,
+                            fontSize: 16
+                          }}
+                          title="Remove author"
+                        >×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Show author suggestions */}
+                {modalAuthorSuggestions.map((author) => (
+                  <div
+                    key={author.id}
+                    onClick={() => {
+                      // Only add if not already selected
+                      if (!selectedAuthors.some(a => a.id === author.id)) {
+                        setSelectedAuthors([...selectedAuthors, author]);
+                      }
+                      setShowAuthorModal(false);
+                    }}
+                    style={{
+                      padding: '0.75rem 1rem',
+                      cursor: 'pointer',
+                      color: '#fff',
+                      borderBottom: '1px solid #444',
+                      transition: 'background 0.15s'
+                    }}
+                    onMouseEnter={(e) => e.target.style.background = '#444'}
+                    onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                  >
+                    {author.display_name}
+                    {author.h_index && (
+                      <span style={{ color: '#888', marginLeft: '0.5rem' }}>
+                        (H-index: {author.h_index})
+                      </span>
+                    )}
+                  </div>
+                ))}
+                {modalAuthorSuggestions.length === 0 && modalAuthorInput.length >= 2 && (
+                  <div style={{ padding: '1rem', color: '#888', textAlign: 'center' }}>
+                    No authors found
+                  </div>
+                )}
+                {modalAuthorInput.length < 2 && (
+                  <div style={{ padding: '1rem', color: '#888', textAlign: 'center' }}>
+                    Type at least 2 characters to search
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        {showInstitutionModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0,0,0,0.9)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <div style={{
+              background: '#222',
+              border: '1px solid #ccc',
+              borderRadius: 8,
+              padding: '2rem',
+              width: '90%',
+              maxWidth: 600,
+              maxHeight: '80vh',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h2 style={{ color: '#fff', margin: 0 }}>Select Institutions</h2>
+                <button
+                  onClick={() => setShowInstitutionModal(false)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#fff',
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    padding: '0.5rem'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+
+              <input
+                type="text"
+                value={modalInstitutionInput}
+                onChange={async (e) => {
+                  const value = e.target.value;
+                  setModalInstitutionInput(value);
+                  if (value.length >= 2) {
+                    try {
+                      const res = await fetch(`https://api.openalex.org/institutions?search=${encodeURIComponent(value)}&per_page=20`);
+                      const data = await res.json();
+                      setModalInstitutionSuggestions(data.results || []);
+                    } catch {
+                      setModalInstitutionSuggestions([]);
+                    }
+                  } else {
+                    setModalInstitutionSuggestions([]);
+                  }
+                }}
+                onKeyDown={(e) => handleModalKeyDown(e, 'institution')}
+                placeholder="Type to search institutions... (Press Enter to select first result)"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  fontSize: 16,
+                  border: '1px solid #ccc',
+                  borderRadius: 4,
+                  background: '#333',
+                  color: '#fff',
+                  marginBottom: '1rem'
+                }}
+                autoFocus
+              />
+
+              <div style={{
+                flex: 1,
+                overflowY: 'auto',
+                border: '1px solid #ccc',
+                borderRadius: 4,
+                background: '#333'
+              }}>
+                {/* Show selected institutions with delete option */}
+                {selectedInstitutions.length > 0 && (
+                  <div style={{
+                    padding: '0.75rem 1rem',
+                    background: '#4F6AF6',
+                    color: '#fff',
+                    borderBottom: '1px solid #555',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 8
+                  }}>
+                    {selectedInstitutions.map((inst, idx) => (
+                      <span key={inst.id} style={{ display: 'flex', alignItems: 'center', background: '#1976d2', borderRadius: 12, padding: '0.15rem 0.75rem', marginRight: 4, fontSize: 15 }}>
+                        {inst.display_name}
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            setSelectedInstitutions(selectedInstitutions.filter((_, i) => i !== idx));
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#fff',
+                            marginLeft: 6,
+                            cursor: 'pointer',
+                            fontWeight: 700,
+                            fontSize: 16
+                          }}
+                          title="Remove institution"
+                        >×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Show institution suggestions */}
+                {modalInstitutionSuggestions.map((institution) => (
+                  <div
+                    key={institution.id}
+                    onClick={() => {
+                      // Only add if not already selected
+                      if (!selectedInstitutions.some(i => i.id === institution.id)) {
+                        setSelectedInstitutions([...selectedInstitutions, institution]);
+                      }
+                      setShowInstitutionModal(false);
+                    }}
+                    style={{
+                      padding: '0.75rem 1rem',
+                      cursor: 'pointer',
+                      color: '#fff',
+                      borderBottom: '1px solid #444',
+                      transition: 'background 0.15s'
+                    }}
+                    onMouseEnter={(e) => e.target.style.background = '#444'}
+                    onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                  >
+                    {institution.display_name}
+                  </div>
+                ))}
+                {modalInstitutionSuggestions.length === 0 && modalInstitutionInput.length >= 2 && (
+                  <div style={{ padding: '1rem', color: '#888', textAlign: 'center' }}>
+                    No institutions found
+                  </div>
+                )}
+                {modalInstitutionInput.length < 2 && (
+                  <div style={{ padding: '1rem', color: '#888', textAlign: 'center' }}>
+                    Type at least 2 characters to search
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
