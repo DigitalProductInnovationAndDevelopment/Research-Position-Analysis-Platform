@@ -134,8 +134,8 @@ const ResearchLeadershipAnalysis = ({ papers, searchQuery }) => {
                 <div key={country.country} className={styles.statItem}>
                   <div className={styles.rank}>{index + 1}</div>
                   <div className={styles.flag}>
-                    <img 
-                      src={getCountryFlag(country.country)} 
+                    <img
+                      src={getCountryFlag(country.country)}
                       alt={country.country}
                       onError={(e) => e.target.style.display = 'none'}
                     />
@@ -177,7 +177,7 @@ const ResearchLeadershipAnalysis = ({ papers, searchQuery }) => {
           </div>
 
           {/* Research Trends */}
-          <div className={styles.analysisCard}>
+          {/* <div className={styles.analysisCard}>
             <h4>📈 Research Trends</h4>
             <div className={styles.trendsContainer}>
               {yearlyTrends.map(year => (
@@ -190,10 +190,10 @@ const ResearchLeadershipAnalysis = ({ papers, searchQuery }) => {
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* Summary Stats */}
-          <div className={styles.analysisCard}>
+          {/* <div className={styles.analysisCard}>
             <h4>📊 Summary</h4>
             <div className={styles.summaryStats}>
               <div className={styles.summaryItem}>
@@ -219,7 +219,7 @@ const ResearchLeadershipAnalysis = ({ papers, searchQuery }) => {
                 <div className={styles.summaryLabel}>Institutions</div>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       )}
     </div>
