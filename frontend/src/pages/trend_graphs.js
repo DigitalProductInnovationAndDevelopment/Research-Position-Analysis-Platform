@@ -15,7 +15,7 @@ import Particles from "../components/animated/SearchBackground/Particles";
 
 export const PositionDetailLight = ({ darkMode = true }) => {
   const navigate = useNavigate();
-  
+
   // Main search/filter state
   const [searchKeyword, setSearchKeyword] = useState("");
   // Multi-select authors/institutions
@@ -31,7 +31,7 @@ export const PositionDetailLight = ({ darkMode = true }) => {
   // UI state
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [error, setError] = useState(null);
-  
+
   // Trend visualization state
   const [trendData, setTrendData] = useState(null);
   const [isLoadingTrend, setIsLoadingTrend] = useState(false);
@@ -143,7 +143,7 @@ export const PositionDetailLight = ({ darkMode = true }) => {
 
     try {
       const filters = [];
-      
+
       // Add keyword search
       if (searchKeyword.trim()) {
         const keyword = searchKeyword.trim();
@@ -183,17 +183,17 @@ export const PositionDetailLight = ({ darkMode = true }) => {
         const typeFilters = selectedPublicationTypes.map(pt => `type:${pt.id}`);
         filters.push(typeFilters.join('|'));
       }
-      
+
       // Add publication year filter
       if (publicationYear.trim()) {
         filters.push(`publication_year:${publicationYear.trim()}`);
       }
-      
+
       // Add year range filter
       if (startYear.trim() && endYear.trim()) {
         filters.push(`publication_year:${startYear.trim()}-${endYear.trim()}`);
       }
-      
+
       // Add journals filter
       if (selectedJournals.length > 0) {
         const journalFilters = selectedJournals.map(journal => {
@@ -206,34 +206,34 @@ export const PositionDetailLight = ({ darkMode = true }) => {
       const filterString = filters.join(',');
       const params = new URLSearchParams();
       if (filterString) params.append('filter', filterString);
-      
+
       // Use different API approach based on whether authors are selected
       if (selectedAuthors.length > 0) {
         // When authors are selected, fetch individual papers and process them
         params.append('per_page', '200'); // Get more papers for better trend analysis
         params.append('sort', 'cited_by_count:desc');
-        
+
         const apiUrl = `https://api.openalex.org/works?${params.toString()}`;
         setApiCalls([apiUrl]);
-        
+
         const response = await fetch(apiUrl);
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.details || `HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         // Deduplicate results based on work ID and title
         const uniqueResults = [];
         const seenIds = new Set();
         const seenTitles = new Set();
-        
+
         if (data.results && Array.isArray(data.results)) {
           data.results.forEach(result => {
             const title = result.title || result.display_name || '';
             const normalizedTitle = title.toLowerCase().trim();
-            
+
             // Check both ID and title for duplicates
             if (result.id && !seenIds.has(result.id) && !seenTitles.has(normalizedTitle)) {
               seenIds.add(result.id);
@@ -242,11 +242,11 @@ export const PositionDetailLight = ({ darkMode = true }) => {
             }
           });
         }
-        
+
         // Process individual papers to create trend data
         const yearlyDistribution = {};
         let totalPublications = 0;
-        
+
         uniqueResults.forEach(paper => {
           const year = paper.publication_year;
           if (year) {
@@ -254,17 +254,17 @@ export const PositionDetailLight = ({ darkMode = true }) => {
             totalPublications++;
           }
         });
-        
+
         // Calculate growth rates
         const years = Object.keys(yearlyDistribution).sort((a, b) => parseInt(a) - parseInt(b));
         const yearOverYearGrowth = [];
-        
+
         for (let i = 1; i < years.length; i++) {
           const currentYear = parseInt(years[i]);
           const previousYear = parseInt(years[i - 1]);
           const currentCount = yearlyDistribution[currentYear];
           const previousCount = yearlyDistribution[previousYear];
-          
+
           if (previousCount > 0) {
             const growthRate = ((currentCount - previousCount) / previousCount) * 100;
             yearOverYearGrowth.push({
@@ -273,12 +273,12 @@ export const PositionDetailLight = ({ darkMode = true }) => {
             });
           }
         }
-        
+
         // Calculate average growth rate
-        const averageGrowthRate = yearOverYearGrowth.length > 0 
+        const averageGrowthRate = yearOverYearGrowth.length > 0
           ? Math.round((yearOverYearGrowth.reduce((sum, item) => sum + item.rate, 0) / yearOverYearGrowth.length) * 100) / 100
           : 0;
-        
+
         // Create trend data structure
         const trendData = {
           publication_count: totalPublications,
@@ -290,35 +290,35 @@ export const PositionDetailLight = ({ darkMode = true }) => {
             }
           }
         };
-        
+
         setTrendData(trendData);
-        
+
       } else {
         // When no authors are selected, use the original group_by approach
         params.append('group_by', 'publication_year');
         params.append('per_page', '200');
-        
+
         const apiUrl = `https://api.openalex.org/works?${params.toString()}`;
         setApiCalls([apiUrl]);
-        
+
         const response = await fetch(apiUrl);
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.details || `HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         // Check if we have any results
         if (!data.group_by || data.group_by.length === 0) {
           setError("No publications found for the given keyword and filters.");
           return;
         }
-        
+
         // Process group_by data to create trend analysis
         const yearlyDistribution = {};
         let totalPublications = 0;
-        
+
         // Process group_by results
         data.group_by.forEach(group => {
           const year = group.key;
@@ -328,17 +328,17 @@ export const PositionDetailLight = ({ darkMode = true }) => {
             totalPublications += count;
           }
         });
-        
+
         // Calculate growth rates
         const years = Object.keys(yearlyDistribution).sort((a, b) => parseInt(a) - parseInt(b));
         const yearOverYearGrowth = [];
-        
+
         for (let i = 1; i < years.length; i++) {
           const currentYear = parseInt(years[i]);
           const previousYear = parseInt(years[i - 1]);
           const currentCount = yearlyDistribution[currentYear];
           const previousCount = yearlyDistribution[previousYear];
-          
+
           if (previousCount > 0) {
             const growthRate = ((currentCount - previousCount) / previousCount) * 100;
             yearOverYearGrowth.push({
@@ -347,12 +347,12 @@ export const PositionDetailLight = ({ darkMode = true }) => {
             });
           }
         }
-        
+
         // Calculate average growth rate
-        const averageGrowthRate = yearOverYearGrowth.length > 0 
+        const averageGrowthRate = yearOverYearGrowth.length > 0
           ? Math.round((yearOverYearGrowth.reduce((sum, item) => sum + item.rate, 0) / yearOverYearGrowth.length) * 100) / 100
           : 0;
-        
+
         // Create trend data structure
         const trendData = {
           publication_count: totalPublications,
@@ -364,10 +364,10 @@ export const PositionDetailLight = ({ darkMode = true }) => {
             }
           }
         };
-        
+
         setTrendData(trendData);
       }
-      
+
     } catch (e) {
       setError("Failed to fetch publication trend. Please try again with a different keyword or date range.");
       console.error("Keyword trend fetch error:", e);
@@ -403,16 +403,16 @@ export const PositionDetailLight = ({ darkMode = true }) => {
 
   const handleBarClick = (data) => {
     if (!data || !data.year || !searchKeyword.trim()) return;
-    
+
     // Construct search parameters
     const searchParams = new URLSearchParams();
-    
+
     // Add keyword search
     searchParams.append('search', searchKeyword.trim());
-    
+
     // Add year filter (override any existing year range with the clicked year)
     searchParams.append('publication_year', data.year);
-    
+
     // Add selected authors
     if (selectedAuthors.length > 0) {
       selectedAuthors.forEach(author => {
@@ -427,7 +427,7 @@ export const PositionDetailLight = ({ darkMode = true }) => {
         }
       });
     }
-    
+
     // Add selected institutions
     if (selectedInstitutions.length > 0) {
       selectedInstitutions.forEach(institution => {
@@ -442,14 +442,14 @@ export const PositionDetailLight = ({ darkMode = true }) => {
         }
       });
     }
-    
+
     // Add publication types
     if (selectedPublicationTypes.length > 0) {
       selectedPublicationTypes.forEach(type => {
         searchParams.append('publication_type', type.id);
       });
     }
-    
+
     // Add journals
     if (selectedJournals.length > 0) {
       selectedJournals.forEach(journal => {
@@ -459,13 +459,13 @@ export const PositionDetailLight = ({ darkMode = true }) => {
         }
       });
     }
-    
+
     // Add year range (if specified, will be overridden by the clicked year)
     if (startYear.trim() && endYear.trim()) {
       searchParams.append('start_year', startYear.trim());
       searchParams.append('end_year', endYear.trim());
     }
-    
+
     // Navigate to search page with all filters
     const finalUrl = `/search?${searchParams.toString()}`;
     console.log('Navigating to search page with URL:', finalUrl);
@@ -521,23 +521,23 @@ export const PositionDetailLight = ({ darkMode = true }) => {
       <div style={{ background: '#000', minHeight: '100vh', paddingBottom: 40 }} className={darkMode ? 'dark' : ''}>
         {/* Search Background - covers the search interface area */}
         <div style={{ position: 'relative' }}>
-          <div style={{ 
-            position: 'absolute', 
-            top: 0, 
-            left: 0, 
-            right: 0, 
-            height: '600px', 
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '600px',
             zIndex: 1,
             pointerEvents: 'none'
           }}>
             <Particles />
           </div>
-          
+
           {/* Search Interface Content */}
           <div style={{ position: 'relative', zIndex: 2 }}>
             <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem 1rem' }}>
-              <SearchHeader 
-                darkMode={darkMode} 
+              <SearchHeader
+                darkMode={darkMode}
                 title="Publication Trends"
                 subtitle="Visualize research trends and gain insights into the evolution of topics"
               />
@@ -585,15 +585,15 @@ export const PositionDetailLight = ({ darkMode = true }) => {
                 darkMode={darkMode}
               />
               {/* Disclaimer Box */}
-              <ApiCallInfoBox 
-                userInputs={userInputs} 
-                apiCalls={apiCalls} 
-                darkMode={darkMode} 
+              <ApiCallInfoBox
+                userInputs={userInputs}
+                apiCalls={apiCalls}
+                darkMode={darkMode}
               />
             </div>
           </div>
         </div>
-        
+
         {/* Trend Visualization - outside the background area */}
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1rem' }}>
           <div className={styles.mainContent}>
@@ -722,7 +722,7 @@ export const PositionDetailLight = ({ darkMode = true }) => {
             title="Select Publication Types"
             placeholder="Type to search publication types..."
             onSearchChange={(query) => {
-              const filtered = publicationTypes.filter(pt => 
+              const filtered = publicationTypes.filter(pt =>
                 pt.display_name.toLowerCase().includes(query.toLowerCase())
               );
               return Promise.resolve(filtered);
@@ -738,7 +738,7 @@ export const PositionDetailLight = ({ darkMode = true }) => {
               });
             }}
             onDeselect={(publicationType) => {
-              setSelectedPublicationTypes(prev => 
+              setSelectedPublicationTypes(prev =>
                 prev.filter(pt => pt.id !== publicationType.id)
               );
             }}
@@ -764,7 +764,7 @@ export const PositionDetailLight = ({ darkMode = true }) => {
               });
             }}
             onDeselect={(journal) => {
-              setSelectedJournals(prev => 
+              setSelectedJournals(prev =>
                 prev.filter(j => j.id !== journal.id)
               );
             }}
