@@ -1,8 +1,30 @@
-# Research-Position-Analysis-Platform
-Prototype to address the challenge of analysing the research position of teams, institutions, and companies
+## SPARK – Research Position Analysis Platform
+SPARK is a web-based research analytics platform developed at the Technical University of Munich in collaboration with Siemens and Fortiss. It helps identify emerging trends, potential collaborators, and innovation signals within the global research landscape.
 
-# What the prototype does
-SPARK stands for Search Publication Analysis & Research Knowledgebase. It is a web-based tool designed to support research strategy by providing insights into academic publication data. Users can analyze research trends, track institutional output, explore collaboration networks, benchmark performance against competitors, and assess research relevance through funding and patent citations. The data is sourced primarily from OpenAlex, with optional fallback to IEEE Xplore, ACM, and Google Scholar.
+## Live Demo
+Access the live platform here:
+https://research-position-analysis-platform.onrender.com
+
+## Key Features
+- Unified keyword-based search across OpenAlex data
+- Interactive collaboration graph showing co-authorship networks
+- Global map of publication activity by country
+- Benchmarking of Siemens vs peer institutions
+- Publication trends over time with filtering by author, org, or topic
+- Clean and responsive UI with dark mode
+
+##  Tech Stack
+- Frontend: React.js, Shadcn UI
+- Backend: Node.js, Express
+- Data Source: OpenAlex API
+- Deployment: Hosted on Render
+
+## Known Limitations
+- No user authentication
+- Benchmarking is limited to Siemens and selected peers
+- OpenAlex API has a daily rate limit (100,000 requests)
+- Patent and funding data only partially integrated
+- UI is in prototype stage
 
 ## Usage
 
@@ -55,3 +77,4 @@ Open your browser and go to [http://localhost:3000](http://localhost:3000) to us
 ---
 
 For any issues, please refer to the respective README files in `backend` and `frontend` folders or contact the maintainers.
+For questions or feedback, reach out via the course Discord or contact us through internal channels at TUM.
